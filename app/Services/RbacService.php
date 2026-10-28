@@ -40,8 +40,14 @@ class RbacService
         'suppliers.view' => 'View suppliers and ledgers',
         'suppliers.manage' => 'Manage suppliers and record payments',
         'expenses.view' => 'View expenses',
-        'expenses.manage' => 'Record and manage expenses',
-        'reports.view' => 'View reports and profit calculations',
+        'expenses.create' => 'Record expenses',
+        'expenses.manage' => 'Record and manage expenses and categories',
+        'expenses.delete' => 'Delete expenses',
+        'cash.view' => 'View cash sessions and drawer history',
+        'cash.manage' => 'Open, close, and manage cash sessions',
+        'reports.view' => 'View operational reports',
+        'reports.profit.view' => 'View gross and net profit reports',
+        'reports.export' => 'Export reports as CSV or PDF',
         'audit.view' => 'View audit logs',
     ];
 
@@ -82,11 +88,14 @@ class RbacService
                 'purchases.manage', 'customers.view', 'customers.manage',
                 'udhar.view', 'udhar.collect', 'udhar.remind',
                 'suppliers.view', 'suppliers.manage', 'expenses.view',
-                'expenses.manage', 'reports.view', 'audit.view',
+                'expenses.create', 'expenses.manage', 'expenses.delete',
+                'cash.view', 'cash.manage', 'reports.view', 'reports.profit.view',
+                'reports.export', 'audit.view',
             ],
             'Cashier' => [
                 'products.view', 'sales.view', 'sales.create', 'sales.return',
                 'customers.view', 'customers.manage', 'udhar.view', 'udhar.collect',
+                'cash.view', 'cash.manage',
             ],
             'Inventory Staff' => [
                 'products.view', 'products.manage',
@@ -95,8 +104,9 @@ class RbacService
             ],
             'Accountant' => [
                 'sales.view', 'purchases.view', 'expenses.view',
-                'expenses.manage', 'customers.view', 'suppliers.view',
-                'udhar.view', 'reports.view',
+                'expenses.create', 'expenses.manage', 'customers.view',
+                'suppliers.view', 'udhar.view', 'cash.view',
+                'reports.view', 'reports.profit.view', 'reports.export',
             ],
         ];
 

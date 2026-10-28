@@ -28,8 +28,12 @@ class DashboardController extends Controller
             'membership' => $membership,
             'lowStockCount' => $stats['lowStockCount'],
             'totalProducts' => $stats['totalProducts'],
+            'todaySales' => $stats['todaySales'],
+            'todaySaleCount' => $stats['todaySaleCount'],
+            'cashReceived' => $stats['cashReceived'],
             'totalUdhar' => $stats['totalUdhar'],
             'udharCustomerCount' => $stats['udharCustomerCount'],
+            'estimatedProfit' => $stats['estimatedProfit'],
         ]);
     }
 }

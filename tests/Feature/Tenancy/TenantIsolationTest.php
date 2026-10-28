@@ -4,34 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Tenancy;
 
+use App\Models\Customer;
 use App\Models\Shop;
 use App\Models\ShopUser;
 use App\Models\User;
 use App\Tenancy\TenantContext;
-use App\Traits\Auditable;
-use App\Traits\BelongsToShop;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
-
-/**
- * Throwaway tenant-owned test model.
- */
-class TestTenantItem extends Model
-{
-    use Auditable, BelongsToShop;
-
-    protected $table = 'test_tenant_items';
-
-    protected $fillable = [
-        'name',
-        'price',
-    ];
-}
 
 class TenantIsolationTest extends TestCase
 {
@@ -41,39 +22,30 @@ class TenantIsolationTest extends TestCase
     {
         parent::setUp();
 
-        // Create throwaway tenant-owned table
-        Schema::create('test_tenant_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('shop_id')->constrained('shops')->cascadeOnDelete();
-            $table->string('name');
-            $table->decimal('price', 14, 2)->default(0.00);
-            $table->timestamps();
-        });
-
-        // Register test routes protected by tenancy middleware
+        // Register test routes protected by tenancy middleware using real Customer tenant model
         Route::middleware(['web', 'auth', 'tenant.resolve', 'shop.access'])->group(function () {
             Route::get('/test-tenant/dashboard', function () {
                 return response()->json(['ok' => true]);
             })->name('test-tenant.dashboard');
 
-            Route::get('/test-tenant/items/{item}', function (TestTenantItem $item) {
+            Route::get('/test-tenant/items/{customer}', function (Customer $customer) {
                 return response()->json([
-                    'id' => $item->id,
-                    'name' => $item->name,
+                    'id' => $customer->id,
+                    'name' => $customer->name,
                 ]);
             })->name('test-tenant.items.show');
 
-            Route::put('/test-tenant/items/{item}', function (Request $request, TestTenantItem $item) {
-                $item->update($request->only('name', 'price'));
+            Route::put('/test-tenant/items/{customer}', function (Request $request, Customer $customer) {
+                $customer->update($request->only('name', 'phone'));
 
                 return response()->json([
-                    'id' => $item->id,
-                    'name' => $item->name,
+                    'id' => $customer->id,
+                    'name' => $customer->name,
                 ]);
             })->name('test-tenant.items.update');
 
-            Route::delete('/test-tenant/items/{item}', function (TestTenantItem $item) {
-                $item->delete();
+            Route::delete('/test-tenant/items/{customer}', function (Customer $customer) {
+                $customer->delete();
 
                 return response()->json(['deleted' => true]);
             })->name('test-tenant.items.destroy');
@@ -83,7 +55,6 @@ class TenantIsolationTest extends TestCase
     protected function tearDown(): void
     {
         TenantContext::reset();
-        Schema::dropIfExists('test_tenant_items');
 
         parent::tearDown();
     }
@@ -101,13 +72,12 @@ class TenantIsolationTest extends TestCase
         ]);
 
         // Create an item owned by Shop B
-        $itemB = new TestTenantItem;
+        $itemB = new Customer;
         $itemB->shop_id = $shopB->id;
-        $itemB->name = 'Shop B Secret Item';
-        $itemB->price = 100.00;
+        $itemB->name = 'Shop B Secret Customer';
         $itemB->save();
 
-        // User A accesses Shop B's item ID under Shop A's session
+        // User A accesses Shop B's customer ID under Shop A's session
         $response = $this->actingAs($userA)
             ->withSession(['current_shop_id' => $shopA->id])
             ->getJson("/test-tenant/items/{$itemB->id}");
@@ -128,10 +98,9 @@ class TenantIsolationTest extends TestCase
             'status' => 'active',
         ]);
 
-        $itemB = new TestTenantItem;
+        $itemB = new Customer;
         $itemB->shop_id = $shopB->id;
         $itemB->name = 'Original Name';
-        $itemB->price = 100.00;
         $itemB->save();
 
         $response = $this->actingAs($userA)
@@ -141,7 +110,7 @@ class TenantIsolationTest extends TestCase
             ]);
 
         $response->assertNotFound();
-        $this->assertDatabaseHas('test_tenant_items', [
+        $this->assertDatabaseHas('customers', [
             'id' => $itemB->id,
             'name' => 'Original Name',
         ]);
@@ -159,10 +128,9 @@ class TenantIsolationTest extends TestCase
             'status' => 'active',
         ]);
 
-        $itemB = new TestTenantItem;
+        $itemB = new Customer;
         $itemB->shop_id = $shopB->id;
         $itemB->name = 'To Not Delete';
-        $itemB->price = 50.00;
         $itemB->save();
 
         $response = $this->actingAs($userA)
@@ -170,7 +138,7 @@ class TenantIsolationTest extends TestCase
             ->deleteJson("/test-tenant/items/{$itemB->id}");
 
         $response->assertNotFound();
-        $this->assertDatabaseHas('test_tenant_items', [
+        $this->assertDatabaseHas('customers', [
             'id' => $itemB->id,
         ]);
     }
@@ -183,15 +151,14 @@ class TenantIsolationTest extends TestCase
         TenantContext::setShop($shopA);
 
         // Attempt to pass shop_id for Shop B via mass assignment
-        $item = TestTenantItem::create([
+        $item = Customer::create([
             'name' => 'Tenant Item 1',
-            'price' => 25.50,
             'shop_id' => $shopB->id,
         ]);
 
         // Invariant: shop_id is always filled from TenantContext, never user input
         $this->assertSame($shopA->id, $item->shop_id);
-        $this->assertDatabaseHas('test_tenant_items', [
+        $this->assertDatabaseHas('customers', [
             'id' => $item->id,
             'shop_id' => $shopA->id,
         ]);
@@ -203,20 +170,20 @@ class TenantIsolationTest extends TestCase
         $shopB = Shop::factory()->create();
 
         TenantContext::setShop($shopA);
-        $itemA = TestTenantItem::create(['name' => 'Item A', 'price' => 10]);
+        $itemA = Customer::create(['name' => 'Item A']);
 
         TenantContext::setShop($shopB);
-        $itemB = TestTenantItem::create(['name' => 'Item B', 'price' => 20]);
+        $itemB = Customer::create(['name' => 'Item B']);
 
         // Active context is Shop B: cannot see Shop A's item
-        $itemsInB = TestTenantItem::all();
+        $itemsInB = Customer::all();
         $this->assertCount(1, $itemsInB);
         $this->assertTrue($itemsInB->contains('id', $itemB->id));
         $this->assertFalse($itemsInB->contains('id', $itemA->id));
 
         // Switch to Shop A: cannot see Shop B's item
         TenantContext::setShop($shopA);
-        $itemsInA = TestTenantItem::all();
+        $itemsInA = Customer::all();
         $this->assertCount(1, $itemsInA);
         $this->assertTrue($itemsInA->contains('id', $itemA->id));
         $this->assertFalse($itemsInA->contains('id', $itemB->id));
@@ -273,27 +240,26 @@ class TenantIsolationTest extends TestCase
         TenantContext::setShop($shop);
 
         // Created event
-        $item = TestTenantItem::create([
+        $item = Customer::create([
             'name' => 'Audited Item',
-            'price' => 125.00,
         ]);
 
         $this->assertDatabaseHas('audit_logs', [
             'shop_id' => $shop->id,
             'user_id' => $user->id,
             'event' => 'created',
-            'auditable_type' => TestTenantItem::class,
+            'auditable_type' => Customer::class,
             'auditable_id' => $item->id,
         ]);
 
         // Updated event
-        $item->update(['price' => 150.00]);
+        $item->update(['name' => 'Updated Audited Item']);
 
         $this->assertDatabaseHas('audit_logs', [
             'shop_id' => $shop->id,
             'user_id' => $user->id,
             'event' => 'updated',
-            'auditable_type' => TestTenantItem::class,
+            'auditable_type' => Customer::class,
             'auditable_id' => $item->id,
         ]);
 
@@ -305,7 +271,7 @@ class TenantIsolationTest extends TestCase
             'shop_id' => $shop->id,
             'user_id' => $user->id,
             'event' => 'deleted',
-            'auditable_type' => TestTenantItem::class,
+            'auditable_type' => Customer::class,
             'auditable_id' => $itemId,
         ]);
     }

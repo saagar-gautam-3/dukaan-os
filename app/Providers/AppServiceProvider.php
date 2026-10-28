@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\CashSession;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\Sale;
 use App\Models\StockBalance;
 use App\Models\SupplierLedgerEntry;
 use App\Models\User;
+use App\Policies\CashSessionPolicy;
 use App\Policies\CustomerLedgerEntryPolicy;
 use App\Policies\CustomerPolicy;
+use App\Policies\ExpenseCategoryPolicy;
+use App\Policies\ExpensePolicy;
 use App\Policies\SalePolicy;
 use App\Policies\StockPolicy;
 use App\Policies\SupplierLedgerEntryPolicy;
@@ -49,6 +55,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(CustomerLedgerEntry::class, CustomerLedgerEntryPolicy::class);
         Gate::policy(SupplierLedgerEntry::class, SupplierLedgerEntryPolicy::class);
+        Gate::policy(ExpenseCategory::class, ExpenseCategoryPolicy::class);
+        Gate::policy(Expense::class, ExpensePolicy::class);
+        Gate::policy(CashSession::class, CashSessionPolicy::class);
 
         Blade::directive('npr', function (string $expression): string {
             return "<?php echo \App\Support\NepaliNumber::formatNpr({$expression}); ?>";

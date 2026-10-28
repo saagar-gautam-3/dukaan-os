@@ -1,0 +1,33 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    // Cash sessions
+    'session_already_open' => 'नगद सत्र पहिले नै खुला छ। नयाँ सत्र खोल्नु अघि यसलाई बन्द गर्नुहोस्।',
+    'session_already_closed' => 'यो नगद सत्र पहिले नै बन्द भइसकेको छ।',
+    'invalid_opening_amount' => 'प्रारम्भिक नगद नकारात्मक हुन सक्दैन।',
+    'invalid_closing_amount' => 'बन्द गर्ने नगद नकारात्मक हुन सक्दैन।',
+    'status_open' => 'खुला',
+    'status_closed' => 'बन्द',
+    'session_opened' => 'नगद सत्र सफलतापूर्वक खोलियो।',
+    'session_closed' => 'नगद सत्र बन्द भयो।',
+    'no_open_session' => 'कुनै खुला नगद सत्र फेला परेन।',
+    'opening_cash' => 'प्रारम्भिक नगद',
+    'closing_cash' => 'बन्द गर्ने नगद (गनिएको)',
+    'expected_cash' => 'अपेक्षित नगद',
+    'difference' => 'फरक',
+    'overage' => 'बढी',
+    'shortage' => 'कमी',
+    'movements' => 'नगद चलाचल',
+    'cash_in' => 'नगद आम्दानी',
+    'cash_out' => 'नगद खर्च',
+    'open_session' => 'सत्र खोल्नुहोस्',
+    'close_session' => 'सत्र बन्द गर्नुहोस्',
+    'sessions_history' => 'सत्र इतिहास',
+    'session_detail' => 'सत्र विवरण',
+    'opened_by' => 'खोलेको',
+    'closed_by' => 'बन्द गरेको',
+    'opened_at' => 'खोलिएको समय',
+    'closed_at' => 'बन्द गरिएको समय',
+];

@@ -34,4 +34,10 @@ return [
     'created_success' => 'Created successfully.',
     'updated_success' => 'Updated successfully.',
     'deleted_success' => 'Deleted successfully.',
+    'save_changes' => 'Save Changes',
+    'confirm_delete' => 'Are you sure you want to delete this?',
+    'confirm' => 'Confirm',
+    'error_generic' => 'An unexpected error occurred. Please try again.',
+    'select' => 'Select',
+    'all' => 'All',
 ];

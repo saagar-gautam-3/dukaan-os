@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Sales;
 
+use App\Actions\Cash\RecordCashMovement;
 use App\Actions\Udhar\AddCustomerLedgerEntry;
+use App\Enums\CashMovementType;
 use App\Enums\LedgerEntryType;
 use App\Enums\PaymentMethod;
 use App\Models\Customer;
@@ -74,11 +76,12 @@ class RecordPayment
                 'idempotency_key' => $idemKey,
             ]);
 
-            // Optionally allocate to a specific sale
-            if (! empty($data['allocate_to_sale_id'])) {
-                $this->allocatePayment->handle($payment, (int) $data['allocate_to_sale_id'], $amount);
-            } elseif (! empty($data['customer_id'])) {
-                // Write ledger credit for standalone / unallocated payment
+            // Write ledger credit ONLY when NOT allocating to a specific sale.
+            // When allocate_to_sale_id is set, the ledger credit belongs to RecordPayment
+            // (since AllocatePayment only updates paid_total, never writes ledger).
+            // Decision: RecordPayment always owns the single ledger credit write for this payment.
+            // AllocatePayment is purely a bookkeeping helper (updates paid_total cache only).
+            if (! empty($data['customer_id'])) {
                 $customer = Customer::find($data['customer_id']);
                 if ($customer) {
                     $this->addLedgerEntry->handle($customer, [
@@ -90,6 +93,22 @@ class RecordPayment
                         'created_by' => $userId,
                     ]);
                 }
+            }
+
+            // Optionally allocate to a specific sale
+            if (! empty($data['allocate_to_sale_id'])) {
+                $this->allocatePayment->handle($payment, (int) $data['allocate_to_sale_id'], $amount);
+            }
+
+            // Record cash movement if cash was received
+            if ($method === PaymentMethod::Cash) {
+                app(RecordCashMovement::class)->handle($shop->id, $userId, [
+                    'type' => CashMovementType::CashIn,
+                    'amount' => $amount,
+                    'reference_type' => 'payment',
+                    'reference_id' => $payment->id,
+                    'notes' => "Cash payment {$payment->payment_no}",
+                ]);
             }
 
             return $payment->refresh()->load('allocations');

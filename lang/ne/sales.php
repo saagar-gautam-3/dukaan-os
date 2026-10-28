@@ -84,4 +84,5 @@ return [
     'sale_cancelled' => 'बिक्री रद्द गरियो।',
     'draft_saved' => 'मस्यौदा बचत गरियो।',
     'insufficient_stock' => ':product को लागि पर्याप्त स्टक छैन।',
+    'customer_archived' => 'ग्राहक :name सफलतापूर्वक अभिलेख गरियो।',
 ];

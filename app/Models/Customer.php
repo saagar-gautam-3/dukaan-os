@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\SaleStatus;
+use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    use BelongsToShop, HasFactory;
+    use Auditable, BelongsToShop, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',

@@ -84,4 +84,5 @@ return [
     'sale_cancelled' => 'Sale cancelled.',
     'draft_saved' => 'Draft saved.',
     'insufficient_stock' => 'Insufficient stock for :product.',
+    'customer_archived' => 'Customer :name archived successfully.',
 ];

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Actions\Sales;
 
+use App\Actions\Cash\RecordCashMovement;
 use App\Actions\Udhar\AddCustomerLedgerEntry;
+use App\Enums\CashMovementType;
 use App\Enums\LedgerEntryType;
 use App\Enums\MovementType;
 use App\Enums\PaymentMethod;
@@ -306,6 +308,18 @@ class PostSale
 
         // Update sale's paid_total cache
         $sale->paid_total = bcadd((string) $sale->paid_total, $payAmount, 2);
+
+        // Record cash movement if cash was received
+        if ($method === PaymentMethod::Cash) {
+            app(RecordCashMovement::class)->handle($shopId, $userId, [
+                'type' => CashMovementType::SaleCash,
+                'amount' => $payAmount,
+                'reference_type' => 'payment',
+                'reference_id' => $payment->id,
+                'notes' => "Cash received for sale {$sale->invoice_no}",
+                'branch_id' => $sale->branch_id,
+            ]);
+        }
 
         return $payAmount;
     }
