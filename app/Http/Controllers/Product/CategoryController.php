@@ -4,65 +4,60 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Product;
 
+use App\Actions\Product\CreateCategory;
+use App\Actions\Product\DeleteCategory;
+use App\Actions\Product\UpdateCategory;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Product\StoreCategoryRequest;
+use App\Http\Requests\Product\UpdateCategoryRequest;
 use App\Models\Category;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class CategoryController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('viewAny', Category::class);
+        $this->authorize('viewAny', Category::class);
 
         $categories = Category::withCount('products')->orderBy('name')->get();
 
         return view('categories.index', compact('categories'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreCategoryRequest $request, CreateCategory $createCategory): RedirectResponse
     {
-        Gate::authorize('create', Category::class);
+        try {
+            $createCategory->execute($request->validated());
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255'],
-        ]);
-
-        $slug = $validated['slug'] ? Str::slug($validated['slug']) : Str::slug($validated['name']);
-
-        Category::create([
-            'name' => $validated['name'],
-            'slug' => $slug.'-'.uniqid(),
-        ]);
-
-        return redirect()->route('categories.index')->with('status', __('products.category_created'));
+            return redirect()->route('categories.index')->with('status', __('products.category_created'));
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
-    public function update(Request $request, Category $category): RedirectResponse
+    public function update(UpdateCategoryRequest $request, Category $category, UpdateCategory $updateCategory): RedirectResponse
     {
-        Gate::authorize('update', $category);
+        try {
+            $updateCategory->execute($category, $request->validated());
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
-        $category->update([
-            'name' => $validated['name'],
-        ]);
-
-        return redirect()->route('categories.index')->with('status', __('products.category_updated'));
+            return redirect()->route('categories.index')->with('status', __('products.category_updated'));
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
-    public function destroy(Category $category): RedirectResponse
+    public function destroy(Category $category, DeleteCategory $deleteCategory): RedirectResponse
     {
-        Gate::authorize('delete', $category);
+        $this->authorize('delete', $category);
 
-        $category->delete();
+        try {
+            $deleteCategory->execute($category);
 
-        return redirect()->route('categories.index')->with('status', __('products.category_deleted'));
+            return redirect()->route('categories.index')->with('status', __('products.category_deleted'));
+        } catch (Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

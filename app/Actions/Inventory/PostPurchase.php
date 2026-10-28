@@ -6,6 +6,7 @@ namespace App\Actions\Inventory;
 
 use App\Enums\MovementType;
 use App\Enums\PurchaseStatus;
+use App\Exceptions\ImmutableRecordException;
 use App\Models\Purchase;
 use App\Models\Warehouse;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +25,7 @@ class PostPurchase
     public function execute(Purchase $purchase, ?int $userId = null): Purchase
     {
         if ($purchase->isPosted()) {
-            throw new InvalidArgumentException('Purchase is already posted and cannot be re-posted.');
+            throw ImmutableRecordException::forPurchase($purchase->id, $purchase->status->value);
         }
 
         if ($purchase->status === PurchaseStatus::Cancelled) {

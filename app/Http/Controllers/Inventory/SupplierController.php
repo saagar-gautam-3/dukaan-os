@@ -4,96 +4,76 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Inventory;
 
+use App\Actions\Inventory\CreateSupplier;
+use App\Actions\Inventory\DeleteSupplier;
+use App\Actions\Inventory\QuerySuppliers;
+use App\Actions\Inventory\UpdateSupplier;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Inventory\StoreSupplierRequest;
+use App\Http\Requests\Inventory\UpdateSupplierRequest;
 use App\Models\Supplier;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Throwable;
 
 class SupplierController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request, QuerySuppliers $querySuppliers): View
     {
-        Gate::authorize('viewAny', Supplier::class);
+        $this->authorize('viewAny', Supplier::class);
 
-        $query = Supplier::query();
-
-        if ($request->filled('search')) {
-            $search = trim((string) $request->input('search'));
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('contact_person', 'like', "%{$search}%")
-                    ->orWhere('pan_vat', 'like', "%{$search}%");
-            });
-        }
-
-        $suppliers = $query->latest()->paginate(15)->withQueryString();
+        $suppliers = $querySuppliers->execute($request->all());
 
         return view('suppliers.index', compact('suppliers'));
     }
 
     public function create(): View
     {
-        Gate::authorize('create', Supplier::class);
+        $this->authorize('create', Supplier::class);
 
-        return view('suppliers.create');
+        return view('suppliers.form');
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreSupplierRequest $request, CreateSupplier $createSupplier): RedirectResponse
     {
-        Gate::authorize('create', Supplier::class);
+        try {
+            $createSupplier->execute($request->validated());
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'contact_person' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'pan_vat' => ['nullable', 'string', 'max:50'],
-            'address' => ['nullable', 'string', 'max:500'],
-            'opening_balance' => ['nullable', 'numeric'],
-        ]);
-
-        $validated['opening_balance'] = $validated['opening_balance'] ?? 0.00;
-        $validated['current_balance'] = $validated['opening_balance'];
-
-        Supplier::create($validated);
-
-        return redirect()->route('suppliers.index')->with('status', __('suppliers.created_success'));
+            return redirect()->route('suppliers.index')->with('status', __('suppliers.created_success'));
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function edit(Supplier $supplier): View
     {
-        Gate::authorize('update', $supplier);
+        $this->authorize('update', $supplier);
 
-        return view('suppliers.edit', compact('supplier'));
+        return view('suppliers.form', compact('supplier'));
     }
 
-    public function update(Request $request, Supplier $supplier): RedirectResponse
+    public function update(UpdateSupplierRequest $request, Supplier $supplier, UpdateSupplier $updateSupplier): RedirectResponse
     {
-        Gate::authorize('update', $supplier);
+        try {
+            $updateSupplier->execute($supplier, $request->validated());
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'contact_person' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'pan_vat' => ['nullable', 'string', 'max:50'],
-            'address' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $supplier->update($validated);
-
-        return redirect()->route('suppliers.index')->with('status', __('suppliers.updated_success'));
+            return redirect()->route('suppliers.index')->with('status', __('suppliers.updated_success'));
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
-    public function destroy(Supplier $supplier): RedirectResponse
+    public function destroy(Supplier $supplier, DeleteSupplier $deleteSupplier): RedirectResponse
     {
-        Gate::authorize('delete', $supplier);
+        $this->authorize('delete', $supplier);
 
-        $supplier->delete();
+        try {
+            $deleteSupplier->execute($supplier);
 
-        return redirect()->route('suppliers.index')->with('status', __('suppliers.deleted_success'));
+            return redirect()->route('suppliers.index')->with('status', __('suppliers.deleted_success'));
+        } catch (Throwable $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

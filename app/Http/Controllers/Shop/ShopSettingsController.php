@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shop;
 
+use App\Actions\Shop\UpdateShopSettings;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Shop\UpdateShopSettingsRequest;
 use App\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Throwable;
 
 class ShopSettingsController extends Controller
 {
@@ -19,27 +20,25 @@ class ShopSettingsController extends Controller
     public function edit(): View
     {
         $shop = TenantContext::currentShop();
-        Gate::authorize('manage', $shop);
+        $this->authorize('manage', $shop);
 
-        return view('shops.settings', compact('shop'));
+        return view('shops.form', compact('shop'));
     }
 
     /**
      * Update the shop settings.
      */
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateShopSettingsRequest $request, UpdateShopSettings $updateShopSettings): RedirectResponse
     {
         $shop = TenantContext::currentShop();
-        Gate::authorize('manage', $shop);
+        $this->authorize('manage', $shop);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'business_type' => ['required', 'string', 'max:50'],
-            'timezone' => ['required', 'string', 'timezone'],
-        ]);
+        try {
+            $updateShopSettings->execute($shop, $request->validated());
 
-        $shop->update($validated);
-
-        return back()->with('status', trans('shops.settings_updated'));
+            return back()->with('status', trans('shops.settings_updated'));
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 }

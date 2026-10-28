@@ -29,4 +29,9 @@ return [
     'language' => 'भाषा',
     'english' => 'English',
     'nepali' => 'नेपाली',
+    'error' => 'त्रुटि',
+    'unexpected_error' => 'अप्रत्याशित त्रुटि देखा पर्यो। कृपया पुन: प्रयास गर्नुहोस्।',
+    'created_success' => 'सफलतापूर्वक सिर्जना गरियो।',
+    'updated_success' => 'सफलतापूर्वक अद्यावधिक गरियो।',
+    'deleted_success' => 'सफलतापूर्वक मेटाइयो।',
 ];

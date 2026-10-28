@@ -7,6 +7,8 @@ namespace App\Actions\Sales;
 use App\Enums\MovementType;
 use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
+use App\Exceptions\ImmutableRecordException;
+use App\Exceptions\InsufficientStockException;
 use App\Models\IdempotencyKey;
 use App\Models\InvoiceSequence;
 use App\Models\Payment;
@@ -52,7 +54,7 @@ class PostSale
         }
 
         if (! $sale->isDraft()) {
-            throw new InvalidArgumentException("Sale #{$sale->id} is already {$sale->status->value}.");
+            throw ImmutableRecordException::forSale($sale->id, $sale->status->value);
         }
 
         return DB::transaction(function () use ($sale, $shop, $postedById, $options, $idemKey) {
@@ -60,7 +62,7 @@ class PostSale
             $sale = Sale::where('id', $sale->id)->lockForUpdate()->firstOrFail();
 
             if (! $sale->isDraft()) {
-                throw new InvalidArgumentException("Sale #{$sale->id} is already {$sale->status->value}.");
+                throw ImmutableRecordException::forSale($sale->id, $sale->status->value);
             }
 
             // --- Step 1: Lock products and snapshot unit_cost from stock_balances (moving weighted avg) ---
@@ -93,9 +95,11 @@ class PostSale
                     if (bccomp($currentQty, (string) $item->quantity, 3) < 0) {
                         $allowNeg = (bool) ($shop->settings['allow_negative_stock'] ?? false);
                         if (! $allowNeg) {
-                            throw new InvalidArgumentException(
-                                "Insufficient stock for product #{$item->product_id} ({$product->name}). "
-                                ."Available: {$currentQty}, Requested: {$item->quantity}"
+                            throw InsufficientStockException::forProduct(
+                                $item->product_id,
+                                $product->name,
+                                $currentQty,
+                                (string) $item->quantity
                             );
                         }
                     }

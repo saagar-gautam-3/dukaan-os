@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Sales;
 
 use App\Enums\SaleStatus;
+use App\Exceptions\ImmutableRecordException;
 use App\Models\Sale;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -17,9 +18,7 @@ class CancelSale
     public function handle(Sale $sale, int $cancelledById): Sale
     {
         if ($sale->status === SaleStatus::Posted) {
-            throw new InvalidArgumentException(
-                "Sale #{$sale->id} is posted and cannot be cancelled. Create a return instead."
-            );
+            throw ImmutableRecordException::forSale($sale->id, $sale->status->value);
         }
 
         if ($sale->status === SaleStatus::Cancelled) {

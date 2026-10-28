@@ -4,54 +4,52 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Product;
 
+use App\Actions\Product\CreateUnit;
+use App\Actions\Product\UpdateUnit;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Product\StoreUnitRequest;
+use App\Http\Requests\Product\UpdateUnitRequest;
 use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Throwable;
 
 class UnitController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('viewAny', Unit::class);
+        $this->authorize('viewAny', Unit::class);
 
         $units = Unit::withCount('products')->orderBy('name')->get();
 
         return view('units.index', compact('units'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUnitRequest $request, CreateUnit $createUnit): RedirectResponse
     {
-        Gate::authorize('create', Unit::class);
+        try {
+            $data = $request->validated();
+            $data['is_fractional'] = $request->boolean('is_fractional', false);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'symbol' => ['required', 'string', 'max:20', 'unique:units,symbol'],
-            'is_fractional' => ['nullable', 'boolean'],
-        ]);
+            $createUnit->execute($data);
 
-        $validated['is_fractional'] = $request->boolean('is_fractional', false);
-
-        Unit::create($validated);
-
-        return redirect()->route('units.index')->with('status', __('products.unit_created'));
+            return redirect()->route('units.index')->with('status', __('products.unit_created'));
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
-    public function update(Request $request, Unit $unit): RedirectResponse
+    public function update(UpdateUnitRequest $request, Unit $unit, UpdateUnit $updateUnit): RedirectResponse
     {
-        Gate::authorize('update', $unit);
+        try {
+            $data = $request->validated();
+            $data['is_fractional'] = $request->boolean('is_fractional', false);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'is_fractional' => ['nullable', 'boolean'],
-        ]);
+            $updateUnit->execute($unit, $data);
 
-        $validated['is_fractional'] = $request->boolean('is_fractional', false);
-
-        $unit->update($validated);
-
-        return redirect()->route('units.index')->with('status', __('products.unit_updated'));
+            return redirect()->route('units.index')->with('status', __('products.unit_updated'));
+        } catch (Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 }

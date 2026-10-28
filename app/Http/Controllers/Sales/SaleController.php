@@ -7,12 +7,17 @@ namespace App\Http\Controllers\Sales;
 use App\Actions\Sales\CancelSale;
 use App\Actions\Sales\CreateSale;
 use App\Actions\Sales\PostSale;
+use App\Actions\Sales\QuerySales;
 use App\Actions\Sales\ReturnSale;
+use App\Actions\Sales\SearchPosCustomers;
+use App\Actions\Sales\SearchPosProducts;
+use App\Exceptions\ImmutableRecordException;
+use App\Exceptions\InsufficientStockException;
+use App\Exceptions\InvalidReturnException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ReturnSaleRequest;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Models\Customer;
-use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Warehouse;
 use App\Tenancy\TenantContext;
@@ -20,6 +25,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use InvalidArgumentException;
+use Throwable;
 
 class SaleController extends Controller
 {
@@ -28,9 +35,14 @@ class SaleController extends Controller
         private readonly PostSale $postSale,
         private readonly CancelSale $cancelSale,
         private readonly ReturnSale $returnSale,
+        private readonly QuerySales $querySales,
+        private readonly SearchPosProducts $searchPosProducts,
+        private readonly SearchPosCustomers $searchPosCustomers,
     ) {}
 
-    /** POS screen */
+    /**
+     * POS screen.
+     */
     public function pos(): View
     {
         $this->authorize('create', Sale::class);
@@ -44,82 +56,48 @@ class SaleController extends Controller
         ]);
     }
 
-    /** Product search API for POS cart (JSON) */
+    /**
+     * Product search JSON API for POS cart.
+     */
     public function searchProducts(Request $request): JsonResponse
     {
         $this->authorize('create', Sale::class);
 
-        $shop = TenantContext::shop();
-        $query = $request->string('q')->toString();
-
-        $products = Product::where('shop_id', $shop->id)
-            ->where('is_active', true)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('sku', 'like', "%{$query}%");
-            })
-            ->with(['stockBalances', 'unit'])
-            ->limit(20)
-            ->get()
-            ->map(fn (Product $p) => [
-                'id' => $p->id,
-                'name' => $p->name,
-                'sku' => $p->sku,
-                'price' => (string) $p->selling_price,
-                'track_stock' => $p->track_stock,
-                'unit' => $p->unit?->symbol,
-                'stock' => $p->stockBalances->sum('quantity'),
-            ]);
+        $products = $this->searchPosProducts->handle($request->string('q')->toString());
 
         return response()->json($products);
     }
 
-    /** Customer search API for POS (JSON) */
+    /**
+     * Customer search JSON API for POS.
+     */
     public function searchCustomers(Request $request): JsonResponse
     {
         $this->authorize('viewAny', Customer::class);
 
-        $shop = TenantContext::shop();
-        $query = $request->string('q')->toString();
-
-        $customers = Customer::where('shop_id', $shop->id)
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('phone', 'like', "%{$query}%");
-            })
-            ->limit(10)
-            ->get(['id', 'name', 'phone']);
+        $customers = $this->searchPosCustomers->handle($request->string('q')->toString());
 
         return response()->json($customers);
     }
 
-    /** Sales list */
+    /**
+     * Filtered list of sales.
+     */
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Sale::class);
 
-        $shop = TenantContext::shop();
-        $query = Sale::where('shop_id', $shop->id)
-            ->with(['customer'])
-            ->orderByDesc('created_at');
-
-        if ($search = $request->string('search')->toString()) {
-            $query->where(function ($q) use ($search) {
-                $q->where('invoice_no', 'like', "%{$search}%")
-                    ->orWhereHas('customer', fn ($q) => $q->where('name', 'like', "%{$search}%"));
-            });
-        }
-
-        if ($status = $request->string('status')->toString()) {
-            $query->where('status', $status);
-        }
-
-        $sales = $query->paginate(20)->withQueryString();
+        $sales = $this->querySales->handle(
+            $request->string('search')->toString() ?: null,
+            $request->string('status')->toString() ?: null
+        );
 
         return view('sales.index', compact('sales'));
     }
 
-    /** Show a single sale */
+    /**
+     * Show a single sale.
+     */
     public function show(Sale $sale): View
     {
         $this->authorize('view', $sale);
@@ -129,31 +107,43 @@ class SaleController extends Controller
         return view('sales.show', compact('sale'));
     }
 
-    /** Store draft or directly post from POS */
+    /**
+     * Store draft or post directly from POS.
+     */
     public function store(StoreSaleRequest $request): RedirectResponse
     {
         $this->authorize('create', Sale::class);
 
-        $data = $request->validated();
-        $sale = $this->createSale->handle($data);
+        try {
+            $data = $request->validated();
+            $sale = $this->createSale->handle($data);
 
-        if ($request->boolean('post_immediately')) {
-            $sale = $this->postSale->handle($sale, auth()->id(), [
-                'payment_method' => $data['payment_method'] ?? 'cash',
-                'payment_amount' => $data['payment_amount'] ?? '0',
-                'payment_reference' => $data['payment_reference'] ?? null,
-                'idempotency_key' => $request->string('idempotency_key')->toString() ?: null,
-            ]);
+            if ($request->boolean('post_immediately')) {
+                $sale = $this->postSale->handle($sale, (int) auth()->id(), [
+                    'payment_method' => $data['payment_method'] ?? 'cash',
+                    'payment_amount' => $data['payment_amount'] ?? '0',
+                    'payment_reference' => $data['payment_reference'] ?? null,
+                    'idempotency_key' => $request->string('idempotency_key')->toString() ?: null,
+                ]);
+
+                return redirect()->route('sales.show', $sale)
+                    ->with('status', __('sales.sale_posted'));
+            }
 
             return redirect()->route('sales.show', $sale)
-                ->with('success', __('sales.sale_posted'));
-        }
+                ->with('status', __('sales.draft_saved'));
+        } catch (InsufficientStockException|ImmutableRecordException|InvalidArgumentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            report($e);
 
-        return redirect()->route('sales.show', $sale)
-            ->with('success', __('sales.draft_saved'));
+            return back()->withInput()->with('error', __('common.unexpected_error'));
+        }
     }
 
-    /** Post a draft sale */
+    /**
+     * Post a draft sale.
+     */
     public function post(Request $request, Sale $sale): RedirectResponse
     {
         $this->authorize('post', $sale);
@@ -163,28 +153,48 @@ class SaleController extends Controller
             'payment_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        $sale = $this->postSale->handle($sale, auth()->id(), [
-            'payment_method' => $request->input('payment_method', 'cash'),
-            'payment_amount' => $request->input('payment_amount', '0'),
-            'idempotency_key' => $request->string('idempotency_key')->toString() ?: null,
-        ]);
+        try {
+            $sale = $this->postSale->handle($sale, (int) auth()->id(), [
+                'payment_method' => $request->input('payment_method', 'cash'),
+                'payment_amount' => $request->input('payment_amount', '0'),
+                'idempotency_key' => $request->string('idempotency_key')->toString() ?: null,
+            ]);
 
-        return redirect()->route('sales.show', $sale)
-            ->with('success', __('sales.sale_posted'));
+            return redirect()->route('sales.show', $sale)
+                ->with('status', __('sales.sale_posted'));
+        } catch (InsufficientStockException|ImmutableRecordException|InvalidArgumentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->withInput()->with('error', __('common.unexpected_error'));
+        }
     }
 
-    /** Cancel a draft sale */
+    /**
+     * Cancel a draft sale.
+     */
     public function cancel(Sale $sale): RedirectResponse
     {
         $this->authorize('delete', $sale);
 
-        $this->cancelSale->handle($sale, auth()->id());
+        try {
+            $this->cancelSale->handle($sale, (int) auth()->id());
 
-        return redirect()->route('sales.index')
-            ->with('success', __('sales.sale_cancelled'));
+            return redirect()->route('sales.index')
+                ->with('status', __('sales.sale_cancelled'));
+        } catch (ImmutableRecordException|InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->with('error', __('common.unexpected_error'));
+        }
     }
 
-    /** Return form */
+    /**
+     * Return form.
+     */
     public function returnForm(Sale $sale): View
     {
         $this->authorize('return', $sale);
@@ -194,25 +204,37 @@ class SaleController extends Controller
         return view('sales.return', compact('sale'));
     }
 
-    /** Process return */
+    /**
+     * Process return.
+     */
     public function processReturn(ReturnSaleRequest $request, Sale $sale): RedirectResponse
     {
         $this->authorize('return', $sale);
 
-        $data = $request->validated();
-        $filteredItems = array_values(array_filter($data['items'], fn ($i) => (float) ($i['quantity'] ?? 0) > 0));
+        try {
+            $data = $request->validated();
+            $filteredItems = array_values(array_filter($data['items'], fn ($i) => (float) ($i['quantity'] ?? 0) > 0));
 
-        if (empty($filteredItems)) {
-            return back()->withErrors(['items' => 'Please enter a return quantity greater than 0 for at least one item.']);
+            if (empty($filteredItems)) {
+                return back()->withInput()->with('error', 'Please enter a return quantity greater than 0 for at least one item.');
+            }
+
+            $this->returnSale->handle($sale, (int) auth()->id(), $filteredItems, $data['reason'] ?? '');
+
+            return redirect()->route('sales.show', $sale)
+                ->with('status', __('sales.return_success'));
+        } catch (InvalidReturnException|ImmutableRecordException|InvalidArgumentException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->withInput()->with('error', __('common.unexpected_error'));
         }
-
-        $saleReturn = $this->returnSale->handle($sale, auth()->id(), $filteredItems, $data['reason'] ?? '');
-
-        return redirect()->route('sales.show', $sale)
-            ->with('success', __('sales.return_success'));
     }
 
-    /** Printable invoice (A4) */
+    /**
+     * Printable invoice (A4).
+     */
     public function invoice(Sale $sale): View
     {
         $this->authorize('view', $sale);
@@ -222,7 +244,9 @@ class SaleController extends Controller
         return view('sales.invoice', compact('sale'));
     }
 
-    /** Printable thermal invoice (80mm) */
+    /**
+     * Printable thermal invoice (80mm).
+     */
     public function thermal(Sale $sale): View
     {
         $this->authorize('view', $sale);

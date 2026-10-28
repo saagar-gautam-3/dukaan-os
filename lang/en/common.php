@@ -29,4 +29,9 @@ return [
     'language' => 'Language',
     'english' => 'English',
     'nepali' => 'नेपाली',
+    'error' => 'Error',
+    'unexpected_error' => 'An unexpected error occurred. Please try again.',
+    'created_success' => 'Created successfully.',
+    'updated_success' => 'Updated successfully.',
+    'deleted_success' => 'Deleted successfully.',
 ];

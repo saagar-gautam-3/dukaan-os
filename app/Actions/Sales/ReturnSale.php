@@ -7,6 +7,7 @@ namespace App\Actions\Sales;
 use App\Enums\MovementType;
 use App\Enums\ReturnStatus;
 use App\Enums\SaleStatus;
+use App\Exceptions\InvalidReturnException;
 use App\Models\Sale;
 use App\Models\SaleReturn;
 use App\Models\StockBalance;
@@ -61,9 +62,7 @@ class ReturnSale
                 $maxReturnable = bcsub((string) $originalItem->quantity, (string) $alreadyReturned, 3);
 
                 if (bccomp($returnQty, $maxReturnable, 3) > 0) {
-                    throw new InvalidArgumentException(
-                        "Return quantity {$returnQty} exceeds returnable quantity {$maxReturnable} for item #{$saleItemId}."
-                    );
+                    throw InvalidReturnException::exceedsQuantity($returnQty, $maxReturnable, $saleItemId);
                 }
 
                 $unitCost = (string) $originalItem->unit_cost; // COGS snapshot from original sale

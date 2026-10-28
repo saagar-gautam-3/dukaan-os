@@ -26,7 +26,8 @@ $sidebar-width: 260px;
 @use 'bootstrap/scss/bootstrap';
 
 // ── 3. Bootstrap Icons ─────────────────────────────────────
-@use 'bootstrap-icons/font/bootstrap-icons';
+$bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
+@import 'bootstrap-icons/font/bootstrap-icons';
 
 // ── 4. Google Fonts (Inter + Noto Sans Devanagari) ─────────
 // Loaded as a CSS @import so we don't need a build-time font

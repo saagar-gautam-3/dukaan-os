@@ -14,9 +14,9 @@
             @include('layouts.partials.topbar')
 
             <main class="app-page">
-                @if (session('status'))
+                @if (session('status') || session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i>{{ session('status') }}
+                        <i class="bi bi-check-circle me-2"></i>{{ session('status') ?? session('success') }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
