@@ -1,8 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
+use App\Http\Middleware\EnsureShopAccess;
+use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\SetLocale;
+use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -11,7 +21,24 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->web(append: [
+            SetLocale::class,
+        ]);
+
+        $middleware->alias([
+            'tenant.resolve' => ResolveTenant::class,
+            'shop.access' => EnsureShopAccess::class,
+        ]);
+
+        $middleware->priority([
+            StartSession::class,
+            ShareErrorsFromSession::class,
+            AuthenticatesRequests::class,
+            ResolveTenant::class,
+            EnsureShopAccess::class,
+            SubstituteBindings::class,
+            Authorize::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -1,0 +1,225 @@
+// ============================================================
+// Dukaan OS — Main Stylesheet
+// Framework: Bootstrap 5 (no Tailwind)
+// ============================================================
+
+// ── 1. Bootstrap variable overrides (before @use) ──────────
+// These must come BEFORE importing Bootstrap so the Sass
+// variable system picks them up.
+$primary:   #1a3a5c;   // dark-blue sidebar brand colour
+$success:   #1e8c5a;   // positive cash-flow green
+$danger:    #c0392b;   // dues / negative red
+$info:      #2980b9;
+$warning:   #e67e22;
+$light:     #f4f6f9;
+$dark:      #0d1b2a;
+
+// Body
+$body-bg:            #f4f6f9;
+$body-color:         #212529;
+$font-family-sans-serif: 'Inter', 'Noto Sans Devanagari', system-ui, sans-serif;
+
+// Sidebar width token (consumed in layout classes below)
+$sidebar-width: 260px;
+
+// ── 2. Bootstrap 5 full import ──────────────────────────────
+@use 'bootstrap/scss/bootstrap';
+
+// ── 3. Bootstrap Icons ─────────────────────────────────────
+@use 'bootstrap-icons/font/bootstrap-icons';
+
+// ── 4. Google Fonts (Inter + Noto Sans Devanagari) ─────────
+// Loaded as a CSS @import so we don't need a build-time font
+// download; the browser resolves it.
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+
+// ── 5. App Shell Layout ────────────────────────────────────
+// Dark-blue sidebar + scrollable content area.
+// Following ui-rules.md: "desktop: dark-blue sidebar + content".
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+// Sidebar
+.app-sidebar {
+    width: $sidebar-width;
+    min-height: 100vh;
+    background-color: $primary;
+    color: #fff;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    transition: width 0.2s ease;
+
+    .sidebar-brand {
+        padding: 1.25rem 1.5rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-link {
+        color: rgba(255, 255, 255, 0.75);
+        padding: 0.65rem 1.5rem;
+        border-radius: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        font-size: 0.9rem;
+        transition: background 0.15s ease, color 0.15s ease;
+
+        &:hover,
+        &.active {
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .bi {
+            font-size: 1.1rem;
+            width: 1.25rem;
+            text-align: center;
+        }
+    }
+}
+
+// Main content
+.app-content {
+    flex: 1;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+// Topbar
+.app-topbar {
+    background: #fff;
+    border-bottom: 1px solid #dee2e6;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+// Page content wrapper
+.app-page {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+// ── 6. Mobile: collapsible sidebar ─────────────────────────
+@media (max-width: 991.98px) {
+    .app-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 1040;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+
+        &.show {
+            transform: translateX(0);
+            box-shadow: 0.25rem 0 1.5rem rgba(0, 0, 0, 0.25);
+        }
+    }
+
+    .app-layout {
+        display: block;
+    }
+
+    .app-content {
+        min-height: 100vh;
+    }
+}
+
+// ── 7. Stat cards (Dashboard) ──────────────────────────────
+.stat-card {
+    background: #fff;
+    border-radius: 0.5rem;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+    border-left: 4px solid transparent;
+    transition: box-shadow 0.15s ease;
+
+    &:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    &.stat-card--sales   { border-left-color: $primary; }
+    &.stat-card--cash    { border-left-color: $success; }
+    &.stat-card--udhar   { border-left-color: $danger; }
+    &.stat-card--stock   { border-left-color: $info; }
+
+    .stat-value {
+        font-size: 1.6rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6c757d;
+    }
+}
+
+// ── 8. Tables ──────────────────────────────────────────────
+// Responsive tables with sticky header row.
+.table-responsive-stack {
+    @media (max-width: 767.98px) {
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+
+        thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+
+        tr {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-bottom: 0.75rem;
+            padding: 0.25rem;
+        }
+
+        td {
+            border: none;
+            position: relative;
+            padding-left: 50%;
+
+            &::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0.75rem;
+                width: 45%;
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+}
+
+// ── 9. Currency helpers ────────────────────────────────────
+.text-currency-positive { color: $success !important; }
+.text-currency-negative { color: $danger  !important; }
+
+// ── 10. Misc utilities ─────────────────────────────────────
+.border-dashed {
+    border-style: dashed !important;
+}
+
+.rounded-xl {
+    border-radius: 0.75rem !important;
+}
