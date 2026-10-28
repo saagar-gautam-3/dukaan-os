@@ -1,0 +1,51 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers\Shop;
+
+use App\Http\Controllers\Controller;
+use App\Models\Shop;
+use App\Models\ShopUser;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class ShopPickerController extends Controller
+{
+    /**
+     * Display a list of available shops for the authenticated user.
+     */
+    public function index(Request $request): View
+    {
+        $memberships = $request->user()->activeShopUsers()
+            ->whereHas('shop', fn ($q) => $q->where('is_active', true))
+            ->with(['shop', 'role'])
+            ->get();
+
+        return view('shops.picker', [
+            'memberships' => $memberships,
+            'currentShopId' => $request->session()->get('current_shop_id'),
+        ]);
+    }
+
+    /**
+     * Switch active shop in session.
+     */
+    public function switch(Request $request, Shop $shop): RedirectResponse
+    {
+        $membership = ShopUser::query()
+            ->where('shop_id', $shop->id)
+            ->where('user_id', $request->user()->id)
+            ->where('status', 'active')
+            ->first();
+
+        if ($membership === null || ! $shop->is_active) {
+            abort(403, 'Unauthorized shop switch.');
+        }
+
+        $request->session()->put('current_shop_id', $shop->id);
+
+        return redirect()->route('dashboard')->with('status', trans('shops.switched_success', ['name' => $shop->name]));
+    }
+}

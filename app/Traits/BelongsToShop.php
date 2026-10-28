@@ -8,7 +8,10 @@ use App\Models\Shop;
 use App\Scopes\ShopScope;
 use App\Tenancy\Exceptions\MissingTenantContextException;
 use App\Tenancy\TenantContext;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 trait BelongsToShop
 {
@@ -51,10 +54,10 @@ trait BelongsToShop
     /**
      * Retrieve the model for a bound value with tenant isolation.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Relations\Relation  $query
+     * @param  Builder|Relation  $query
      * @param  mixed  $value
      * @param  string|null  $field
-     * @return \Illuminate\Database\Eloquent\Model|null
+     * @return Model|null
      */
     public function resolveRouteBindingQuery($query, $value, $field = null)
     {

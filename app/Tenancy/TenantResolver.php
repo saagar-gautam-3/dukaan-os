@@ -52,7 +52,7 @@ class TenantResolver
             ->where('user_id', $user->id)
             ->where('status', 'active')
             ->whereHas('shop', fn ($q) => $q->where('is_active', true))
-            ->with(['shop', 'role'])
+            ->with(['shop', 'role.permissions'])
             ->first();
 
         if ($membership === null || $membership->shop === null) {

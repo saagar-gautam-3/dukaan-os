@@ -90,6 +90,42 @@ class TenantContext
         return static::instance()->membership();
     }
 
+    /**
+     * Execute a callback in the context of the given shop, restoring previous context afterwards.
+     *
+     * @template T
+     *
+     * @param  callable(Shop): T  $callback
+     * @return T
+     */
+    public function executeAs(Shop $shop, callable $callback, ?ShopUser $membership = null): mixed
+    {
+        $previousShop = $this->shop;
+        $previousMembership = $this->membership;
+
+        $this->set($shop, $membership);
+
+        try {
+            return $callback($shop);
+        } finally {
+            $this->shop = $previousShop;
+            $this->membership = $previousMembership;
+        }
+    }
+
+    /**
+     * Static helper for running a callback as a specific shop.
+     *
+     * @template T
+     *
+     * @param  callable(Shop): T  $callback
+     * @return T
+     */
+    public static function runAs(Shop $shop, callable $callback, ?ShopUser $membership = null): mixed
+    {
+        return static::instance()->executeAs($shop, $callback, $membership);
+    }
+
     public static function reset(): void
     {
         static::instance()->clear();

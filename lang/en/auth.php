@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'failed' => 'These credentials do not match our records.',
+    'password' => 'The provided password is incorrect.',
+    'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'login_title' => 'Log in to your account',
+    'register_title' => 'Create a new shop account',
+    'forgot_password_title' => 'Reset your password',
+    'reset_password_title' => 'Enter your new password',
+    'email' => 'Email Address',
+    'phone' => 'Mobile Phone Number',
+    'password_label' => 'Password',
+    'password_confirmation' => 'Confirm Password',
+    'name' => 'Your Full Name',
+    'shop_name' => 'Shop Name',
+    'business_type' => 'Business Type',
+    'remember_me' => 'Remember me',
+    'forgot_password' => 'Forgot password?',
+    'login_button' => 'Log in',
+    'register_button' => 'Register Shop',
+    'send_reset_link' => 'Send Password Reset Link',
+    'reset_button' => 'Reset Password',
+    'have_account' => 'Already have an account?',
+    'no_account' => "Don't have a shop account?",
+    'logged_out' => 'You have been logged out successfully.',
+    'reset_sent' => 'We have emailed your password reset link.',
+    'reset_success' => 'Your password has been reset successfully.',
+];

@@ -37,7 +37,7 @@ class ShopUser extends Pivot
 
     public function role(): BelongsTo
     {
-        return $this->belongsTo(Role::class, 'role_id');
+        return $this->belongsTo(Role::class, 'role_id')->withoutGlobalScopes();
     }
 
     public function isActive(): bool

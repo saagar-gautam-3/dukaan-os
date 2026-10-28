@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Shop;
+use Illuminate\Database\Eloquent\Collection;
 
 class RbacService
 {
@@ -43,7 +44,7 @@ class RbacService
     /**
      * Ensure all system permissions exist in database.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Permission>
+     * @return Collection<int, Permission>
      */
     public function syncSystemPermissions()
     {
@@ -85,7 +86,7 @@ class RbacService
             'Inventory Staff' => [
                 'products.view', 'products.manage',
                 'inventory.view', 'inventory.manage',
-                'suppliers.view',
+                'suppliers.view', 'purchases.view', 'purchases.manage',
             ],
             'Accountant' => [
                 'sales.view', 'purchases.view', 'expenses.view',
@@ -97,12 +98,19 @@ class RbacService
         $roles = [];
 
         foreach ($roleDefinitions as $roleName => $permissionNames) {
-            /** @var Role $role */
-            $role = Role::withoutGlobalScopes()->firstOrCreate([
-                'shop_id' => $shop->id,
-                'name' => $roleName,
-                'guard_name' => 'web',
-            ]);
+            /** @var Role|null $role */
+            $role = Role::withoutGlobalScopes()
+                ->where('shop_id', $shop->id)
+                ->where('name', $roleName)
+                ->first();
+
+            if ($role === null) {
+                $role = new Role;
+                $role->shop_id = $shop->id;
+                $role->name = $roleName;
+                $role->guard_name = 'web';
+                $role->save();
+            }
 
             $permissionIds = collect($permissionNames)
                 ->map(fn (string $name) => $allPermissions->get($name)?->id)

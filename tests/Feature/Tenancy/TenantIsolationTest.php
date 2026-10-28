@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Tenancy;
 
-use App\Models\AuditLog;
 use App\Models\Shop;
 use App\Models\ShopUser;
 use App\Models\User;
@@ -53,6 +52,10 @@ class TenantIsolationTest extends TestCase
 
         // Register test routes protected by tenancy middleware
         Route::middleware(['web', 'auth', 'tenant.resolve', 'shop.access'])->group(function () {
+            Route::get('/test-tenant/dashboard', function () {
+                return response()->json(['ok' => true]);
+            })->name('test-tenant.dashboard');
+
             Route::get('/test-tenant/items/{item}', function (TestTenantItem $item) {
                 return response()->json([
                     'id' => $item->id,
@@ -98,7 +101,7 @@ class TenantIsolationTest extends TestCase
         ]);
 
         // Create an item owned by Shop B
-        $itemB = new TestTenantItem();
+        $itemB = new TestTenantItem;
         $itemB->shop_id = $shopB->id;
         $itemB->name = 'Shop B Secret Item';
         $itemB->price = 100.00;
@@ -125,7 +128,7 @@ class TenantIsolationTest extends TestCase
             'status' => 'active',
         ]);
 
-        $itemB = new TestTenantItem();
+        $itemB = new TestTenantItem;
         $itemB->shop_id = $shopB->id;
         $itemB->name = 'Original Name';
         $itemB->price = 100.00;
@@ -156,7 +159,7 @@ class TenantIsolationTest extends TestCase
             'status' => 'active',
         ]);
 
-        $itemB = new TestTenantItem();
+        $itemB = new TestTenantItem;
         $itemB->shop_id = $shopB->id;
         $itemB->name = 'To Not Delete';
         $itemB->price = 50.00;
@@ -225,7 +228,7 @@ class TenantIsolationTest extends TestCase
 
         // No session shop_id and user has no shops
         $response = $this->actingAs($userWithoutShops)
-            ->getJson('/test-tenant/items/1');
+            ->getJson('/test-tenant/dashboard');
 
         $response->assertStatus(403);
     }
@@ -243,7 +246,7 @@ class TenantIsolationTest extends TestCase
 
         $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
-            ->getJson('/test-tenant/items/1');
+            ->getJson('/test-tenant/dashboard');
 
         $response->assertStatus(403);
     }
@@ -256,7 +259,7 @@ class TenantIsolationTest extends TestCase
         // User is not associated with shop in shop_user table
         $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
-            ->getJson('/test-tenant/items/1');
+            ->getJson('/test-tenant/dashboard');
 
         $response->assertStatus(403);
     }
