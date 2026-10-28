@@ -1,0 +1,97 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Tenancy;
+
+use App\Models\Shop;
+use App\Models\ShopUser;
+use App\Tenancy\Exceptions\MissingTenantContextException;
+
+class TenantContext
+{
+    protected ?Shop $shop = null;
+
+    protected ?ShopUser $membership = null;
+
+    public function set(Shop $shop, ?ShopUser $membership = null): void
+    {
+        $this->shop = $shop;
+        $this->membership = $membership;
+    }
+
+    public function get(): ?Shop
+    {
+        return $this->shop;
+    }
+
+    public function current(): Shop
+    {
+        if ($this->shop === null) {
+            throw new MissingTenantContextException('Tenant context is not set.');
+        }
+
+        return $this->shop;
+    }
+
+    public function id(): ?int
+    {
+        return $this->shop?->id !== null ? (int) $this->shop->id : null;
+    }
+
+    public function hasTenant(): bool
+    {
+        return $this->shop !== null;
+    }
+
+    public function membership(): ?ShopUser
+    {
+        return $this->membership;
+    }
+
+    public function clear(): void
+    {
+        $this->shop = null;
+        $this->membership = null;
+    }
+
+    protected static function instance(): self
+    {
+        return app(self::class);
+    }
+
+    public static function setShop(Shop $shop, ?ShopUser $membership = null): void
+    {
+        static::instance()->set($shop, $membership);
+    }
+
+    public static function getShop(): ?Shop
+    {
+        return static::instance()->get();
+    }
+
+    public static function currentShop(): Shop
+    {
+        return static::instance()->current();
+    }
+
+    public static function getShopId(): ?int
+    {
+        return static::instance()->id();
+    }
+
+    public static function has(): bool
+    {
+        return static::instance()->hasTenant();
+    }
+
+    public static function currentMembership(): ?ShopUser
+    {
+        return static::instance()->membership();
+    }
+
+    public static function reset(): void
+    {
+        static::instance()->clear();
+    }
+}
