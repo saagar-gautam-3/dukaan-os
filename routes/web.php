@@ -7,8 +7,17 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Inventory\PurchaseController;
+use App\Http\Controllers\Inventory\StockController;
+use App\Http\Controllers\Inventory\SupplierController;
+use App\Http\Controllers\Product\CategoryController;
+use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Product\UnitController;
+use App\Http\Controllers\Sales\CustomerController;
+use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Shop\ShopPickerController;
 use App\Http\Controllers\Shop\ShopSettingsController;
+use App\Http\Controllers\Udhar\UdharController;
 use Illuminate\Support\Facades\Route;
 
 // Public homepage
@@ -54,4 +63,49 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
 
     Route::get('/settings/shop', [ShopSettingsController::class, 'edit'])->name('settings.shop');
     Route::put('/settings/shop', [ShopSettingsController::class, 'update'])->name('settings.shop.update');
+
+    // Products, Categories, Units
+    Route::resource('products', ProductController::class);
+    Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
+    Route::resource('units', UnitController::class)->only(['index', 'store', 'update']);
+
+    // Stock & Inventory
+    Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
+    Route::get('/stock/adjust', [StockController::class, 'adjustForm'])->name('stock.adjust');
+    Route::post('/stock/adjust', [StockController::class, 'adjust'])->name('stock.adjust.store');
+    Route::get('/stock/alerts', [StockController::class, 'alerts'])->name('stock.alerts');
+    Route::get('/stock/history/{product}', [StockController::class, 'history'])->name('stock.history');
+
+    // Suppliers
+    Route::resource('suppliers', SupplierController::class);
+
+    // Purchases
+    Route::resource('purchases', PurchaseController::class)->except(['edit', 'update']);
+    Route::post('/purchases/{purchase}/post', [PurchaseController::class, 'post'])->name('purchases.post');
+
+    // Sales & POS
+    Route::get('/pos', [SaleController::class, 'pos'])->name('pos');
+    Route::get('/pos/products', [SaleController::class, 'searchProducts'])->name('pos.products');
+    Route::get('/pos/customers', [SaleController::class, 'searchCustomers'])->name('pos.customers');
+    Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+    Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+    Route::post('/sales/{sale}/post', [SaleController::class, 'post'])->name('sales.post');
+    Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
+    Route::get('/sales/{sale}/return', [SaleController::class, 'returnForm'])->name('sales.return');
+    Route::post('/sales/{sale}/return', [SaleController::class, 'processReturn'])->name('sales.return.store');
+    Route::get('/sales/{sale}/invoice', [SaleController::class, 'invoice'])->name('sales.invoice');
+    Route::get('/sales/{sale}/thermal', [SaleController::class, 'thermal'])->name('sales.thermal');
+
+    // Customers
+    Route::resource('customers', CustomerController::class);
+
+    // Udhar Khata (Customer Ledger)
+    Route::prefix('udhar')->group(function () {
+        Route::get('/', [UdharController::class, 'outstanding'])->name('udhar.outstanding');
+        Route::get('/ageing', [UdharController::class, 'ageing'])->name('udhar.ageing');
+        Route::get('/collect/{customer}', [UdharController::class, 'collectForm'])->name('udhar.collect');
+        Route::post('/collect/{customer}', [UdharController::class, 'collect'])->name('udhar.collect.store');
+        Route::post('/remind/{customer}', [UdharController::class, 'remind'])->name('udhar.remind');
+    });
 });

@@ -19,6 +19,7 @@ class StockBalance extends Model
         'warehouse_id',
         'product_id',
         'quantity',
+        'average_cost',
     ];
 
     /**
@@ -30,6 +31,7 @@ class StockBalance extends Model
     {
         return [
             'quantity' => 'decimal:3',
+            'average_cost' => 'decimal:2',
         ];
     }
 

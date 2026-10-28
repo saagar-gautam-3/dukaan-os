@@ -56,26 +56,32 @@
 
         <!-- Udhar Dues -->
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card stat-card--udhar h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="stat-label">{{ __('dashboard.stats.udhar_dues') }}</span>
-                    <i class="bi bi-book text-danger fs-4"></i>
+            <a href="{{ route('udhar.outstanding') }}" class="text-decoration-none">
+                <div class="stat-card stat-card--udhar h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="stat-label text-dark">{{ __('dashboard.stats.udhar_dues') }}</span>
+                        <i class="bi bi-journal-bookmark text-danger fs-4"></i>
+                    </div>
+                    <div class="stat-value text-danger mb-1">NPR @npr($totalUdhar ?? '0.00')</div>
+                    <small class="text-muted">From {{ $udharCustomerCount ?? 0 }} {{ __('sales.customers') }}</small>
                 </div>
-                <div class="stat-value text-danger mb-1">NPR 0.00</div>
-                <small class="text-muted">From 0 customers</small>
-            </div>
+            </a>
         </div>
 
-        <!-- Low Stock -->
+        <!-- Low Stock Alert -->
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card stat-card--stock h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="stat-label">{{ __('dashboard.stats.low_stock') }}</span>
-                    <i class="bi bi-exclamation-diamond text-info fs-4"></i>
+            <a href="{{ route('stock.alerts') }}" class="text-decoration-none">
+                <div class="stat-card stat-card--stock h-100 {{ $lowStockCount > 0 ? 'border-warning' : '' }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="stat-label text-dark">{{ __('dashboard.stats.low_stock') }}</span>
+                        <i class="bi bi-exclamation-diamond {{ $lowStockCount > 0 ? 'text-warning' : 'text-info' }} fs-4"></i>
+                    </div>
+                    <div class="stat-value {{ $lowStockCount > 0 ? 'text-warning fw-bold' : 'text-info' }} mb-1">
+                        {{ $lowStockCount }}
+                    </div>
+                    <small class="text-muted">Items below reorder level</small>
                 </div>
-                <div class="stat-value text-info mb-1">0</div>
-                <small class="text-muted">Items below reorder level</small>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -89,7 +95,7 @@
         <div class="card-body pt-0">
             <div class="row g-2">
                 <div class="col-6 col-md-3">
-                    <a href="#" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
+                    <a href="{{ route('pos') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-cart-plus fs-4 text-primary"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.new_sale') }}</div>
@@ -98,7 +104,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="#" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
+                    <a href="{{ route('udhar.outstanding') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-wallet2 fs-4 text-success"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.receive_udhar') }}</div>
@@ -107,7 +113,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="#" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
+                    <a href="{{ route('products.create') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-box-seam fs-4 text-info"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.add_product') }}</div>

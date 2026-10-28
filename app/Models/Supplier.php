@@ -40,4 +40,21 @@ class Supplier extends Model
     {
         return $this->hasMany(Purchase::class);
     }
+
+    public function ledgerEntries(): HasMany
+    {
+        return $this->hasMany(SupplierLedgerEntry::class);
+    }
+
+    /**
+     * Supplier ledger balance = SUM(debit) − SUM(credit).
+     * Positive = we owe the supplier. Negative = supplier owes us (overpayment).
+     */
+    public function ledgerBalance(): string
+    {
+        $debit = $this->ledgerEntries()->sum('debit');
+        $credit = $this->ledgerEntries()->sum('credit');
+
+        return bcsub((string) $debit, (string) $credit, 2);
+    }
 }
