@@ -60,6 +60,10 @@
                     <div id="selectedCustomerBadge" class="mt-2 small text-primary fw-semibold d-none">
                         <i class="bi bi-check-circle-fill me-1"></i><span id="selectedCustomerName"></span>
                     </div>
+                    <div id="creditLimitWarningBadge" class="mt-2 alert alert-warning py-1 px-2 small d-none mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        <span id="creditLimitWarningText"></span>
+                    </div>
                     <!-- Customer search dropdown -->
                     <div id="customerResults" class="list-group position-absolute shadow-sm d-none mt-1" style="z-index: 1050; max-height: 200px; overflow-y: auto; width: 90%;"></div>
                 </div>
@@ -303,17 +307,55 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 200);
     });
 
+    let currentCustomer = null;
+    const creditLimitWarningBadge = document.getElementById('creditLimitWarningBadge');
+    const creditLimitWarningText = document.getElementById('creditLimitWarningText');
+
+    function checkCreditLimit() {
+        if (!currentCustomer) {
+            creditLimitWarningBadge.classList.add('d-none');
+            return;
+        }
+
+        const limit = parseFloat(currentCustomer.credit_limit) || 0;
+        if (limit <= 0) {
+            creditLimitWarningBadge.classList.add('d-none');
+            return;
+        }
+
+        let total = 0;
+        cart.forEach(item => {
+            total += item.price * item.quantity;
+        });
+
+        const paid = parseFloat(amountPaidInput.value) || 0;
+        const due = Math.max(0, total - paid);
+        const currentBalance = parseFloat(currentCustomer.balance) || 0;
+        const projectedBalance = currentBalance + due;
+
+        if (projectedBalance > limit) {
+            creditLimitWarningText.textContent = `Warning: Customer credit limit is NPR ${limit.toFixed(2)}. Projected balance NPR ${projectedBalance.toFixed(2)} will exceed credit limit!`;
+            creditLimitWarningBadge.classList.remove('d-none');
+        } else {
+            creditLimitWarningBadge.classList.add('d-none');
+        }
+    }
+
     function selectCustomer(c) {
+        currentCustomer = c;
         selectedCustomerId.value = c.id;
         selectedCustomerName.textContent = c.name + (c.phone ? ' (' + c.phone + ')' : '');
         selectedCustomerBadge.classList.remove('d-none');
         customerSearchInput.value = '';
         customerResults.classList.add('d-none');
+        checkCreditLimit();
     }
 
     clearCustomerBtn.addEventListener('click', function () {
+        currentCustomer = null;
         selectedCustomerId.value = '';
         selectedCustomerBadge.classList.add('d-none');
+        creditLimitWarningBadge.classList.add('d-none');
         customerSearchInput.value = '';
         customerResults.classList.add('d-none');
     });
@@ -454,6 +496,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const paid = parseFloat(amountPaidInput.value) || 0;
         const change = paid > total ? paid - total : 0;
         changeDisplay.textContent = 'Rs. ' + change.toFixed(2);
+        checkCreditLimit();
     }
 
     // Submit logic

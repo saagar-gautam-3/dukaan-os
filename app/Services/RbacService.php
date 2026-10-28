@@ -34,6 +34,9 @@ class RbacService
         'purchases.manage' => 'Create and edit purchases',
         'customers.view' => 'View customers and ledgers (Udhar Khata)',
         'customers.manage' => 'Manage customers and record payments',
+        'udhar.view' => 'View udhar khata and customer ledgers',
+        'udhar.collect' => 'Record customer payment collection',
+        'udhar.remind' => 'Send payment reminders to customers',
         'suppliers.view' => 'View suppliers and ledgers',
         'suppliers.manage' => 'Manage suppliers and record payments',
         'expenses.view' => 'View expenses',
@@ -77,12 +80,13 @@ class RbacService
                 'inventory.view', 'inventory.manage', 'sales.view',
                 'sales.create', 'sales.cancel', 'sales.return', 'purchases.view',
                 'purchases.manage', 'customers.view', 'customers.manage',
+                'udhar.view', 'udhar.collect', 'udhar.remind',
                 'suppliers.view', 'suppliers.manage', 'expenses.view',
                 'expenses.manage', 'reports.view', 'audit.view',
             ],
             'Cashier' => [
                 'products.view', 'sales.view', 'sales.create', 'sales.return',
-                'customers.view', 'customers.manage',
+                'customers.view', 'customers.manage', 'udhar.view', 'udhar.collect',
             ],
             'Inventory Staff' => [
                 'products.view', 'products.manage',
@@ -92,7 +96,7 @@ class RbacService
             'Accountant' => [
                 'sales.view', 'purchases.view', 'expenses.view',
                 'expenses.manage', 'customers.view', 'suppliers.view',
-                'reports.view',
+                'udhar.view', 'reports.view',
             ],
         ];
 

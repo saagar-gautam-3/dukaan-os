@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Sales;
 
+use App\Actions\Udhar\AddCustomerLedgerEntry;
+use App\Enums\LedgerEntryType;
 use App\Enums\MovementType;
 use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
 use App\Exceptions\ImmutableRecordException;
 use App\Exceptions\InsufficientStockException;
+use App\Models\Customer;
 use App\Models\IdempotencyKey;
 use App\Models\InvoiceSequence;
 use App\Models\Payment;
@@ -23,8 +26,13 @@ use RuntimeException;
 
 class PostSale
 {
+    public function __construct(
+        private readonly AddCustomerLedgerEntry $addLedgerEntry,
+    ) {}
+
     /**
-     * Post a draft sale: generate invoice, snapshot costs, deduct stock, record payment.
+     * Post a draft sale: generate invoice, snapshot costs, deduct stock, record payment,
+     * and write a ledger debit for the credit/due portion.
      *
      * All totals are recomputed server-side. Client grand_total is verified but not trusted
      * for calculations. Posted sales are immutable.
@@ -181,6 +189,36 @@ class PostSale
                 'posted_at' => now(),
                 'posted_by' => $postedById,
             ]);
+
+            // --- Step 5b: Write customer ledger entry for the credit/due portion ---
+            // The due portion = grand_total - what was paid right now
+            $duePortion = bcsub($grandTotal, $paidTotal, 2);
+            if ($sale->customer_id !== null && bccomp($grandTotal, '0', 2) > 0) {
+                $customer = Customer::find($sale->customer_id);
+                if ($customer) {
+                    // Debit: customer owes the full grand_total
+                    $this->addLedgerEntry->handle($customer, [
+                        'entry_type' => LedgerEntryType::SaleDebit,
+                        'debit' => $grandTotal,
+                        'reference_type' => 'sale',
+                        'reference_id' => $sale->id,
+                        'notes' => "Sale {$invoiceNo} posted",
+                        'created_by' => $postedById,
+                    ]);
+
+                    // Credit: amount paid at point-of-sale
+                    if (bccomp($paidTotal, '0', 2) > 0) {
+                        $this->addLedgerEntry->handle($customer, [
+                            'entry_type' => LedgerEntryType::PaymentCredit,
+                            'credit' => $paidTotal,
+                            'reference_type' => 'sale',
+                            'reference_id' => $sale->id,
+                            'notes' => "POS payment for {$invoiceNo}",
+                            'created_by' => $postedById,
+                        ]);
+                    }
+                }
+            }
 
             // --- Step 6: Record idempotency key ---
             if ($idemKey !== null) {

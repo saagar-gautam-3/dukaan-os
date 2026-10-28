@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Dashboard;
 
+use App\Models\CustomerLedgerEntry;
 use App\Models\Product;
 use App\Tenancy\TenantContext;
 
@@ -32,9 +33,21 @@ class GetDashboardStats
 
         $totalProducts = Product::where('shop_id', $shop->id)->count();
 
+        $udharBalance = (string) (CustomerLedgerEntry::where('shop_id', $shop->id)
+            ->selectRaw('COALESCE(SUM(debit) - SUM(credit), 0) as balance')
+            ->value('balance') ?? '0.00');
+
+        $udharCustomerCount = CustomerLedgerEntry::where('shop_id', $shop->id)
+            ->groupBy('customer_id')
+            ->havingRaw('(SUM(debit) - SUM(credit)) > 0')
+            ->pluck('customer_id')
+            ->count();
+
         return [
             'totalProducts' => $totalProducts,
             'lowStockCount' => $lowStockCount,
+            'totalUdhar' => $udharBalance,
+            'udharCustomerCount' => $udharCustomerCount,
         ];
     }
 }

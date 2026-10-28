@@ -17,6 +17,7 @@ use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Shop\ShopPickerController;
 use App\Http\Controllers\Shop\ShopSettingsController;
+use App\Http\Controllers\Udhar\UdharController;
 use Illuminate\Support\Facades\Route;
 
 // Public homepage
@@ -98,4 +99,13 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
 
     // Customers
     Route::resource('customers', CustomerController::class);
+
+    // Udhar Khata (Customer Ledger)
+    Route::prefix('udhar')->group(function () {
+        Route::get('/', [UdharController::class, 'outstanding'])->name('udhar.outstanding');
+        Route::get('/ageing', [UdharController::class, 'ageing'])->name('udhar.ageing');
+        Route::get('/collect/{customer}', [UdharController::class, 'collectForm'])->name('udhar.collect');
+        Route::post('/collect/{customer}', [UdharController::class, 'collect'])->name('udhar.collect.store');
+        Route::post('/remind/{customer}', [UdharController::class, 'remind'])->name('udhar.remind');
+    });
 });

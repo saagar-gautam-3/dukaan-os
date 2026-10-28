@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Sales;
 
+use App\Actions\Udhar\AddCustomerLedgerEntry;
+use App\Enums\LedgerEntryType;
 use App\Enums\MovementType;
 use App\Enums\ReturnStatus;
 use App\Enums\SaleStatus;
@@ -20,6 +22,10 @@ use RuntimeException;
 
 class ReturnSale
 {
+    public function __construct(
+        private readonly AddCustomerLedgerEntry $addLedgerEntry,
+    ) {}
+
     /**
      * Create a return against a posted sale. Restores stock at original unit_cost.
      *
@@ -127,6 +133,21 @@ class ReturnSale
             }
 
             $saleReturn->items()->createMany($itemsToCreate);
+
+            // Write ledger credit for the return amount if sale has a customer
+            if ($sale->customer_id !== null && bccomp($returnTotal, '0', 2) > 0) {
+                $customer = $sale->customer;
+                if ($customer) {
+                    $this->addLedgerEntry->handle($customer, [
+                        'entry_type' => LedgerEntryType::ReturnCredit,
+                        'credit' => $returnTotal,
+                        'reference_type' => 'sale_return',
+                        'reference_id' => $saleReturn->id,
+                        'notes' => "Return {$saleReturn->return_no} for sale {$sale->invoice_no}",
+                        'created_by' => $processedById,
+                    ]);
+                }
+            }
 
             return $saleReturn->load('items.saleItem');
         });

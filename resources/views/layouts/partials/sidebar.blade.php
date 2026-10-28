@@ -48,6 +48,13 @@
         </a>
         @endcan
 
+        @can('udhar.view')
+        <a href="{{ route('udhar.outstanding') }}" class="nav-link {{ request()->routeIs('udhar.*') ? 'active' : '' }}">
+            <i class="bi bi-journal-bookmark"></i>
+            <span>{{ __('udhar.title') }}</span>
+        </a>
+        @endcan
+
         @can('products.view')
         <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('units.*') ? 'active' : '' }}">
             <i class="bi bi-box-seam"></i>

@@ -26,6 +26,7 @@ class Sale extends Model
         'grand_total',
         'paid_total',
         'notes',
+        'due_date',
         'posted_at',
         'posted_by',
     ];
@@ -37,6 +38,7 @@ class Sale extends Model
         'tax_total' => 'decimal:2',
         'grand_total' => 'decimal:2',
         'paid_total' => 'decimal:2',
+        'due_date' => 'date',
         'posted_at' => 'datetime',
     ];
 

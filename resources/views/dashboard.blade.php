@@ -56,14 +56,16 @@
 
         <!-- Udhar Dues -->
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card stat-card--udhar h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="stat-label">{{ __('dashboard.stats.udhar_dues') }}</span>
-                    <i class="bi bi-book text-danger fs-4"></i>
+            <a href="{{ route('udhar.outstanding') }}" class="text-decoration-none">
+                <div class="stat-card stat-card--udhar h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="stat-label text-dark">{{ __('dashboard.stats.udhar_dues') }}</span>
+                        <i class="bi bi-journal-bookmark text-danger fs-4"></i>
+                    </div>
+                    <div class="stat-value text-danger mb-1">NPR @npr($totalUdhar ?? '0.00')</div>
+                    <small class="text-muted">From {{ $udharCustomerCount ?? 0 }} {{ __('sales.customers') }}</small>
                 </div>
-                <div class="stat-value text-danger mb-1">NPR 0.00</div>
-                <small class="text-muted">From 0 customers</small>
-            </div>
+            </a>
         </div>
 
         <!-- Low Stock Alert -->
@@ -93,7 +95,7 @@
         <div class="card-body pt-0">
             <div class="row g-2">
                 <div class="col-6 col-md-3">
-                    <a href="#" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
+                    <a href="{{ route('pos') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-cart-plus fs-4 text-primary"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.new_sale') }}</div>
@@ -102,7 +104,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="#" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
+                    <a href="{{ route('udhar.outstanding') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-wallet2 fs-4 text-success"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.receive_udhar') }}</div>

@@ -83,6 +83,7 @@ class CreateSale
                 'tax_total' => $taxTotal,
                 'grand_total' => $grandTotal,
                 'paid_total' => '0.00',
+                'due_date' => $data['due_date'] ?? null,
                 'notes' => $data['notes'] ?? null,
             ]);
 

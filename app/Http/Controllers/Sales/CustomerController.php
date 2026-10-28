@@ -36,7 +36,24 @@ class CustomerController extends Controller
 
         $customer->load(['sales' => fn ($q) => $q->orderByDesc('created_at')->limit(20)]);
 
-        return view('customers.show', compact('customer'));
+        $ledgerEntries = $customer->ledgerEntries()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(15, ['*'], 'ledger_page');
+
+        $openSales = $customer->openSales()->get();
+        $balance = $customer->ledgerBalance();
+        $headroom = $customer->creditLimitHeadroom();
+        $reminderLogs = $customer->reminderLogs()->orderByDesc('created_at')->limit(10)->get();
+
+        return view('customers.show', compact(
+            'customer',
+            'ledgerEntries',
+            'openSales',
+            'balance',
+            'headroom',
+            'reminderLogs',
+        ));
     }
 
     public function create(): View

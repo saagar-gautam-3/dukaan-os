@@ -23,6 +23,12 @@ class SearchPosCustomers
                     ->orWhere('phone', 'like', "%{$query}%");
             })
             ->limit(10)
-            ->get(['id', 'name', 'phone']);
+            ->get(['id', 'name', 'phone', 'credit_limit'])
+            ->map(function (Customer $customer) {
+                $customer->balance = $customer->ledgerBalance();
+                $customer->credit_headroom = $customer->creditLimitHeadroom();
+
+                return $customer;
+            });
     }
 }

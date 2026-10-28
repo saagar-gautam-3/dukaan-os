@@ -5,12 +5,16 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Models\Customer;
+use App\Models\CustomerLedgerEntry;
 use App\Models\Sale;
 use App\Models\StockBalance;
+use App\Models\SupplierLedgerEntry;
 use App\Models\User;
+use App\Policies\CustomerLedgerEntryPolicy;
 use App\Policies\CustomerPolicy;
 use App\Policies\SalePolicy;
 use App\Policies\StockPolicy;
+use App\Policies\SupplierLedgerEntryPolicy;
 use App\Tenancy\TenantContext;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Blade;
@@ -43,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(StockBalance::class, StockPolicy::class);
         Gate::policy(Sale::class, SalePolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
+        Gate::policy(CustomerLedgerEntry::class, CustomerLedgerEntryPolicy::class);
+        Gate::policy(SupplierLedgerEntry::class, SupplierLedgerEntryPolicy::class);
 
         Blade::directive('npr', function (string $expression): string {
             return "<?php echo \App\Support\NepaliNumber::formatNpr({$expression}); ?>";

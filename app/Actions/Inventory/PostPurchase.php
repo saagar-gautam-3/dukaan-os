@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Inventory;
 
+use App\Actions\Udhar\AddSupplierLedgerEntry;
+use App\Enums\LedgerEntryType;
 use App\Enums\MovementType;
 use App\Enums\PurchaseStatus;
 use App\Exceptions\ImmutableRecordException;
@@ -15,7 +17,8 @@ use InvalidArgumentException;
 class PostPurchase
 {
     public function __construct(
-        protected ReceiveStock $receiveStock
+        protected ReceiveStock $receiveStock,
+        protected AddSupplierLedgerEntry $addSupplierLedgerEntry,
     ) {}
 
     /**
@@ -59,6 +62,21 @@ class PostPurchase
             $purchase->status = PurchaseStatus::Posted;
             $purchase->posted_at = now();
             $purchase->save();
+
+            // Write supplier ledger debit (we now owe the supplier)
+            if ($purchase->supplier_id !== null) {
+                $purchase->loadMissing('supplier');
+                if ($purchase->supplier) {
+                    $this->addSupplierLedgerEntry->handle($purchase->supplier, [
+                        'entry_type' => LedgerEntryType::PurchaseDebit,
+                        'debit' => (string) $purchase->grand_total,
+                        'reference_type' => 'purchase',
+                        'reference_id' => $purchase->id,
+                        'notes' => "Purchase #{$purchase->purchase_no} posted",
+                        'created_by' => $userId,
+                    ]);
+                }
+            }
 
             return $purchase;
         });

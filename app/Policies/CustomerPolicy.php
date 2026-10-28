@@ -33,4 +33,14 @@ class CustomerPolicy extends TenantPolicy
     {
         return $this->checkTenantAndPermission($user, $customer, 'customers.manage');
     }
+
+    public function collect(User $user, Customer $customer): bool
+    {
+        return $this->checkTenantAndPermission($user, $customer, 'udhar.collect');
+    }
+
+    public function remind(User $user, Customer $customer): bool
+    {
+        return $this->checkTenantAndPermission($user, $customer, 'udhar.remind');
+    }
 }

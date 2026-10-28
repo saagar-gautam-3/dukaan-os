@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Actions\Sales;
 
+use App\Actions\Udhar\AddCustomerLedgerEntry;
+use App\Enums\LedgerEntryType;
 use App\Enums\PaymentMethod;
+use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Sale;
 use App\Tenancy\TenantContext;
@@ -13,6 +16,11 @@ use InvalidArgumentException;
 
 class RecordPayment
 {
+    public function __construct(
+        private readonly AddCustomerLedgerEntry $addLedgerEntry,
+        private readonly AllocatePayment $allocatePayment,
+    ) {}
+
     /**
      * Record a standalone payment (advance, partial, unallocated).
      *
@@ -68,7 +76,20 @@ class RecordPayment
 
             // Optionally allocate to a specific sale
             if (! empty($data['allocate_to_sale_id'])) {
-                (new AllocatePayment)->handle($payment, (int) $data['allocate_to_sale_id'], $amount);
+                $this->allocatePayment->handle($payment, (int) $data['allocate_to_sale_id'], $amount);
+            } elseif (! empty($data['customer_id'])) {
+                // Write ledger credit for standalone / unallocated payment
+                $customer = Customer::find($data['customer_id']);
+                if ($customer) {
+                    $this->addLedgerEntry->handle($customer, [
+                        'entry_type' => LedgerEntryType::PaymentCredit,
+                        'credit' => $amount,
+                        'reference_type' => 'payment',
+                        'reference_id' => $payment->id,
+                        'notes' => "Payment {$payment->payment_no} recorded",
+                        'created_by' => $userId,
+                    ]);
+                }
             }
 
             return $payment->refresh()->load('allocations');
