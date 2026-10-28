@@ -85,9 +85,10 @@ class ReceiveStock
                 $product->save();
             }
 
-            // Increment balance quantity
+            // Increment balance quantity and persist weighted average cost per warehouse
             $newQuantity = bcadd((string) $balance->quantity, (string) $quantity, 3);
             $balance->quantity = $newQuantity;
+            $balance->average_cost = $newCost;
             $balance->save();
 
             // Append stock movement

@@ -66,16 +66,20 @@
             </div>
         </div>
 
-        <!-- Low Stock -->
+        <!-- Low Stock Alert -->
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="stat-card stat-card--stock h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="stat-label">{{ __('dashboard.stats.low_stock') }}</span>
-                    <i class="bi bi-exclamation-diamond text-info fs-4"></i>
+            <a href="{{ route('stock.alerts') }}" class="text-decoration-none">
+                <div class="stat-card stat-card--stock h-100 {{ $lowStockCount > 0 ? 'border-warning' : '' }}">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="stat-label text-dark">{{ __('dashboard.stats.low_stock') }}</span>
+                        <i class="bi bi-exclamation-diamond {{ $lowStockCount > 0 ? 'text-warning' : 'text-info' }} fs-4"></i>
+                    </div>
+                    <div class="stat-value {{ $lowStockCount > 0 ? 'text-warning fw-bold' : 'text-info' }} mb-1">
+                        {{ $lowStockCount }}
+                    </div>
+                    <small class="text-muted">Items below reorder level</small>
                 </div>
-                <div class="stat-value text-info mb-1">0</div>
-                <small class="text-muted">Items below reorder level</small>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -107,7 +111,7 @@
                     </a>
                 </div>
                 <div class="col-6 col-md-3">
-                    <a href="#" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
+                    <a href="{{ route('products.create') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-box-seam fs-4 text-info"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.add_product') }}</div>

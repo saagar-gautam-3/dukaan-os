@@ -75,7 +75,17 @@ class TenantContext
         return static::instance()->current();
     }
 
+    public static function shop(): Shop
+    {
+        return static::instance()->current();
+    }
+
     public static function getShopId(): ?int
+    {
+        return static::instance()->id();
+    }
+
+    public static function shopId(): ?int
     {
         return static::instance()->id();
     }

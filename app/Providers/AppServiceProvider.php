@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\Customer;
+use App\Models\Sale;
+use App\Models\StockBalance;
 use App\Models\User;
+use App\Policies\CustomerPolicy;
+use App\Policies\SalePolicy;
+use App\Policies\StockPolicy;
 use App\Tenancy\TenantContext;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -31,6 +38,14 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return null;
+        });
+
+        Gate::policy(StockBalance::class, StockPolicy::class);
+        Gate::policy(Sale::class, SalePolicy::class);
+        Gate::policy(Customer::class, CustomerPolicy::class);
+
+        Blade::directive('npr', function (string $expression): string {
+            return "<?php echo \App\Support\NepaliNumber::formatNpr({$expression}); ?>";
         });
 
         // Blueprint macro on parent tenant-owned tables to support composite foreign keys

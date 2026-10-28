@@ -27,25 +27,54 @@
             <span>{{ __('common.nav.dashboard') }}</span>
         </a>
 
-        <a href="#" class="nav-link text-white-50 disabled">
+        @can('sales.create')
+        <a href="{{ route('pos') }}" class="nav-link {{ request()->routeIs('pos') ? 'active' : '' }}">
+            <i class="bi bi-calculator"></i>
+            <span>{{ __('sales.pos_title') }}</span>
+        </a>
+        @endcan
+
+        @can('sales.view')
+        <a href="{{ route('sales.index') }}" class="nav-link {{ request()->routeIs('sales.*') && !request()->routeIs('pos') ? 'active' : '' }}">
             <i class="bi bi-receipt"></i>
             <span>{{ __('common.nav.sales') }}</span>
         </a>
+        @endcan
 
-        <a href="#" class="nav-link text-white-50 disabled">
-            <i class="bi bi-book"></i>
-            <span>{{ __('common.nav.udhar') }}</span>
+        @can('customers.view')
+        <a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}">
+            <i class="bi bi-people"></i>
+            <span>{{ __('sales.customers') }}</span>
         </a>
+        @endcan
 
-        <a href="#" class="nav-link text-white-50 disabled">
+        @can('products.view')
+        <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') || request()->routeIs('categories.*') || request()->routeIs('units.*') ? 'active' : '' }}">
             <i class="bi bi-box-seam"></i>
             <span>{{ __('common.nav.products') }}</span>
         </a>
+        @endcan
 
-        <a href="#" class="nav-link text-white-50 disabled">
+        @can('inventory.view')
+        <a href="{{ route('stock.index') }}" class="nav-link {{ request()->routeIs('stock.*') ? 'active' : '' }}">
+            <i class="bi bi-stack"></i>
+            <span>{{ __('common.nav.stock') }}</span>
+        </a>
+        @endcan
+
+        @can('purchases.view')
+        <a href="{{ route('purchases.index') }}" class="nav-link {{ request()->routeIs('purchases.*') ? 'active' : '' }}">
             <i class="bi bi-cart-check"></i>
             <span>{{ __('common.nav.purchases') }}</span>
         </a>
+        @endcan
+
+        @can('suppliers.view')
+        <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
+            <i class="bi bi-truck"></i>
+            <span>{{ __('common.nav.suppliers') }}</span>
+        </a>
+        @endcan
 
         <a href="#" class="nav-link text-white-50 disabled">
             <i class="bi bi-wallet2"></i>

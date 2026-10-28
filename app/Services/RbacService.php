@@ -29,6 +29,7 @@ class RbacService
         'sales.view' => 'View sales and invoices',
         'sales.create' => 'Create POS sales and bills',
         'sales.cancel' => 'Cancel or refund sales',
+        'sales.return' => 'Process sale returns',
         'purchases.view' => 'View purchases',
         'purchases.manage' => 'Create and edit purchases',
         'customers.view' => 'View customers and ledgers (Udhar Khata)',
@@ -74,13 +75,13 @@ class RbacService
             'Manager' => [
                 'users.view', 'products.view', 'products.manage',
                 'inventory.view', 'inventory.manage', 'sales.view',
-                'sales.create', 'sales.cancel', 'purchases.view',
+                'sales.create', 'sales.cancel', 'sales.return', 'purchases.view',
                 'purchases.manage', 'customers.view', 'customers.manage',
                 'suppliers.view', 'suppliers.manage', 'expenses.view',
                 'expenses.manage', 'reports.view', 'audit.view',
             ],
             'Cashier' => [
-                'products.view', 'sales.view', 'sales.create',
+                'products.view', 'sales.view', 'sales.create', 'sales.return',
                 'customers.view', 'customers.manage',
             ],
             'Inventory Staff' => [
