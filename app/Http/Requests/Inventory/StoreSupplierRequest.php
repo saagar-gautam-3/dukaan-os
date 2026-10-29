@@ -11,6 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreSupplierRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         return $this->user()?->can('create', Supplier::class) ?? false;

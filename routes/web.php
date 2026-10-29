@@ -22,6 +22,7 @@ use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Shop\ShopPickerController;
 use App\Http\Controllers\Shop\ShopSettingsController;
 use App\Http\Controllers\Udhar\UdharController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public homepage
@@ -30,7 +31,7 @@ Route::get('/', function () {
 })->name('home');
 
 // Language switcher
-Route::get('/locale/{locale}', function (\Illuminate\Http\Request $request, string $locale) {
+Route::get('/locale/{locale}', function (Request $request, string $locale) {
     if (in_array($locale, ['en', 'ne'], true)) {
         session(['locale' => $locale]);
         if ($request->user()) {

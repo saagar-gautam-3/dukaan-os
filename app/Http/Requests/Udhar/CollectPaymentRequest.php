@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
 final class CollectPaymentRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         return $this->user()?->can('udhar.collect') ?? false;

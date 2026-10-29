@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class CloseCashSessionRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         return true;

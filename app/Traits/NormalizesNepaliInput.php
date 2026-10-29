@@ -49,4 +49,3 @@ trait NormalizesNepaliInput
         return $data;
     }
 }
-

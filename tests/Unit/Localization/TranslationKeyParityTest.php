@@ -87,4 +87,3 @@ class TranslationKeyParityTest extends TestCase
         return $keys;
     }
 }
-

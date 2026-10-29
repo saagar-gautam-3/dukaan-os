@@ -74,4 +74,3 @@ class NepaliPhone
         return $normalized;
     }
 }
-

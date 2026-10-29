@@ -49,4 +49,3 @@ if (! function_exists('nepal_fiscal_year')) {
         return FiscalYear::forDate($date);
     }
 }
-

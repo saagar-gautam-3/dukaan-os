@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 class StoreSaleRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         return true; // Authorization done via Policy in controller

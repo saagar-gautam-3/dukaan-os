@@ -11,6 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class AdjustStockRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         return $this->user()?->can('adjust', StockBalance::class) ?? false;

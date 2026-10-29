@@ -11,6 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateSupplierRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         $supplier = $this->route('supplier');

@@ -6,7 +6,6 @@ namespace Tests\Unit\Support;
 
 use App\Http\Requests\Sales\StoreCustomerRequest;
 use App\Http\Requests\Sales\StoreSaleRequest;
-use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Validator;
 use Tests\TestCase;
 
@@ -61,4 +60,3 @@ class InputNormalizationTest extends TestCase
         $this->assertEquals('300.00', $request->input('items.0.unit_price'));
     }
 }
-

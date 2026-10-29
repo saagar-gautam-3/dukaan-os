@@ -10,6 +10,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreExpenseRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         return true; // Authorization handled in controller via policy

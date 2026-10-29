@@ -48,4 +48,3 @@ class FiscalYear
         return self::forDate(now('Asia/Kathmandu'));
     }
 }
-

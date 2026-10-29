@@ -11,6 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
 class UpdateProductRequest extends FormRequest
 {
     use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         $product = $this->route('product');
