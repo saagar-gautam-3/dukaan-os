@@ -21,6 +21,7 @@ class SearchPosProducts
             ->where('is_active', true)
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('name_ne', 'like', "%{$query}%")
                     ->orWhere('sku', 'like', "%{$query}%")
                     ->orWhere('barcode', 'like', "%{$query}%");
             })
@@ -30,6 +31,7 @@ class SearchPosProducts
             ->map(fn (Product $p) => [
                 'id' => $p->id,
                 'name' => $p->name,
+                'name_ne' => $p->name_ne,
                 'sku' => $p->sku,
                 'price' => (string) $p->selling_price,
                 'track_stock' => $p->track_stock,

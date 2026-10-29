@@ -642,4 +642,40 @@ final class UdharLedgerTest extends TestCase
         $logs = ReminderLog::all();
         $this->assertCount(0, $logs);
     }
+
+    public function test_udhar_outstanding_screen_renders_with_and_without_search(): void
+    {
+        $customer = Customer::factory()->create([
+            'shop_id' => $this->shop->id,
+            'name' => 'Sita Ram',
+            'phone' => '9841999999',
+        ]);
+
+        CustomerLedgerEntry::factory()->create([
+            'shop_id' => $this->shop->id,
+            'customer_id' => $customer->id,
+            'debit' => '1200.00',
+            'credit' => '200.00',
+        ]);
+
+        $this->actingAs($this->user);
+
+        // Without search
+        $response = $this->get(route('udhar.outstanding'));
+        $response->assertOk();
+        $response->assertSee('Sita Ram');
+
+        // With search query
+        $searchResponse = $this->get(route('udhar.outstanding', ['search' => 'Sita']));
+        $searchResponse->assertOk();
+        $searchResponse->assertSee('Sita Ram');
+    }
+
+    public function test_udhar_ageing_screen_renders(): void
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->get(route('udhar.ageing'));
+        $response->assertOk();
+    }
 }

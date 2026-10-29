@@ -253,7 +253,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${p.track_stock ? stock + ' ' + (p.unit || '') : 'Non-stock'}
                         </small>
                     </div>
-                    <div class="fw-bold text-dark text-truncate mb-1" title="${p.name}">${p.name}</div>
+                    <div class="fw-bold text-dark text-truncate mb-1" title="${p.name}">
+                        ${p.name}
+                        ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${p.name_ne}</div>` : ''}
+                    </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
                         <span class="fw-bold text-primary">Rs. ${price.toFixed(2)}</span>
                         <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${!inStock ? 'disabled' : ''}>

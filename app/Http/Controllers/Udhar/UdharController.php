@@ -37,7 +37,7 @@ final class UdharController extends Controller
         $shop = TenantContext::shop();
         $search = $request->string('search')->toString() ?: null;
 
-        $customers = $this->ledgerService->outstandingList($shop->id, $search, 20);
+        $customers = $this->ledgerService->outstandingList($search, 20);
 
         // Calculate total outstanding balance across all customers
         $totalOutstanding = (string) CustomerLedgerEntry::where('shop_id', $shop->id)
@@ -59,7 +59,7 @@ final class UdharController extends Controller
         $this->authorize('viewAny', CustomerLedgerEntry::class);
 
         $shop = TenantContext::shop();
-        $report = $this->ledgerService->ageingReport($shop->id);
+        $report = $this->ledgerService->ageingReport();
 
         return view('udhar.ageing', [
             'customers' => $report['customers'],
