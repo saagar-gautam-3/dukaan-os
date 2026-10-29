@@ -85,4 +85,14 @@ return [
     'draft_saved' => 'Draft saved.',
     'insufficient_stock' => 'Insufficient stock for :product.',
     'customer_archived' => 'Customer :name archived successfully.',
+
+    // POS enhancements
+    'search_hint' => 'Type name, SKU or barcode to search products',
+    'new_sale_fab' => 'New Sale',
+    'cart_empty_alert' => 'Please add at least one item to the cart.',
+    'posting' => 'Posting...',
+    'sale_error' => 'Sale could not be completed. Please try again.',
+    'network_error' => 'Network error. Check your connection.',
+    'network_timeout' => 'Request timed out.',
+    'retry_same_key' => 'Tap Retry to try again (no duplicate will be created).',
 ];

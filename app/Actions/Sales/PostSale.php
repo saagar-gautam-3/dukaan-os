@@ -21,6 +21,7 @@ use App\Models\Sale;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use App\Support\FiscalYear;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -244,11 +245,7 @@ class PostSale
      */
     private function generateInvoiceNumber(int $shopId): string
     {
-        // Nepali fiscal year: Shrawan 1 (mid-July) to Ashad end (mid-July next year)
-        // Approximate: if current month < 7 it's prior year's fiscal year
-        $now = now()->setTimezone('Asia/Kathmandu');
-        $year = $now->month >= 7 ? $now->year : $now->year - 1;
-        $fiscalYear = $year.'-'.substr((string) ($year + 1), -2);
+        $fiscalYear = FiscalYear::current();
 
         $sequence = InvoiceSequence::where('shop_id', $shopId)
             ->where('fiscal_year', $fiscalYear)

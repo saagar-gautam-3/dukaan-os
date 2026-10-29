@@ -68,6 +68,18 @@ class Customer extends Model
     }
 
     /**
+     * Accessor for customer balance. Uses aggregated debit/credit if loaded, otherwise calls ledgerBalance().
+     */
+    public function getBalanceAttribute(): string
+    {
+        if (array_key_exists('total_debit', $this->attributes) || array_key_exists('total_credit', $this->attributes)) {
+            return bcsub((string) ($this->attributes['total_debit'] ?? '0'), (string) ($this->attributes['total_credit'] ?? '0'), 2);
+        }
+
+        return $this->ledgerBalance();
+    }
+
+    /**
      * Outstanding open sales (posted, with due amount > 0).
      *
      * @return HasMany<Sale>

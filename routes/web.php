@@ -30,9 +30,13 @@ Route::get('/', function () {
 })->name('home');
 
 // Language switcher
-Route::get('/locale/{locale}', function (string $locale) {
+Route::get('/locale/{locale}', function (\Illuminate\Http\Request $request, string $locale) {
     if (in_array($locale, ['en', 'ne'], true)) {
         session(['locale' => $locale]);
+        if ($request->user()) {
+            $request->user()->update(['locale' => $locale]);
+        }
+        cookie()->queue('locale', $locale, 60 * 24 * 365);
     }
 
     return back();

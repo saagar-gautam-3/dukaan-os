@@ -133,7 +133,7 @@ class CustomerAndPosTest extends TestCase
         // Search by Nepali name
         $nepaliResponse = $this->actingAs($this->cashier)
             ->withSession(['current_shop_id' => $this->shop->id])
-            ->getJson('/pos/products?q=' . urlencode('वाइवाइ'));
+            ->getJson('/pos/products?q='.urlencode('वाइवाइ'));
 
         $nepaliResponse->assertStatus(200);
         $nepaliResponse->assertJsonFragment([

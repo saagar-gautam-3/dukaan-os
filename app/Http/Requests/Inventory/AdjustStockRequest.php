@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Requests\Inventory;
 
 use App\Models\StockBalance;
+use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AdjustStockRequest extends FormRequest
 {
+    use NormalizesNepaliInput;
     public function authorize(): bool
     {
         return $this->user()?->can('adjust', StockBalance::class) ?? false;

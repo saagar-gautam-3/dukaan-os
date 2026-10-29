@@ -4,14 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $sale->invoice_no ?? 'Invoice' }} - {{ $sale->shop->name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @vite(['resources/scss/print.scss'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
-            font-family: 'Mukta', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Noto Sans Devanagari', 'Mukta', Arial, sans-serif;
             background-color: #f8f9fa;
             color: #212529;
             font-size: 14px;
@@ -141,10 +139,10 @@
                             {{ (float) $item->quantity }} {{ $item->product->unit?->symbol }}
                         </td>
                         <td class="text-end">
-                            {{ number_format((float) $item->unit_price, 2) }}
+                            @npr($item->unit_price)
                         </td>
                         <td class="text-end fw-bold">
-                            {{ number_format((float) $item->line_total, 2) }}
+                            @npr($item->line_total)
                         </td>
                     </tr>
                     @endforeach
@@ -168,7 +166,7 @@
                     @foreach($sale->paymentAllocations as $alloc)
                         <div class="small text-muted">
                             <span class="text-uppercase fw-semibold">{{ $alloc->payment->method instanceof \BackedEnum ? $alloc->payment->method->value : $alloc->payment->method }}:</span>
-                            Rs. {{ number_format((float) $alloc->amount, 2) }}
+                            @npr($alloc->amount)
                             @if($alloc->payment->reference_number)
                                 (Ref: {{ $alloc->payment->reference_number }})
                             @endif

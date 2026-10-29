@@ -1,0 +1,10 @@
+// Dukaan OS — Print/Invoice Stylesheet
+// Self-hosted fonts for offline print support
+
+@import '@fontsource/noto-sans-devanagari/400.css';
+@import '@fontsource/noto-sans-devanagari/600.css';
+@import '@fontsource/noto-sans-devanagari/700.css';
+
+body {
+    font-family: 'Noto Sans Devanagari', 'Mukta', Arial, sans-serif;
+}

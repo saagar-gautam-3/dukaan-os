@@ -41,6 +41,7 @@ class RegisterShopAction
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'] ?? null,
+                'locale' => $data['locale'] ?? 'ne',
                 'password' => Hash::make($data['password']),
             ]);
 

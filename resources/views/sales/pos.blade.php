@@ -26,7 +26,7 @@
                         <div class="col-12 text-center py-5 text-muted" id="searchPlaceholder">
                             <i class="bi bi-upc-scan fs-1 d-block mb-2 text-primary opacity-50"></i>
                             <p class="mb-0">{{ __('sales.search_products') }}</p>
-                            <small class="text-muted">Type SKU, barcode, or name to find kirana items</small>
+                            <small class="text-muted">{{ __('sales.search_hint') }}</small>
                         </div>
                     </div>
                 </div>

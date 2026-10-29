@@ -63,6 +63,14 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo \App\Support\NepaliNumber::formatNpr({$expression}); ?>";
         });
 
+        Blade::directive('bs', function (string $expression): string {
+            return "<?php echo \App\Support\BikramSambat::formatBs({$expression}); ?>";
+        });
+
+        Blade::directive('devanagari', function (string $expression): string {
+            return "<?php echo \App\Support\NepaliNumber::toDevanagari({$expression}); ?>";
+        });
+
         // Blueprint macro on parent tenant-owned tables to support composite foreign keys
         Blueprint::macro('tenantCompositeIndex', function () {
             /** @var Blueprint $this */

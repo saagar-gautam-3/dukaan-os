@@ -40,4 +40,13 @@ return [
     'error_generic' => 'An unexpected error occurred. Please try again.',
     'select' => 'Select',
     'all' => 'All',
+    'no_records' => 'No records found.',
+    'add_first_customer' => 'Add First Customer',
+    'add_first_product' => 'Add First Product',
+    'add_first_supplier' => 'Add First Supplier',
+    'add_first_purchase' => 'Record First Purchase',
+    'add_first_expense' => 'Add First Expense',
+    'no_sales_yet' => 'No sales recorded yet.',
+    'no_stock_adjustments' => 'No stock adjustments yet.',
+    'no_udhar_outstanding' => 'No outstanding udhar. Great job!',
 ];
