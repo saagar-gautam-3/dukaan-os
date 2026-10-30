@@ -12,6 +12,7 @@ use App\Enums\PaymentMethod;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Sale;
+use App\Services\DocumentSequenceService;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -117,8 +118,6 @@ class RecordPayment
 
     private function generatePaymentNumber(int $shopId): string
     {
-        $count = Payment::where('shop_id', $shopId)->count();
-
-        return sprintf('PAY-%06d', $count + 1);
+        return app(DocumentSequenceService::class)->nextNumber($shopId, 'PAY');
     }
 }

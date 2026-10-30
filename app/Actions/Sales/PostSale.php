@@ -15,13 +15,12 @@ use App\Exceptions\ImmutableRecordException;
 use App\Exceptions\InsufficientStockException;
 use App\Models\Customer;
 use App\Models\IdempotencyKey;
-use App\Models\InvoiceSequence;
 use App\Models\Payment;
 use App\Models\Sale;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
-use App\Support\FiscalYear;
+use App\Services\DocumentSequenceService;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -245,26 +244,7 @@ class PostSale
      */
     private function generateInvoiceNumber(int $shopId): string
     {
-        $fiscalYear = FiscalYear::current();
-
-        $sequence = InvoiceSequence::where('shop_id', $shopId)
-            ->where('fiscal_year', $fiscalYear)
-            ->lockForUpdate()
-            ->first();
-
-        if (! $sequence) {
-            $sequence = InvoiceSequence::create([
-                'shop_id' => $shopId,
-                'fiscal_year' => $fiscalYear,
-                'prefix' => 'INV',
-                'last_number' => 0,
-            ]);
-        }
-
-        $nextNumber = $sequence->last_number + 1;
-        $sequence->update(['last_number' => $nextNumber]);
-
-        return sprintf('%s-%s-%06d', $sequence->prefix, $fiscalYear, $nextNumber);
+        return app(DocumentSequenceService::class)->nextNumber($shopId, 'INV');
     }
 
     /**
@@ -286,10 +266,13 @@ class PostSale
             $payAmount = $maxPayable;
         }
 
+        $paymentNo = app(DocumentSequenceService::class)->nextNumber($shopId, 'PAY');
+
         $payment = Payment::create([
             'shop_id' => $shopId,
             'user_id' => $userId,
             'customer_id' => $sale->customer_id,
+            'payment_no' => $paymentNo,
             'method' => $method->value,
             'status' => $method->defaultStatus()->value,
             'amount' => $payAmount,
