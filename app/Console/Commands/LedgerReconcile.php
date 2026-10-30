@@ -46,32 +46,32 @@ final class LedgerReconcile extends Command
         foreach ($shops as $shop) {
             $this->info("Reconciling shop #{$shop->id} ({$shop->name})...");
 
-            TenantContext::setShop($shop);
+            TenantContext::runAs($shop, function () use ($shop, $ledgerService, &$totalDrifts) {
+                $drifts = $ledgerService->reconcile((int) $shop->id);
 
-            $drifts = $ledgerService->reconcile((int) $shop->id);
+                if (empty($drifts)) {
+                    $this->info("  [OK] Shop #{$shop->id}: All customer balances match ledger sums.");
 
-            if (empty($drifts)) {
-                $this->info("  [OK] Shop #{$shop->id}: All customer balances match ledger sums.");
+                    return;
+                }
 
-                continue;
-            }
+                $totalDrifts += count($drifts);
+                $this->error('  [DRIFT DETECTED] Found '.count($drifts)." drifting customer balance(s) in shop #{$shop->id}:");
 
-            $totalDrifts += count($drifts);
-            $this->error('  [DRIFT DETECTED] Found '.count($drifts)." drifting customer balance(s) in shop #{$shop->id}:");
+                $rows = [];
+                foreach ($drifts as $drift) {
+                    $customer = Customer::withoutGlobalScopes()->find($drift['customer_id']);
+                    $rows[] = [
+                        'Customer ID' => $drift['customer_id'],
+                        'Customer Name' => $customer?->name ?? 'Unknown',
+                        'Ledger Balance' => $drift['ledger_balance'],
+                        'Cached Balance' => $drift['cached_balance'],
+                        'Drift' => $drift['drift'],
+                    ];
+                }
 
-            $rows = [];
-            foreach ($drifts as $drift) {
-                $customer = Customer::withoutGlobalScopes()->find($drift['customer_id']);
-                $rows[] = [
-                    'Customer ID' => $drift['customer_id'],
-                    'Customer Name' => $customer?->name ?? 'Unknown',
-                    'Ledger Balance' => $drift['ledger_balance'],
-                    'Cached Balance' => $drift['cached_balance'],
-                    'Drift' => $drift['drift'],
-                ];
-            }
-
-            $this->table(['Customer ID', 'Customer Name', 'Ledger Balance', 'Cached Balance', 'Drift'], $rows);
+                $this->table(['Customer ID', 'Customer Name', 'Ledger Balance', 'Cached Balance', 'Drift'], $rows);
+            });
         }
 
         if ($totalDrifts > 0) {

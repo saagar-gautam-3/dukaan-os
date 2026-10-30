@@ -42,7 +42,7 @@
                 </div>
                 <div class="col-12 col-md-6 d-flex gap-2">
                     <button type="submit" class="btn btn-secondary flex-grow-1">
-                        <i class="bi bi-funnel me-1"></i>Filter
+                        <i class="bi bi-funnel me-1"></i>{{ __('inventory.filter') }}
                     </button>
                     @if(request()->filled('warehouse_id'))
                         <a href="{{ route('stock.history', $product) }}" class="btn btn-outline-secondary">
@@ -95,7 +95,7 @@
                                     </span>
                                 </td>
                                 <td class="text-end fw-bold {{ $isInflow ? 'text-success' : 'text-danger' }}">
-                                    {{ $isInflow ? '+' : '-' }}{{ number_format($qty, $product->unit?->is_fractional ? 3 : 0) }} {{ $product->unit?->symbol }}
+                                    {{ $isInflow ? '+' : '-' }}@qty($qty, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
                                 </td>
                                 <td class="text-end text-muted">@npr($movement->unit_cost)</td>
                                 <td>
@@ -128,7 +128,7 @@
                                 {{ str_replace('_', ' ', $movement->movement_type->value) }}
                             </span>
                             <span class="fw-bold fs-6 {{ $isInflow ? 'text-success' : 'text-danger' }}">
-                                {{ $isInflow ? '+' : '-' }}{{ number_format($qty, $product->unit?->is_fractional ? 3 : 0) }} {{ $product->unit?->symbol }}
+                                {{ $isInflow ? '+' : '-' }}@qty($qty, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
                             </span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center text-muted small">
@@ -138,7 +138,7 @@
                         @if($movement->notes)
                             <div class="mt-1 small text-muted bg-light p-1 rounded">
                                 {{ $movement->notes }}
-                            </div
+                            </div>
                         @endif
                     </div>
                     @endforeach
@@ -146,7 +146,7 @@
 
                 <div class="p-3 border-top d-flex justify-content-between align-items-center">
                     <span class="text-muted small">
-                        Showing {{ $movements->firstItem() ?? 0 }} to {{ $movements->lastItem() ?? 0 }} of {{ $movements->total() }} movements
+                        {{ __('common.showing_of', ['first' => $movements->firstItem() ?? 0, 'last' => $movements->lastItem() ?? 0, 'total' => $movements->total(), 'resource' => __('inventory.stock_movements')]) }}
                     </span>
                     <div>
                         {{ $movements->links() }}

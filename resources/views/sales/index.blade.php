@@ -8,7 +8,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h1 class="h3 fw-bold mb-1">{{ __('sales.all_sales') }}</h1>
-            <p class="text-muted small mb-0">{{ __('sales.sales') }} transactions, bills & receipts</p>
+            <p class="text-muted small mb-0">{{ __('sales.sales') }} {{ __('sales.transactions_desc') }}</p>
         </div>
         <div class="d-flex gap-2">
             @can('sales.create')
@@ -40,11 +40,11 @@
                 </div>
                 <div class="col-md-4 col-6 d-flex gap-2">
                     <button type="submit" class="btn btn-dark">
-                        <i class="bi bi-funnel me-1"></i> Filter
+                        <i class="bi bi-funnel me-1"></i> {{ __('sales.filter') }}
                     </button>
                     @if(request()->hasAny(['search', 'status']))
                     <a href="{{ route('sales.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle me-1"></i> Clear
+                        <i class="bi bi-x-circle me-1"></i> {{ __('sales.clear') }}
                     </a>
                     @endif
                 </div>
@@ -65,7 +65,7 @@
                         <th class="text-end">{{ __('sales.paid') }}</th>
                         <th class="text-end">{{ __('sales.due') }}</th>
                         <th class="text-center">{{ __('sales.status') }}</th>
-                        <th class="text-end" style="width: 140px;">Actions</th>
+                        <th class="text-end" style="width: 140px;">{{ __('sales.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -93,17 +93,17 @@
                             <small class="text-muted">{{ $sale->created_at->format('H:i') }}</small>
                         </td>
                         <td class="text-end fw-bold">
-                            Rs. {{ number_format((float) $sale->grand_total, 2) }}
+                            @npr($sale->grand_total)
                         </td>
                         <td class="text-end text-success fw-semibold">
-                            Rs. {{ number_format((float) $sale->paid_total, 2) }}
+                            @npr($sale->paid_total)
                         </td>
                         <td class="text-end">
                             @php $due = (float) $sale->dueAmount(); @endphp
                             @if($due > 0)
-                                <span class="text-danger fw-bold">Rs. {{ number_format($due, 2) }}</span>
+                                <span class="text-danger fw-bold">@npr($due)</span>
                             @else
-                                <span class="text-muted">Rs. 0.00</span>
+                                <span class="text-muted">@npr(0)</span>
                             @endif
                         </td>
                         <td class="text-center">

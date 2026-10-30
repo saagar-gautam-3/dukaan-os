@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Requests\Product;
 
 use App\Models\Product;
+use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductRequest extends FormRequest
 {
+    use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         $product = $this->route('product');

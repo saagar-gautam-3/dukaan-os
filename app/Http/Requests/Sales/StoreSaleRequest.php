@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Requests\Sales;
 
 use App\Tenancy\TenantContext;
+use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreSaleRequest extends FormRequest
 {
+    use NormalizesNepaliInput;
+
     public function authorize(): bool
     {
         return true; // Authorization done via Policy in controller

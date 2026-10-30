@@ -84,7 +84,7 @@
 </head>
 <body>
     <div class="print-btn-bar">
-        <button class="btn" onclick="window.print()">Print Receipt (80mm)</button>
+        <button class="btn" onclick="window.print()">{{ __('sales.thermal_print') }}</button>
     </div>
 
     <div class="receipt-container">
@@ -106,11 +106,11 @@
 
         <!-- Meta -->
         <div>
-            <div><strong>Bill:</strong> {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</div>
-            <div><strong>Date:</strong> {{ $sale->created_at->format('Y-m-d H:i') }}</div>
-            <div><strong>Customer:</strong> {{ $sale->customer?->name ?? 'Walk-in' }}</div>
+            <div><strong>{{ __('sales.invoice') }}:</strong> {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</div>
+            <div><strong>{{ __('sales.date') }}:</strong> {{ $sale->created_at->format('Y-m-d H:i') }}</div>
+            <div><strong>{{ __('sales.customer') }}:</strong> {{ $sale->customer?->name ?? __('sales.walk_in') }}</div>
             @if($sale->customer?->phone)
-                <div><strong>Phone:</strong> {{ $sale->customer->phone }}</div>
+                <div><strong>{{ __('sales.phone') }}:</strong> {{ $sale->customer->phone }}</div>
             @endif
         </div>
 
@@ -120,10 +120,10 @@
         <table>
             <thead>
                 <tr>
-                    <th class="text-left" style="width: 45%;">Item</th>
-                    <th class="text-center" style="width: 15%;">Qty</th>
-                    <th class="text-right" style="width: 20%;">Rate</th>
-                    <th class="text-right" style="width: 20%;">Total</th>
+                    <th class="text-left" style="width: 45%;">{{ __('sales.item_col') }}</th>
+                    <th class="text-center" style="width: 15%;">{{ __('sales.qty') }}</th>
+                    <th class="text-right" style="width: 20%;">{{ __('sales.rate') }}</th>
+                    <th class="text-right" style="width: 20%;">{{ __('sales.line_total') }}</th>
                 </tr>
             </thead>
             <tbody>
@@ -132,9 +132,9 @@
                     <td class="text-left">
                         <div class="fw-bold">{{ $item->product->name }}</div>
                     </td>
-                    <td class="text-center">{{ (float) $item->quantity }}</td>
-                    <td class="text-right">{{ number_format((float) $item->unit_price, 2) }}</td>
-                    <td class="text-right">{{ number_format((float) $item->line_total, 2) }}</td>
+                    <td class="text-center">@qty($item->quantity, $item->product->unit?->is_fractional)</td>
+                    <td class="text-right">@npr($item->unit_price)</td>
+                    <td class="text-right">@npr($item->line_total)</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -145,34 +145,34 @@
         <!-- Totals -->
         <table>
             <tr>
-                <td class="text-left">Subtotal:</td>
-                <td class="text-right">Rs. {{ number_format((float) $sale->subtotal, 2) }}</td>
+                <td class="text-left">{{ __('sales.subtotal') }}:</td>
+                <td class="text-right">@npr($sale->subtotal)</td>
             </tr>
             @if((float) $sale->discount_total > 0)
             <tr>
-                <td class="text-left">Discount:</td>
-                <td class="text-right">-Rs. {{ number_format((float) $sale->discount_total, 2) }}</td>
+                <td class="text-left">{{ __('sales.discount') }}:</td>
+                <td class="text-right">-@npr($sale->discount_total)</td>
             </tr>
             @endif
             @if((float) $sale->tax_total > 0)
             <tr>
-                <td class="text-left">Tax:</td>
-                <td class="text-right">+Rs. {{ number_format((float) $sale->tax_total, 2) }}</td>
+                <td class="text-left">{{ __('sales.tax') }}:</td>
+                <td class="text-right">+@npr($sale->tax_total)</td>
             </tr>
             @endif
             <tr class="fw-bold" style="font-size: 13px;">
-                <td class="text-left">Total:</td>
-                <td class="text-right">Rs. {{ number_format((float) $sale->grand_total, 2) }}</td>
+                <td class="text-left">{{ __('sales.grand_total') }}:</td>
+                <td class="text-right">@npr($sale->grand_total)</td>
             </tr>
             <tr>
-                <td class="text-left">Paid:</td>
-                <td class="text-right">Rs. {{ number_format((float) $sale->paid_total, 2) }}</td>
+                <td class="text-left">{{ __('sales.paid') }}:</td>
+                <td class="text-right">@npr($sale->paid_total)</td>
             </tr>
             @php $due = (float) $sale->dueAmount(); @endphp
             @if($due > 0)
             <tr class="fw-bold">
-                <td class="text-left">Due / बाँकी:</td>
-                <td class="text-right">Rs. {{ number_format($due, 2) }}</td>
+                <td class="text-left">{{ __('sales.due') }}:</td>
+                <td class="text-right">@npr($due)</td>
             </tr>
             @endif
         </table>
@@ -181,7 +181,7 @@
         <div class="divider"></div>
         <div>
             @foreach($sale->paymentAllocations as $alloc)
-                <div>Paid via {{ strtoupper($alloc->payment->method instanceof \BackedEnum ? $alloc->payment->method->value : (string) $alloc->payment->method) }}: Rs. {{ number_format((float) $alloc->amount, 2) }}</div>
+                <div>{{ __('sales.paid_via') }} {{ strtoupper($alloc->payment->method instanceof \BackedEnum ? $alloc->payment->method->value : (string) $alloc->payment->method) }}: @npr($alloc->amount)</div>
             @endforeach
         </div>
         @endif

@@ -111,7 +111,7 @@
                                 <td class="text-end fw-bold text-success">@npr($product->selling_price)</td>
                                 <td class="text-center">
                                     <span class="badge {{ $stock <= 0 ? 'bg-danger' : ($isLowStock ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
-                                        {{ number_format($stock, $product->unit?->is_fractional ? 3 : 0) }} {{ $product->unit?->symbol }}
+                                        @qty($stock, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -158,7 +158,7 @@
                                 <small class="text-muted"><code>{{ $product->sku ?: 'No SKU' }}</code> &bull; {{ $product->category?->name ?? 'General' }}</small>
                             </div>
                             <span class="badge {{ $stock <= 0 ? 'bg-danger' : ($isLowStock ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
-                                {{ number_format($stock, $product->unit?->is_fractional ? 3 : 0) }} {{ $product->unit?->symbol }}
+                                @qty($stock, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
                             </span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center my-2">
@@ -193,7 +193,7 @@
                 <!-- Server-Side Pagination -->
                 <div class="p-3 border-top d-flex justify-content-between align-items-center">
                     <span class="text-muted small">
-                        Showing {{ $products->firstItem() ?? 0 }} to {{ $products->lastItem() ?? 0 }} of {{ $products->total() }} products
+                        {{ __('common.showing_of', ['first' => $products->firstItem() ?? 0, 'last' => $products->lastItem() ?? 0, 'total' => $products->total(), 'resource' => __('products.title')]) }}
                     </span>
                     <div>
                         {{ $products->links() }}

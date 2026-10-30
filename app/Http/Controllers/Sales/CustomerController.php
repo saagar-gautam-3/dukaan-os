@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Sales;
 
+use App\Actions\Sales\ArchiveCustomer;
+use App\Actions\Sales\CreateCustomer;
 use App\Actions\Sales\QueryCustomers;
+use App\Actions\Sales\UpdateCustomer;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\StoreCustomerRequest;
 use App\Models\Customer;
@@ -17,6 +20,9 @@ class CustomerController extends Controller
 {
     public function __construct(
         private readonly QueryCustomers $queryCustomers,
+        private readonly CreateCustomer $createCustomer,
+        private readonly UpdateCustomer $updateCustomer,
+        private readonly ArchiveCustomer $archiveCustomer,
     ) {}
 
     public function index(Request $request): View
@@ -68,7 +74,7 @@ class CustomerController extends Controller
         $this->authorize('create', Customer::class);
 
         try {
-            Customer::create($request->validated());
+            $customer = $this->createCustomer->handle($request->validated());
 
             return redirect()->route('customers.index')
                 ->with('status', __('sales.new_customer').' saved.');
@@ -91,7 +97,7 @@ class CustomerController extends Controller
         $this->authorize('update', $customer);
 
         try {
-            $customer->update($request->validated());
+            $this->updateCustomer->handle($customer, $request->validated());
 
             return redirect()->route('customers.show', $customer)
                 ->with('status', __('common.updated_success'));
@@ -107,10 +113,10 @@ class CustomerController extends Controller
         $this->authorize('delete', $customer);
 
         try {
-            $customer->delete();
+            $result = $this->archiveCustomer->handle($customer);
 
             return redirect()->route('customers.index')
-                ->with('status', __('common.deleted_success'));
+                ->with('status', $result['message']);
         } catch (Throwable $e) {
             report($e);
 

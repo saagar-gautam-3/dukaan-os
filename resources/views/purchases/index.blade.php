@@ -121,7 +121,7 @@
                                                 <i class="bi bi-box-arrow-in-down me-1"></i>Post
                                             </button>
                                         </form>
-                                        <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('Delete draft purchase?')">
+                                        <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.confirm_delete') }}')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-outline-danger" title="Delete">

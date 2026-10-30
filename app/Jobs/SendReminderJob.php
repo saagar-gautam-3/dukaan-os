@@ -25,13 +25,14 @@ final class SendReminderJob implements ShouldQueue
     public function handle(SendReminder $sendReminder): void
     {
         $shop = Shop::findOrFail($this->shopId);
-        TenantContext::setShop($shop);
 
-        $customer = Customer::findOrFail($this->customerId);
+        TenantContext::runAs($shop, function () use ($sendReminder) {
+            $customer = Customer::findOrFail($this->customerId);
 
-        $sendReminder->handle($customer, [
-            'sent_by' => $this->sentBy,
-            'message' => $this->customMessage,
-        ]);
+            $sendReminder->handle($customer, [
+                'sent_by' => $this->sentBy,
+                'message' => $this->customMessage,
+            ]);
+        });
     }
 }

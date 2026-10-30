@@ -4,14 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $sale->invoice_no ?? 'Invoice' }} - {{ $sale->shop->name }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    @vite(['resources/scss/print.scss'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
-            font-family: 'Mukta', 'Noto Sans Devanagari', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Noto Sans Devanagari', 'Mukta', Arial, sans-serif;
             background-color: #f8f9fa;
             color: #212529;
             font-size: 14px;
@@ -62,7 +60,7 @@
             <i class="bi bi-printer me-2"></i> {{ __('sales.print_invoice') }}
         </button>
         <button onclick="window.close()" class="btn btn-outline-light">
-            Close
+            {{ __('common.cancel') }}
         </button>
     </div>
 
@@ -141,10 +139,10 @@
                             {{ (float) $item->quantity }} {{ $item->product->unit?->symbol }}
                         </td>
                         <td class="text-end">
-                            {{ number_format((float) $item->unit_price, 2) }}
+                            @npr($item->unit_price)
                         </td>
                         <td class="text-end fw-bold">
-                            {{ number_format((float) $item->line_total, 2) }}
+                            @npr($item->line_total)
                         </td>
                     </tr>
                     @endforeach
@@ -168,7 +166,7 @@
                     @foreach($sale->paymentAllocations as $alloc)
                         <div class="small text-muted">
                             <span class="text-uppercase fw-semibold">{{ $alloc->payment->method instanceof \BackedEnum ? $alloc->payment->method->value : $alloc->payment->method }}:</span>
-                            Rs. {{ number_format((float) $alloc->amount, 2) }}
+                            @npr($alloc->amount)
                             @if($alloc->payment->reference_number)
                                 (Ref: {{ $alloc->payment->reference_number }})
                             @endif
@@ -183,33 +181,33 @@
                     <table class="table table-sm table-borderless text-end mb-0">
                         <tr>
                             <td class="text-muted">{{ __('sales.subtotal') }}:</td>
-                            <td class="fw-semibold">Rs. {{ number_format((float) $sale->subtotal, 2) }}</td>
+                            <td class="fw-semibold">@npr($sale->subtotal)</td>
                         </tr>
                         @if((float) $sale->discount_total > 0)
                         <tr>
                             <td class="text-danger">{{ __('sales.discount') }}:</td>
-                            <td class="text-danger">-Rs. {{ number_format((float) $sale->discount_total, 2) }}</td>
+                            <td class="text-danger">-@npr($sale->discount_total)</td>
                         </tr>
                         @endif
                         @if((float) $sale->tax_total > 0)
                         <tr>
                             <td class="text-muted">{{ __('sales.tax') }}:</td>
-                            <td class="fw-semibold">+Rs. {{ number_format((float) $sale->tax_total, 2) }}</td>
+                            <td class="fw-semibold">+@npr($sale->tax_total)</td>
                         </tr>
                         @endif
                         <tr class="border-top">
                             <td class="fs-5 fw-bold text-dark">{{ __('sales.grand_total') }}:</td>
-                            <td class="fs-5 fw-bold text-primary">Rs. {{ number_format((float) $sale->grand_total, 2) }}</td>
+                            <td class="fs-5 fw-bold text-primary">@npr($sale->grand_total)</td>
                         </tr>
                         <tr>
                             <td class="text-success fw-semibold">{{ __('sales.paid') }}:</td>
-                            <td class="text-success fw-semibold">Rs. {{ number_format((float) $sale->paid_total, 2) }}</td>
+                            <td class="text-success fw-semibold">@npr($sale->paid_total)</td>
                         </tr>
                         @php $due = (float) $sale->dueAmount(); @endphp
                         @if($due > 0)
                         <tr class="border-top">
                             <td class="fw-bold text-danger">{{ __('sales.due') }}:</td>
-                            <td class="fw-bold text-danger">Rs. {{ number_format($due, 2) }}</td>
+                            <td class="fw-bold text-danger">@npr($due)</td>
                         </tr>
                         @endif
                     </table>

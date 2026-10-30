@@ -15,6 +15,7 @@ use App\Models\SaleReturn;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use App\Services\DocumentSequenceService;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -155,9 +156,7 @@ class ReturnSale
 
     private function generateReturnNumber(int $shopId): string
     {
-        $count = SaleReturn::where('shop_id', $shopId)->count();
-
-        return sprintf('RET-%06d', $count + 1);
+        return app(DocumentSequenceService::class)->nextNumber($shopId, 'RET');
     }
 
     private function defaultWarehouseId(int $shopId): int

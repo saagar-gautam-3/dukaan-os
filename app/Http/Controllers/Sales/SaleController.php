@@ -18,6 +18,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ReturnSaleRequest;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Models\Customer;
+use App\Models\IdempotencyKey;
 use App\Models\Sale;
 use App\Models\Warehouse;
 use App\Tenancy\TenantContext;
@@ -110,9 +111,32 @@ class SaleController extends Controller
     /**
      * Store draft or post directly from POS.
      */
-    public function store(StoreSaleRequest $request): RedirectResponse
+    public function store(StoreSaleRequest $request): RedirectResponse|JsonResponse
     {
         $this->authorize('create', Sale::class);
+
+        $idemKey = $request->string('idempotency_key')->toString() ?: null;
+        if ($idemKey !== null) {
+            $shop = TenantContext::shop();
+            $existing = IdempotencyKey::where('shop_id', $shop->id)
+                ->where('key', $idemKey)
+                ->where('action', 'post_sale')
+                ->first();
+
+            if ($existing) {
+                $existingSale = Sale::findOrFail($existing->result_id);
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'redirect' => route('sales.show', $existingSale),
+                        'sale_id' => $existingSale->id,
+                        'message' => __('sales.sale_posted'),
+                    ]);
+                }
+
+                return redirect()->route('sales.show', $existingSale)
+                    ->with('status', __('sales.sale_posted'));
+            }
+        }
 
         try {
             $data = $request->validated();
@@ -123,19 +147,43 @@ class SaleController extends Controller
                     'payment_method' => $data['payment_method'] ?? 'cash',
                     'payment_amount' => $data['payment_amount'] ?? '0',
                     'payment_reference' => $data['payment_reference'] ?? null,
-                    'idempotency_key' => $request->string('idempotency_key')->toString() ?: null,
+                    'idempotency_key' => $idemKey,
                 ]);
+
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json([
+                        'redirect' => route('sales.show', $sale),
+                        'sale_id' => $sale->id,
+                        'message' => __('sales.sale_posted'),
+                    ]);
+                }
 
                 return redirect()->route('sales.show', $sale)
                     ->with('status', __('sales.sale_posted'));
             }
 
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'redirect' => route('sales.show', $sale),
+                    'sale_id' => $sale->id,
+                    'message' => __('sales.draft_saved'),
+                ]);
+            }
+
             return redirect()->route('sales.show', $sale)
                 ->with('status', __('sales.draft_saved'));
         } catch (InsufficientStockException|ImmutableRecordException|InvalidArgumentException $e) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
             return back()->withInput()->with('error', $e->getMessage());
         } catch (Throwable $e) {
             report($e);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['message' => __('common.unexpected_error')], 500);
+            }
 
             return back()->withInput()->with('error', __('common.unexpected_error'));
         }

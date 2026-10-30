@@ -19,4 +19,12 @@ return [
     'record_expense' => 'खर्च दर्ता गर्नुहोस्',
     'recent_activity' => 'पछिल्लो कारोबार गतिविधि',
     'no_activity' => 'हाल कुनै कारोबार विवरण छैन।',
+    'bills_today' => 'आज :count वटा बिल',
+    'drawer_active' => 'नगद सत्र सक्रिय',
+    'from_customers' => ':count जना ग्राहकबाट',
+    'below_reorder' => 'न्यूनतम सीमाभन्दा कम सामानहरू',
+    'pos_billing' => 'पीओएस बिलिङ',
+    'customer_khata' => 'ग्राहक खाता',
+    'inventory_catalog' => 'सामान सूची',
+    'shop_outflow' => 'पसलको खर्च',
 ];

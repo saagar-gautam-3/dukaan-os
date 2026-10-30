@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\CashSession;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\Sale;
 use App\Models\StockBalance;
 use App\Models\SupplierLedgerEntry;
 use App\Models\User;
+use App\Policies\CashSessionPolicy;
 use App\Policies\CustomerLedgerEntryPolicy;
 use App\Policies\CustomerPolicy;
+use App\Policies\ExpenseCategoryPolicy;
+use App\Policies\ExpensePolicy;
 use App\Policies\SalePolicy;
 use App\Policies\StockPolicy;
 use App\Policies\SupplierLedgerEntryPolicy;
@@ -19,6 +25,7 @@ use App\Tenancy\TenantContext;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -49,9 +56,44 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(CustomerLedgerEntry::class, CustomerLedgerEntryPolicy::class);
         Gate::policy(SupplierLedgerEntry::class, SupplierLedgerEntryPolicy::class);
+        Gate::policy(ExpenseCategory::class, ExpenseCategoryPolicy::class);
+        Gate::policy(Expense::class, ExpensePolicy::class);
+        Gate::policy(CashSession::class, CashSessionPolicy::class);
+
+        Queue::before(function (): void {
+            TenantContext::reset();
+        });
+
+        Queue::after(function (): void {
+            TenantContext::reset();
+        });
+
+        Queue::failing(function (): void {
+            TenantContext::reset();
+        });
+
+        Queue::exceptionOccurred(function (): void {
+            TenantContext::reset();
+        });
 
         Blade::directive('npr', function (string $expression): string {
             return "<?php echo \App\Support\NepaliNumber::formatNpr({$expression}); ?>";
+        });
+
+        Blade::directive('bs', function (string $expression): string {
+            return "<?php echo \App\Support\BikramSambat::formatBs({$expression}); ?>";
+        });
+
+        Blade::directive('devanagari', function (string $expression): string {
+            return "<?php echo \App\Support\NepaliNumber::toDevanagari({$expression}); ?>";
+        });
+
+        Blade::directive('qty', function (string $expression): string {
+            return "<?php echo \App\Support\NepaliNumber::formatQuantity({$expression}); ?>";
+        });
+
+        Blade::directive('quantity', function (string $expression): string {
+            return "<?php echo \App\Support\NepaliNumber::formatQuantity({$expression}); ?>";
         });
 
         // Blueprint macro on parent tenant-owned tables to support composite foreign keys

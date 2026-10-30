@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\LedgerEntryType;
+use App\Exceptions\ImmutableRecordException;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -43,11 +44,11 @@ class CustomerLedgerEntry extends Model
     protected static function booted(): void
     {
         static::updating(function (): never {
-            throw new \LogicException('Ledger entries are append-only and cannot be modified.');
+            throw new ImmutableRecordException('Customer ledger entries are append-only and cannot be modified.');
         });
 
         static::deleting(function (): never {
-            throw new \LogicException('Ledger entries are append-only and cannot be deleted.');
+            throw new ImmutableRecordException('Customer ledger entries are append-only and cannot be deleted.');
         });
     }
 

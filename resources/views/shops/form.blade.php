@@ -45,6 +45,31 @@
                             @enderror
                         </div>
 
+                        <div class="mb-3">
+                            <label for="address" class="form-label fw-semibold">{{ __('shops.address') }}</label>
+                            <input type="text" class="form-control @error('address') is-invalid @enderror" id="address" name="address" value="{{ old('address', $shop->settings['address'] ?? '') }}">
+                            @error('address')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label fw-semibold">{{ __('shops.phone') }}</label>
+                                <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone', $shop->settings['phone'] ?? '') }}">
+                                @error('phone')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pan_number" class="form-label fw-semibold">{{ __('shops.pan_number') }}</label>
+                                <input type="text" class="form-control @error('pan_number') is-invalid @enderror" id="pan_number" name="pan_number" value="{{ old('pan_number', $shop->settings['pan_number'] ?? '') }}">
+                                @error('pan_number')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
                         <div class="mb-4">
                             <label for="timezone" class="form-label fw-semibold">{{ __('shops.timezone') }}</label>
                             <select class="form-select @error('timezone') is-invalid @enderror" id="timezone" name="timezone" required>
@@ -54,6 +79,26 @@
                             @error('timezone')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+                        </div>
+
+                        <div class="card bg-light border-0 mb-4 p-3 rounded-3">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-translate me-2 text-primary"></i>{{ __('shops.localization_settings') }}</h6>
+                            <div class="form-check form-switch mb-3">
+                                <input type="hidden" name="show_bs_dates" value="0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="show_bs_dates" name="show_bs_dates" value="1" {{ old('show_bs_dates', $shop->settings['show_bs_dates'] ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="show_bs_dates">
+                                    {{ __('shops.show_bs_dates') }}
+                                </label>
+                                <div class="form-text text-muted">{{ __('shops.show_bs_dates_help') }}</div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="devanagari_digits" value="0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="devanagari_digits" name="devanagari_digits" value="1" {{ old('devanagari_digits', $shop->settings['devanagari_digits'] ?? false) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="devanagari_digits">
+                                    {{ __('shops.devanagari_digits') }}
+                                </label>
+                                <div class="form-text text-muted">{{ __('shops.devanagari_digits_help') }}</div>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">

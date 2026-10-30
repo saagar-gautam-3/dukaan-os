@@ -6,21 +6,37 @@ namespace App\Actions\Dashboard;
 
 use App\Models\CustomerLedgerEntry;
 use App\Models\Product;
+use App\Services\ProfitReportService;
 use App\Tenancy\TenantContext;
 
 class GetDashboardStats
 {
+    public function __construct(
+        private readonly ProfitReportService $profitService,
+    ) {}
+
     /**
      * @return array{
      *     totalProducts: int,
      *     lowStockCount: int,
-     *     todaySalesTotal: string,
-     *     todaySalesCount: int,
+     *     todaySales: string,
+     *     todaySaleCount: int,
+     *     cashReceived: string,
+     *     totalUdhar: string,
+     *     udharCustomerCount: int,
+     *     estimatedProfit: string,
      * }
      */
     public function handle(): array
     {
         $shop = TenantContext::currentShop();
+        $shopTz = $shop->timezone ?: 'Asia/Kathmandu';
+
+        // Date range for "today" in shop timezone, converted to UTC
+        $range = $this->profitService->resolveDateRange('today', $shopTz);
+
+        // Profit summary (uses UTC-bounded queries)
+        $summary = $this->profitService->summary($shop->id, $range);
 
         // Low stock count based on per-product threshold
         $lowStockCount = Product::with('stockBalances')
@@ -46,8 +62,12 @@ class GetDashboardStats
         return [
             'totalProducts' => $totalProducts,
             'lowStockCount' => $lowStockCount,
+            'todaySales' => $summary['gross_sales'],
+            'todaySaleCount' => $summary['sale_count'],
+            'cashReceived' => $summary['cash_received'],
             'totalUdhar' => $udharBalance,
             'udharCustomerCount' => $udharCustomerCount,
+            'estimatedProfit' => $summary['gross_profit'],
         ];
     }
 }

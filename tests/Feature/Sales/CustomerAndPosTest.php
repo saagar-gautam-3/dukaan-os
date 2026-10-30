@@ -102,6 +102,7 @@ class CustomerAndPosTest extends TestCase
             'category_id' => $this->category->id,
             'unit_id' => $this->unit->id,
             'name' => 'Wai Wai Noodles',
+            'name_ne' => 'वाइवाइ चाउचाउ',
             'sku' => 'WAIWAI-75G',
             'selling_price' => '25.00',
             'track_stock' => true,
@@ -124,8 +125,21 @@ class CustomerAndPosTest extends TestCase
         $response->assertJsonFragment([
             'id' => $product->id,
             'name' => 'Wai Wai Noodles',
+            'name_ne' => 'वाइवाइ चाउचाउ',
             'sku' => 'WAIWAI-75G',
             'price' => '25.00',
+        ]);
+
+        // Search by Nepali name
+        $nepaliResponse = $this->actingAs($this->cashier)
+            ->withSession(['current_shop_id' => $this->shop->id])
+            ->getJson('/pos/products?q='.urlencode('वाइवाइ'));
+
+        $nepaliResponse->assertStatus(200);
+        $nepaliResponse->assertJsonFragment([
+            'id' => $product->id,
+            'name' => 'Wai Wai Noodles',
+            'name_ne' => 'वाइवाइ चाउचाउ',
         ]);
     }
 

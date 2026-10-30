@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\SaleStatus;
+use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-    use BelongsToShop, HasFactory;
+    use Auditable, BelongsToShop, HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -63,6 +65,18 @@ class Customer extends Model
         $credit = $this->ledgerEntries()->sum('credit');
 
         return bcsub((string) $debit, (string) $credit, 2);
+    }
+
+    /**
+     * Accessor for customer balance. Uses aggregated debit/credit if loaded, otherwise calls ledgerBalance().
+     */
+    public function getBalanceAttribute(): string
+    {
+        if (array_key_exists('total_debit', $this->attributes) || array_key_exists('total_credit', $this->attributes)) {
+            return bcsub((string) ($this->attributes['total_debit'] ?? '0'), (string) ($this->attributes['total_credit'] ?? '0'), 2);
+        }
+
+        return $this->ledgerBalance();
     }
 
     /**

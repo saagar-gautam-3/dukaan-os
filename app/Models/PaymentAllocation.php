@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Exceptions\ImmutableRecordException;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,17 @@ class PaymentAllocation extends Model
     protected $casts = [
         'amount' => 'decimal:2',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(function (): void {
+            throw new ImmutableRecordException('Payment allocations are append-only and cannot be updated.');
+        });
+
+        static::deleting(function (): void {
+            throw new ImmutableRecordException('Payment allocations are append-only and cannot be deleted.');
+        });
+    }
 
     public function payment(): BelongsTo
     {

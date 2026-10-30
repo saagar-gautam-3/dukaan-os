@@ -26,7 +26,7 @@
                         <div class="col-12 text-center py-5 text-muted" id="searchPlaceholder">
                             <i class="bi bi-upc-scan fs-1 d-block mb-2 text-primary opacity-50"></i>
                             <p class="mb-0">{{ __('sales.search_products') }}</p>
-                            <small class="text-muted">Type SKU, barcode, or name to find kirana items</small>
+                            <small class="text-muted">{{ __('sales.search_hint') }}</small>
                         </div>
                     </div>
                 </div>
@@ -197,8 +197,75 @@ document.addEventListener('DOMContentLoaded', function () {
     let cart = []; // { product_id, name, unit, price, quantity, max_stock }
     let searchDebounce = null;
 
-    // Set idempotency key for this POS session
-    formIdempotencyKey.value = 'pos_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+    function getCartSignature() {
+        const sorted = [...cart].sort((a, b) => a.product_id - b.product_id);
+        const items = sorted.map(i => `${i.product_id}:${i.quantity}:${i.price}`).join('|');
+        const custId = selectedCustomerId.value || '';
+        return `${custId}__${items}`;
+    }
+
+    function getOrCreateIdempotencyKey() {
+        const sig = getCartSignature();
+        if (!sig || sig === '__') {
+            return '';
+        }
+        try {
+            const raw = sessionStorage.getItem('dukaan_pos_idempotency');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed.sig === sig && parsed.key) {
+                    return parsed.key;
+                }
+            }
+        } catch (e) {}
+
+        const newKey = 'pos_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+        try {
+            sessionStorage.setItem('dukaan_pos_idempotency', JSON.stringify({ sig: sig, key: newKey }));
+        } catch (e) {}
+        return newKey;
+    }
+
+    function clearIdempotencyStorage() {
+        try {
+            sessionStorage.removeItem('dukaan_pos_idempotency');
+            sessionStorage.removeItem('dukaan_pos_saved_cart');
+        } catch (e) {}
+    }
+
+    function saveCartToSession() {
+        try {
+            sessionStorage.setItem('dukaan_pos_saved_cart', JSON.stringify({
+                cart: cart,
+                customer: currentCustomer,
+            }));
+            if (cart.length > 0) {
+                formIdempotencyKey.value = getOrCreateIdempotencyKey();
+            } else {
+                formIdempotencyKey.value = '';
+                clearIdempotencyStorage();
+            }
+        } catch (e) {}
+    }
+
+    function restoreCartFromSession() {
+        try {
+            const raw = sessionStorage.getItem('dukaan_pos_saved_cart');
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed.cart) && parsed.cart.length > 0) {
+                    cart = parsed.cart;
+                    if (parsed.customer) {
+                        selectCustomer(parsed.customer);
+                    }
+                    renderCart();
+                }
+            }
+        } catch (e) {}
+    }
+
+    // Restore any cart from sessionStorage on load
+    restoreCartFromSession();
 
     // Initial load: search all products
     fetchProducts('');
@@ -253,7 +320,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             ${p.track_stock ? stock + ' ' + (p.unit || '') : 'Non-stock'}
                         </small>
                     </div>
-                    <div class="fw-bold text-dark text-truncate mb-1" title="${p.name}">${p.name}</div>
+                    <div class="fw-bold text-dark text-truncate mb-1" title="${p.name}">
+                        ${p.name}
+                        ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${p.name_ne}</div>` : ''}
+                    </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
                         <span class="fw-bold text-primary">Rs. ${price.toFixed(2)}</span>
                         <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${!inStock ? 'disabled' : ''}>

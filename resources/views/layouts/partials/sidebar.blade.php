@@ -83,14 +83,19 @@
         </a>
         @endcan
 
-        <a href="#" class="nav-link text-white-50 disabled">
+        <a href="{{ route('expenses.index') }}" class="nav-link {{ request()->routeIs('expenses.*','expense-categories.*') ? 'active' : '' }}">
             <i class="bi bi-wallet2"></i>
             <span>{{ __('common.nav.expenses') }}</span>
         </a>
 
-        <a href="#" class="nav-link text-white-50 disabled">
+        <a href="{{ route('reports.profit') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
             <i class="bi bi-graph-up"></i>
             <span>{{ __('common.nav.reports') }}</span>
+        </a>
+
+        <a href="{{ route('cash.index') }}" class="nav-link {{ request()->routeIs('cash.*') ? 'active' : '' }}">
+            <i class="bi bi-cash-coin"></i>
+            <span>{{ __('cash.sessions_history') }}</span>
         </a>
 
         <a href="#" class="nav-link text-white-50 disabled">

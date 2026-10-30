@@ -13,11 +13,16 @@ use App\Http\Controllers\Inventory\SupplierController;
 use App\Http\Controllers\Product\CategoryController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\UnitController;
+use App\Http\Controllers\Reports\CashSessionController;
+use App\Http\Controllers\Reports\ExpenseCategoryController;
+use App\Http\Controllers\Reports\ExpenseController;
+use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Shop\ShopPickerController;
 use App\Http\Controllers\Shop\ShopSettingsController;
 use App\Http\Controllers\Udhar\UdharController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public homepage
@@ -26,9 +31,13 @@ Route::get('/', function () {
 })->name('home');
 
 // Language switcher
-Route::get('/locale/{locale}', function (string $locale) {
+Route::get('/locale/{locale}', function (Request $request, string $locale) {
     if (in_array($locale, ['en', 'ne'], true)) {
         session(['locale' => $locale]);
+        if ($request->user()) {
+            $request->user()->update(['locale' => $locale]);
+        }
+        cookie()->queue('locale', $locale, 60 * 24 * 365);
     }
 
     return back();
@@ -107,5 +116,24 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
         Route::get('/collect/{customer}', [UdharController::class, 'collectForm'])->name('udhar.collect');
         Route::post('/collect/{customer}', [UdharController::class, 'collect'])->name('udhar.collect.store');
         Route::post('/remind/{customer}', [UdharController::class, 'remind'])->name('udhar.remind');
+    });
+
+    // Expenses
+    Route::resource('expenses', ExpenseController::class);
+    Route::resource('expense-categories', ExpenseCategoryController::class);
+
+    // Cash Sessions
+    Route::prefix('cash')->name('cash.')->group(function () {
+        Route::get('/', [CashSessionController::class, 'index'])->name('index');
+        Route::post('/open', [CashSessionController::class, 'open'])->name('open');
+        Route::get('/{cashSession}', [CashSessionController::class, 'show'])->name('show');
+        Route::post('/{cashSession}/close', [CashSessionController::class, 'close'])->name('close');
+    });
+
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/profit', [ReportController::class, 'profitSummary'])->name('profit');
+        Route::get('/profit/export', [ReportController::class, 'exportCsv'])->name('profit.export');
+        Route::get('/stock', [ReportController::class, 'stockValuation'])->name('stock');
     });
 });

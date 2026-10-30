@@ -29,10 +29,13 @@ $sidebar-width: 260px;
 $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
 @import 'bootstrap-icons/font/bootstrap-icons';
 
-// ── 4. Google Fonts (Inter + Noto Sans Devanagari) ─────────
-// Loaded as a CSS @import so we don't need a build-time font
-// download; the browser resolves it.
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
+// ── 4. Self-hosted fonts (no Google CDN) ───────────────────
+// Noto Sans Devanagari from @fontsource — works offline.
+@import '@fontsource/noto-sans-devanagari/400.css';
+@import '@fontsource/noto-sans-devanagari/500.css';
+@import '@fontsource/noto-sans-devanagari/600.css';
+@import '@fontsource/noto-sans-devanagari/700.css';
+// Inter via system fallback (Latin only — no CDN needed)
 
 // ── 5. App Shell Layout ────────────────────────────────────
 // Dark-blue sidebar + scrollable content area.

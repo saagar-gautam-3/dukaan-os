@@ -10,7 +10,7 @@
         </a>
         <div>
             <h1 class="h3 fw-bold mb-0">{{ __('sales.return_sale') }}</h1>
-            <p class="text-muted small mb-0">Invoice: {{ $sale->invoice_no }} | Date: {{ $sale->created_at->format('Y-m-d') }}</p>
+            <p class="text-muted small mb-0">{{ __('sales.invoice_label') }} {{ $sale->invoice_no }} | {{ __('sales.date_label') }} {{ $sale->created_at->format('Y-m-d') }}</p>
         </div>
     </div>
 
@@ -37,10 +37,10 @@
                     <thead class="table-light">
                         <tr>
                             <th>Item</th>
-                            <th class="text-center">Sold Qty</th>
-                            <th class="text-center">Already Returned</th>
-                            <th class="text-end">Unit Price</th>
-                            <th style="width: 180px;">Return Qty</th>
+                            <th class="text-center">{{ __('sales.sold_qty') }}</th>
+                            <th class="text-center">{{ __('sales.already_returned') }}</th>
+                            <th class="text-end">{{ __('sales.unit_price_col') }}</th>
+                            <th style="width: 180px;">{{ __('sales.return_qty') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -55,9 +55,9 @@
                                 <small class="text-muted">SKU: {{ $item->product->sku }}</small>
                                 <input type="hidden" name="items[{{ $idx }}][sale_item_id]" value="{{ $item->id }}">
                             </td>
-                            <td class="text-center">{{ (float) $item->quantity }} {{ $item->product->unit?->symbol }}</td>
-                            <td class="text-center text-muted">{{ $alreadyReturned }} {{ $item->product->unit?->symbol }}</td>
-                            <td class="text-end">Rs. {{ number_format((float) $item->unit_price, 2) }}</td>
+                            <td class="text-center">@qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}</td>
+                            <td class="text-center text-muted">@qty($alreadyReturned, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}</td>
+                            <td class="text-end">@npr($item->unit_price)</td>
                             <td>
                                 @if($maxReturnable > 0)
                                 <div class="input-group input-group-sm">
@@ -66,9 +66,9 @@
                                            value="0" placeholder="0">
                                     <span class="input-group-text">{{ $item->product->unit?->symbol }}</span>
                                 </div>
-                                <small class="text-muted">Max: {{ $maxReturnable }}</small>
+                                <small class="text-muted">{{ __('sales.max_label') }} @qty($maxReturnable, $item->product->unit?->is_fractional)</small>
                                 @else
-                                <span class="badge bg-secondary">Fully Returned</span>
+                                <span class="badge bg-secondary">{{ __('sales.fully_returned') }}</span>
                                 <input type="hidden" name="items[{{ $idx }}][quantity]" value="0">
                                 @endif
                             </td>
@@ -87,7 +87,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="{{ route('sales.show', $sale) }}" class="btn btn-outline-secondary">Cancel</a>
+                    <a href="{{ route('sales.show', $sale) }}" class="btn btn-outline-secondary">{{ __('common.cancel') }}</a>
                     <button type="submit" class="btn btn-danger fw-bold">
                         <i class="bi bi-arrow-return-left me-1"></i> {{ __('sales.process_return') }}
                     </button>

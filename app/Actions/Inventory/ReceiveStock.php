@@ -74,6 +74,15 @@ class ReceiveStock
             // Calculate moving weighted average cost if this is a purchase receive
             $newCost = (string) $product->cost_price;
             if ($movementType === MovementType::PurchaseReceive) {
+                // Lock the product row to prevent concurrent cost-price races.
+                // Both this lock and the StockBalance lock must be acquired
+                // in the same order everywhere to avoid deadlocks.
+                /** @var Product $product */
+                $product = Product::withoutGlobalScopes()
+                    ->where('id', $product->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
                 $newCost = $this->costingService->calculateWeightedAverage(
                     $balance->quantity,
                     $product->cost_price,
