@@ -48,14 +48,14 @@
                 </div>
                 <div class="col-12 col-md-2">
                     <select name="filter" class="form-select">
-                        <option value="">All Statuses</option>
+                        <option value="">{{ __('inventory.all_statuses') }}</option>
                         <option value="low_stock" {{ request('filter') === 'low_stock' ? 'selected' : '' }}>{{ __('inventory.low_stock') }}</option>
                         <option value="out_of_stock" {{ request('filter') === 'out_of_stock' ? 'selected' : '' }}>{{ __('inventory.out_of_stock') }}</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-secondary flex-grow-1">
-                        <i class="bi bi-funnel me-1"></i>Filter
+                        <i class="bi bi-funnel me-1"></i>{{ __('inventory.filter') }}
                     </button>
                     @if(request()->hasAny(['search', 'warehouse_id', 'filter']))
                         <a href="{{ route('stock.index') }}" class="btn btn-outline-secondary">
@@ -73,7 +73,7 @@
             @if($balances->isEmpty())
                 <div class="text-center py-5 text-muted">
                     <i class="bi bi-inbox fs-1 d-block mb-2 text-muted opacity-50"></i>
-                    <p class="mb-0">No stock balances found matching criteria.</p>
+                    <p class="mb-0">{{ __('inventory.no_stock_found') }}</p>
                 </div>
             @else
                 <!-- Desktop Table -->
@@ -108,11 +108,11 @@
                                 </td>
                                 <td class="text-end text-muted">@npr($balance->product->cost_price)</td>
                                 <td class="text-end text-muted">
-                                    {{ $minAlert > 0 ? number_format($minAlert, 3).' '.$balance->product->unit?->symbol : '—' }}
+                                    {{ $minAlert > 0 ? format_quantity($minAlert, $balance->product->unit?->is_fractional).' '.$balance->product->unit?->symbol : '—' }}
                                 </td>
                                 <td class="text-center">
                                     <span class="fs-6 fw-bold {{ $isOut ? 'text-danger' : ($isLow ? 'text-warning' : 'text-success') }}">
-                                        {{ number_format($qty, $balance->product->unit?->is_fractional ? 3 : 0) }} {{ $balance->product->unit?->symbol }}
+                                        @qty($qty, $balance->product->unit?->is_fractional) {{ $balance->product->unit?->symbol }}
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -151,13 +151,13 @@
                                 <small class="text-muted"><i class="bi bi-building me-1"></i>{{ $balance->warehouse->name }}</small>
                             </div>
                             <span class="badge {{ $isOut ? 'bg-danger' : ($isLow ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
-                                {{ number_format($qty, $balance->product->unit?->is_fractional ? 3 : 0) }} {{ $balance->product->unit?->symbol }}
+                                @qty($qty, $balance->product->unit?->is_fractional) {{ $balance->product->unit?->symbol }}
                             </span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                            <small class="text-muted">Threshold: {{ $minAlert > 0 ? $minAlert : 'None' }}</small>
+                            <small class="text-muted">{{ __('inventory.threshold_label') }} {{ $minAlert > 0 ? format_quantity($minAlert, $balance->product->unit?->is_fractional) : __('inventory.threshold_none') }}</small>
                             <a href="{{ route('stock.history', $balance->product) }}" class="btn btn-outline-info btn-sm py-0">
-                                <i class="bi bi-clock-history me-1"></i>History
+                                <i class="bi bi-clock-history me-1"></i>{{ __('inventory.history_btn') }}
                             </a>
                         </div>
                     </div>
@@ -166,7 +166,7 @@
 
                 <div class="p-3 border-top d-flex justify-content-between align-items-center">
                     <span class="text-muted small">
-                        Showing {{ $balances->firstItem() ?? 0 }} to {{ $balances->lastItem() ?? 0 }} of {{ $balances->total() }} records
+                        {{ __('common.showing_of', ['first' => $balances->firstItem() ?? 0, 'last' => $balances->lastItem() ?? 0, 'total' => $balances->total(), 'resource' => __('inventory.current_stock')]) }}
                     </span>
                     <div>
                         {{ $balances->links() }}

@@ -45,10 +45,10 @@
                 </button>
                 @endcan
                 @can('delete', $sale)
-                <form action="{{ route('sales.cancel', $sale) }}" method="POST" class="d-inline" onsubmit="return confirm('Cancel this draft sale?');">
+                <form action="{{ route('sales.cancel', $sale) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('sales.confirm_cancel') }}');">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-x-circle me-1"></i> Cancel Draft
+                        <i class="bi bi-x-circle me-1"></i> {{ __('sales.cancel_draft') }}
                     </button>
                 </form>
                 @endcan
@@ -68,7 +68,7 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom p-3">
-                    <h5 class="mb-0 fw-bold">Sale Items</h5>
+                    <h5 class="mb-0 fw-bold">{{ __('sales.sale_items') }}</h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -78,7 +78,7 @@
                                 <th class="text-center">{{ __('sales.qty') }}</th>
                                 <th class="text-end">{{ __('sales.price') }}</th>
                                 @can('reports.view')
-                                <th class="text-end text-muted">Cost Snapshot</th>
+                                <th class="text-end text-muted">{{ __('sales.cost_snapshot') }}</th>
                                 @endcan
                                 <th class="text-end">{{ __('sales.discount') }}</th>
                                 <th class="text-end">{{ __('sales.line_total') }}</th>
@@ -92,21 +92,21 @@
                                     <small class="text-muted">SKU: {{ $item->product->sku }}</small>
                                 </td>
                                 <td class="text-center fw-semibold">
-                                    {{ (float) $item->quantity }} {{ $item->product->unit?->symbol }}
+                                    @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}
                                 </td>
                                 <td class="text-end">
-                                    Rs. {{ number_format((float) $item->unit_price, 2) }}
+                                    @npr($item->unit_price)
                                 </td>
                                 @can('reports.view')
                                 <td class="text-end text-muted small">
-                                    Rs. {{ number_format((float) $item->unit_cost, 2) }}
+                                    @npr($item->unit_cost)
                                 </td>
                                 @endcan
                                 <td class="text-end text-muted">
-                                    Rs. {{ number_format((float) $item->discount, 2) }}
+                                    @npr($item->discount)
                                 </td>
                                 <td class="text-end fw-bold">
-                                    Rs. {{ number_format((float) $item->line_total, 2) }}
+                                    @npr($item->line_total)
                                 </td>
                             </tr>
                             @endforeach
@@ -119,16 +119,16 @@
             @if($sale->paymentAllocations->isNotEmpty())
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom p-3">
-                    <h5 class="mb-0 fw-bold"><i class="bi bi-wallet2 text-success me-2"></i>Payment History</h5>
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-wallet2 text-success me-2"></i>{{ __('sales.payment_history') }}</h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light small">
                             <tr>
-                                <th>Method</th>
-                                <th>Reference</th>
-                                <th>Date</th>
-                                <th class="text-end">Amount Allocated</th>
+                                <th>{{ __('sales.method_col') }}</th>
+                                <th>{{ __('sales.reference_col') }}</th>
+                                <th>{{ __('sales.date') }}</th>
+                                <th class="text-end">{{ __('sales.amount_allocated') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -146,7 +146,7 @@
                                     {{ $alloc->created_at->format('Y-m-d H:i') }}
                                 </td>
                                 <td class="text-end fw-bold text-success">
-                                    Rs. {{ number_format((float) $alloc->amount, 2) }}
+                                    @npr($alloc->amount)
                                 </td>
                             </tr>
                             @endforeach
@@ -160,16 +160,16 @@
             @if($sale->returns->isNotEmpty())
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom p-3">
-                    <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-arrow-return-left me-2"></i>Returns</h5>
+                    <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-arrow-return-left me-2"></i>{{ __('sales.returns_heading') }}</h5>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light small">
                             <tr>
-                                <th>Return No.</th>
-                                <th>Date</th>
-                                <th>Reason</th>
-                                <th class="text-end">Total Refunded</th>
+                                <th>{{ __('sales.return_no') }}</th>
+                                <th>{{ __('sales.date') }}</th>
+                                <th>{{ __('sales.return_reason') }}</th>
+                                <th class="text-end">{{ __('sales.total_refunded') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -178,7 +178,7 @@
                                 <td class="fw-bold">{{ $ret->return_no }}</td>
                                 <td class="small">{{ $ret->created_at->format('Y-m-d H:i') }}</td>
                                 <td class="text-muted small">{{ $ret->reason ?: '-' }}</td>
-                                <td class="text-end fw-bold text-danger">Rs. {{ number_format((float) $ret->total, 2) }}</td>
+                                <td class="text-end fw-bold text-danger">@npr($ret->total)</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -193,38 +193,38 @@
             <!-- Totals Card -->
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom p-3">
-                    <h5 class="mb-0 fw-bold">Summary</h5>
+                    <h5 class="mb-0 fw-bold">{{ __('sales.summary') }}</h5>
                 </div>
                 <div class="card-body p-3">
                     <div class="d-flex justify-content-between mb-2 text-muted">
                         <span>{{ __('sales.subtotal') }}:</span>
-                        <span>Rs. {{ number_format((float) $sale->subtotal, 2) }}</span>
+                        <span>@npr($sale->subtotal)</span>
                     </div>
                     @if((float) $sale->discount_total > 0)
                     <div class="d-flex justify-content-between mb-2 text-danger">
                         <span>{{ __('sales.discount') }}:</span>
-                        <span>-Rs. {{ number_format((float) $sale->discount_total, 2) }}</span>
+                        <span>-@npr($sale->discount_total)</span>
                     </div>
                     @endif
                     @if((float) $sale->tax_total > 0)
                     <div class="d-flex justify-content-between mb-2 text-muted">
                         <span>{{ __('sales.tax') }}:</span>
-                        <span>+Rs. {{ number_format((float) $sale->tax_total, 2) }}</span>
+                        <span>+@npr($sale->tax_total)</span>
                     </div>
                     @endif
                     <div class="d-flex justify-content-between mb-3 fs-5 fw-bold text-dark border-top pt-2">
                         <span>{{ __('sales.grand_total') }}:</span>
-                        <span class="text-primary">Rs. {{ number_format((float) $sale->grand_total, 2) }}</span>
+                        <span class="text-primary">@npr($sale->grand_total)</span>
                     </div>
 
                     <div class="border-top pt-2">
                         <div class="d-flex justify-content-between mb-1 text-success fw-semibold">
                             <span>{{ __('sales.paid') }}:</span>
-                            <span>Rs. {{ number_format((float) $sale->paid_total, 2) }}</span>
+                            <span>@npr($sale->paid_total)</span>
                         </div>
                         <div class="d-flex justify-content-between fw-bold {{ (float) $sale->dueAmount() > 0 ? 'text-danger' : 'text-muted' }}">
                             <span>{{ __('sales.due') }}:</span>
-                            <span>Rs. {{ number_format((float) $sale->dueAmount(), 2) }}</span>
+                            <span>@npr($sale->dueAmount())</span>
                         </div>
                     </div>
                 </div>
@@ -245,7 +245,7 @@
                             <p class="mb-2 text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ $sale->customer->address }}</p>
                         @endif
                         <a href="{{ route('customers.show', $sale->customer) }}" class="btn btn-sm btn-outline-primary">
-                            View Customer Ledger
+                            {{ __('sales.view_customer_ledger') }}
                         </a>
                     @else
                         <p class="mb-0 text-muted fst-italic">{{ __('sales.walk_in') }}</p>
@@ -269,7 +269,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info small">
-                        Posting this sale will deduct inventory from stock and assign an official sequential invoice number.
+                        {{ __('sales.posting_info') }}
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ __('sales.payment_method') }}</label>
@@ -285,12 +285,12 @@
                             <span class="input-group-text">Rs.</span>
                             <input type="number" name="payment_amount" step="0.01" min="0" class="form-control" value="{{ $sale->grand_total }}">
                         </div>
-                        <small class="text-muted">Total payable: Rs. {{ number_format((float) $sale->grand_total, 2) }}</small>
+                        <small class="text-muted">{{ __('sales.total_payable') }} @npr($sale->grand_total)</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success fw-bold">Confirm & Post</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('common.cancel') }}</button>
+                    <button type="submit" class="btn btn-success fw-bold">{{ __('sales.confirm_post') }}</button>
                 </div>
             </div>
         </form>

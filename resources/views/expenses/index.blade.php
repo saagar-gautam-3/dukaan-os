@@ -7,7 +7,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h1 class="h3 fw-bold mb-1">{{ __('expenses.expenses') }}</h1>
-            <p class="text-muted small mb-0">{{ __('expenses.total_expenses') }}: Rs {{ number_format($expenses->sum('amount'), 2) }}</p>
+            <p class="text-muted small mb-0">{{ __('expenses.total_expenses') }}: @npr($expenses->sum('amount'))</p>
         </div>
         <div class="d-flex gap-2">
             @can('create', \App\Models\Expense::class)
@@ -58,7 +58,7 @@
                     <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
                 </div>
                 <div class="col-md-3 d-flex gap-2">
-                    <button type="submit" class="btn btn-dark btn-sm"><i class="bi bi-funnel me-1"></i> Filter</button>
+                    <button type="submit" class="btn btn-dark btn-sm"><i class="bi bi-funnel me-1"></i> {{ __('common.filter') }}</button>
                     <a href="{{ route('expenses.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x"></i></a>
                 </div>
             </form>
@@ -90,7 +90,7 @@
                                 {{ ucfirst($expense->payment_method) }}
                             </span>
                         </td>
-                        <td class="text-end fw-semibold">Rs {{ number_format($expense->amount, 2) }}</td>
+                        <td class="text-end fw-semibold">@npr($expense->amount)</td>
                         <td class="text-end">
                             @can('update', $expense)
                             <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-sm btn-outline-secondary">
@@ -112,7 +112,7 @@
                     <tr>
                         <td colspan="6" class="text-center text-muted py-4">
                             <i class="bi bi-receipt fs-2 d-block mb-2"></i>
-                            No expenses recorded yet.
+                            {{ __('common.no_records') }}
                         </td>
                     </tr>
                     @endforelse

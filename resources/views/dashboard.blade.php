@@ -37,8 +37,8 @@
                     <span class="stat-label">{{ __('dashboard.stats.today_sales') }}</span>
                     <i class="bi bi-receipt text-primary fs-4"></i>
                 </div>
-                <div class="stat-value text-primary mb-1">NPR 0.00</div>
-                <small class="text-muted">0 bills today</small>
+                <div class="stat-value text-primary mb-1">@npr(0)</div>
+                <small class="text-muted">{{ __('dashboard.bills_today', ['count' => 0]) }}</small>
             </div>
         </div>
 
@@ -49,8 +49,8 @@
                     <span class="stat-label">{{ __('dashboard.stats.cash_in_hand') }}</span>
                     <i class="bi bi-cash-stack text-success fs-4"></i>
                 </div>
-                <div class="stat-value text-success mb-1">NPR 0.00</div>
-                <small class="text-muted">Drawer session active</small>
+                <div class="stat-value text-success mb-1">@npr(0)</div>
+                <small class="text-muted">{{ __('dashboard.drawer_active') }}</small>
             </div>
         </div>
 
@@ -62,8 +62,8 @@
                         <span class="stat-label text-dark">{{ __('dashboard.stats.udhar_dues') }}</span>
                         <i class="bi bi-journal-bookmark text-danger fs-4"></i>
                     </div>
-                    <div class="stat-value text-danger mb-1">NPR @npr($totalUdhar ?? '0.00')</div>
-                    <small class="text-muted">From {{ $udharCustomerCount ?? 0 }} {{ __('sales.customers') }}</small>
+                    <div class="stat-value text-danger mb-1">@npr($totalUdhar ?? '0.00')</div>
+                    <small class="text-muted">{{ __('dashboard.from_customers', ['count' => $udharCustomerCount ?? 0]) }}</small>
                 </div>
             </a>
         </div>
@@ -77,9 +77,9 @@
                         <i class="bi bi-exclamation-diamond {{ $lowStockCount > 0 ? 'text-warning' : 'text-info' }} fs-4"></i>
                     </div>
                     <div class="stat-value {{ $lowStockCount > 0 ? 'text-warning fw-bold' : 'text-info' }} mb-1">
-                        {{ $lowStockCount }}
+                        @qty($lowStockCount)
                     </div>
-                    <small class="text-muted">Items below reorder level</small>
+                    <small class="text-muted">{{ __('dashboard.below_reorder') }}</small>
                 </div>
             </a>
         </div>
@@ -99,7 +99,7 @@
                         <i class="bi bi-cart-plus fs-4 text-primary"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.new_sale') }}</div>
-                            <small class="text-muted">POS Billing</small>
+                            <small class="text-muted">{{ __('dashboard.pos_billing') }}</small>
                         </div>
                     </a>
                 </div>
@@ -108,7 +108,7 @@
                         <i class="bi bi-wallet2 fs-4 text-success"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.receive_udhar') }}</div>
-                            <small class="text-muted">Customer Khata</small>
+                            <small class="text-muted">{{ __('dashboard.customer_khata') }}</small>
                         </div>
                     </a>
                 </div>
@@ -117,7 +117,7 @@
                         <i class="bi bi-box-seam fs-4 text-info"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.add_product') }}</div>
-                            <small class="text-muted">Inventory Catalog</small>
+                            <small class="text-muted">{{ __('dashboard.inventory_catalog') }}</small>
                         </div>
                     </a>
                 </div>
@@ -126,7 +126,7 @@
                         <i class="bi bi-cash fs-4 text-danger"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.record_expense') }}</div>
-                            <small class="text-muted">Shop Outflow</small>
+                            <small class="text-muted">{{ __('dashboard.shop_outflow') }}</small>
                         </div>
                     </a>
                 </div>

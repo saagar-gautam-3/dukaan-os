@@ -35,11 +35,11 @@
                         <i class="bi bi-box-arrow-in-down me-1"></i>{{ __('purchases.post_purchase') }}
                     </button>
                 </form>
-                <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('Delete draft purchase?')">
+                <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.confirm_delete') }}')">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-trash me-1"></i>Delete Draft
+                        <i class="bi bi-trash me-1"></i>{{ __('purchases.delete_draft') }}
                     </button>
                 </form>
                 @endcan
@@ -52,7 +52,7 @@
         <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center" role="alert">
             <i class="bi bi-lock-fill fs-3 text-info me-3"></i>
             <div>
-                <h6 class="fw-bold mb-1 text-info-emphasis">Immutable Posted Record</h6>
+                <h6 class="fw-bold mb-1 text-info-emphasis">{{ __('purchases.immutable_heading') }}</h6>
                 <p class="mb-0 small text-muted">{{ __('purchases.immutable_notice') }}</p>
             </div>
         </div>
@@ -60,8 +60,8 @@
         <div class="alert alert-warning border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center" role="alert">
             <i class="bi bi-hourglass-split fs-3 text-warning me-3"></i>
             <div>
-                <h6 class="fw-bold mb-1 text-dark">Draft Purchase Order</h6>
-                <p class="mb-0 small text-muted">Stock has not been received yet. Click <strong>"{{ __('purchases.post_purchase') }}"</strong> above to receive the items into the warehouse.</p>
+                <h6 class="fw-bold mb-1 text-dark">{{ __('purchases.draft_notice') }}</h6>
+                <p class="mb-0 small text-muted">{{ __('purchases.draft_notice_desc', ['action' => __('purchases.post_purchase')]) }}</p>
             </div>
         </div>
     @endif
@@ -95,12 +95,12 @@
             <div class="card shadow-sm border-0 rounded-3 h-100">
                 <div class="card-header bg-white py-3 border-bottom">
                     <h6 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-building me-2 text-primary"></i>Receiving Location
+                        <i class="bi bi-building me-2 text-primary"></i>{{ __('purchases.receiving_loc') }}
                     </h6>
                 </div>
                 <div class="card-body">
                     <h5 class="fw-bold text-dark mb-1">{{ $purchase->warehouse->name }}</h5>
-                    <div class="text-muted small mb-2">Warehouse Code: <code>{{ $purchase->warehouse->code ?: 'N/A' }}</code></div>
+                    <div class="text-muted small mb-2">{{ __('purchases.warehouse_code') }}: <code>{{ $purchase->warehouse->code ?: 'N/A' }}</code></div>
                     @if($purchase->notes)
                         <div class="p-2 bg-light rounded small text-muted">
                             <strong>{{ __('purchases.notes') }}:</strong> {{ $purchase->notes }}
@@ -134,10 +134,10 @@
                         <tr>
                             <td class="ps-3">
                                 <div class="fw-semibold text-dark">{{ $item->product->name }}</div>
-                                <small class="text-muted"><code>{{ $item->product->sku ?: 'No SKU' }}</code></small>
+                                <small class="text-muted"><code>{{ $item->product->sku ?: __('purchases.no_sku') }}</code></small>
                             </td>
                             <td class="text-center fw-bold">
-                                {{ number_format((float) $item->quantity, $item->product->unit?->is_fractional ? 3 : 0) }} {{ $item->product->unit?->symbol }}
+                                @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}
                             </td>
                             <td class="text-end text-muted">@npr($item->unit_cost)</td>
                             <td class="text-end text-danger">- @npr($item->discount)</td>
@@ -155,10 +155,10 @@
                     <div class="d-flex justify-content-between align-items-start mb-1">
                         <div>
                             <h6 class="fw-bold mb-0 text-dark">{{ $item->product->name }}</h6>
-                            <small class="text-muted"><code>{{ $item->product->sku ?: 'No SKU' }}</code></small>
+                            <small class="text-muted"><code>{{ $item->product->sku ?: __('purchases.no_sku') }}</code></small>
                         </div>
                         <span class="fw-bold text-dark">
-                            {{ number_format((float) $item->quantity, $item->product->unit?->is_fractional ? 3 : 0) }} {{ $item->product->unit?->symbol }}
+                            @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}
                         </span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 small">

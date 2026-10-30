@@ -6,7 +6,7 @@
 <div class="container-fluid py-3">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <h1 class="h3 fw-bold mb-0"><i class="bi bi-boxes me-2"></i>{{ __('reports.stock_valuation') }}</h1>
-        <div class="text-muted small">Total Value: <strong>Rs {{ number_format($valuation['total_value'], 2) }}</strong></div>
+        <div class="text-muted small">{{ __('reports.total_value_label') }}: <strong>@npr($valuation['total_value'])</strong></div>
     </div>
 
     <div class="card border-0 shadow-sm">
@@ -26,15 +26,15 @@
                     <tr>
                         <td class="fw-semibold">{{ $item->name }}</td>
                         <td class="text-muted small">{{ $item->sku ?? '—' }}</td>
-                        <td class="text-end">{{ number_format($item->qty, 2) }}</td>
-                        <td class="text-end">Rs {{ number_format($item->avg_cost, 2) }}</td>
-                        <td class="text-end fw-semibold">Rs {{ number_format($item->value, 2) }}</td>
+                        <td class="text-end">@qty($item->qty, 2)</td>
+                        <td class="text-end">@npr($item->avg_cost)</td>
+                        <td class="text-end fw-semibold">@npr($item->value)</td>
                     </tr>
                     @empty
                     <tr>
                         <td colspan="5" class="text-center text-muted py-4">
                             <i class="bi bi-boxes fs-2 d-block mb-2"></i>
-                            No tracked stock found.
+                            {{ __('reports.no_stock_found') }}
                         </td>
                     </tr>
                     @endforelse
@@ -43,7 +43,7 @@
                 <tfoot class="table-light fw-bold">
                     <tr>
                         <td colspan="4" class="text-end">{{ __('reports.total_value') }}</td>
-                        <td class="text-end">Rs {{ number_format($valuation['total_value'], 2) }}</td>
+                        <td class="text-end">@npr($valuation['total_value'])</td>
                     </tr>
                 </tfoot>
                 @endif

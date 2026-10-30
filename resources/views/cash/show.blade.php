@@ -30,25 +30,25 @@
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="text-muted small">{{ __('cash.opening_cash') }}</div>
-                <div class="h4 fw-bold text-primary mt-1">Rs {{ number_format($detail['opening_cash'], 2) }}</div>
+                <div class="h4 fw-bold text-primary mt-1">@npr($detail['opening_cash'])</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="text-muted small">{{ __('cash.cash_in') }}</div>
-                <div class="h4 fw-bold text-success mt-1">Rs {{ number_format($detail['cash_in'], 2) }}</div>
+                <div class="h4 fw-bold text-success mt-1">@npr($detail['cash_in'])</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="text-muted small">{{ __('cash.cash_out') }}</div>
-                <div class="h4 fw-bold text-danger mt-1">Rs {{ number_format($detail['cash_out'], 2) }}</div>
+                <div class="h4 fw-bold text-danger mt-1">@npr($detail['cash_out'])</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="text-muted small">{{ __('cash.expected_cash') }}</div>
-                <div class="h4 fw-bold text-dark mt-1">Rs {{ number_format($detail['expected_cash'], 2) }}</div>
+                <div class="h4 fw-bold text-dark mt-1">@npr($detail['expected_cash'])</div>
             </div>
         </div>
     </div>
@@ -58,7 +58,7 @@
         <div class="col-sm-6 col-lg-4">
             <div class="card border-0 shadow-sm text-center p-3">
                 <div class="text-muted small">{{ __('cash.closing_cash') }}</div>
-                <div class="h4 fw-bold mt-1">Rs {{ number_format($detail['closing_cash'], 2) }}</div>
+                <div class="h4 fw-bold mt-1">@npr($detail['closing_cash'])</div>
             </div>
         </div>
         <div class="col-sm-6 col-lg-4">
@@ -66,7 +66,7 @@
             <div class="card border-0 shadow-sm text-center p-3 {{ $diff < 0 ? 'border-danger' : 'border-success' }}">
                 <div class="text-muted small">{{ __('cash.difference') }}</div>
                 <div class="h4 fw-bold {{ $diff < 0 ? 'text-danger' : 'text-success' }} mt-1">
-                    Rs {{ number_format(abs($diff), 2) }}
+                    @npr(abs($diff))
                     <small class="fs-6">({{ $diff < 0 ? __('cash.shortage') : __('cash.overage') }})</small>
                 </div>
             </div>
@@ -81,9 +81,9 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Time</th>
-                        <th>Type</th>
-                        <th>Notes</th>
+                        <th>{{ __('cash.time_col') }}</th>
+                        <th>{{ __('cash.type_col') }}</th>
+                        <th>{{ __('cash.notes_col') }}</th>
                         <th class="text-end text-success">{{ __('cash.cash_in') }}</th>
                         <th class="text-end text-danger">{{ __('cash.cash_out') }}</th>
                     </tr>
@@ -102,8 +102,8 @@
                             </span>
                         </td>
                         <td>{{ $m->notes ?? '—' }}</td>
-                        <td class="text-end text-success">{{ $isIn && $type !== \App\Enums\CashMovementType::Opening ? 'Rs '.number_format($m->amount, 2) : '—' }}</td>
-                        <td class="text-end text-danger">{{ !$isIn ? 'Rs '.number_format($m->amount, 2) : '—' }}</td>
+                        <td class="text-end text-success">{{ $isIn && $type !== \App\Enums\CashMovementType::Opening ? format_npr($m->amount) : '—' }}</td>
+                        <td class="text-end text-danger">{{ !$isIn ? format_npr($m->amount) : '—' }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -126,10 +126,10 @@
                         <input type="number" name="closing_cash" step="0.01" min="0"
                                class="form-control" value="{{ $detail['expected_cash'] }}" required>
                     </div>
-                    <div class="form-text">Expected: Rs {{ number_format($detail['expected_cash'], 2) }}</div>
+                    <div class="form-text">{{ __('cash.expected_hint') }} @npr($detail['expected_cash'])</div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Notes</label>
+                    <label class="form-label fw-semibold">{{ __('cash.notes') }}</label>
                     <textarea name="notes" class="form-control" rows="2"></textarea>
                 </div>
                 <button type="submit" class="btn btn-warning"

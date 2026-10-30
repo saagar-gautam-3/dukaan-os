@@ -49,3 +49,10 @@ if (! function_exists('nepal_fiscal_year')) {
         return FiscalYear::forDate($date);
     }
 }
+
+if (! function_exists('format_quantity')) {
+    function format_quantity(float|int|string|null $quantity, bool|int $isFractional = false, ?string $locale = null): string
+    {
+        return NepaliNumber::formatQuantity($quantity, $isFractional, $locale);
+    }
+}

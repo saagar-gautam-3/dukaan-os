@@ -49,4 +49,8 @@ return [
     'no_sales_yet' => 'अझसम्म कुनै बिक्री दर्ता छैन।',
     'no_stock_adjustments' => 'अझसम्म कुनै मौज्दात समायोजन छैन।',
     'no_udhar_outstanding' => 'कुनै बाँकी उधारो छैन। बढिया!',
+    'filter'               => 'फिल्टर',
+    'clear'                => 'हटाउनुहोस्',
+    'showing_of'           => ':first देखि :last सम्म, कुल :total :resource',
+    'retry'                => 'पुनः प्रयास',
 ];

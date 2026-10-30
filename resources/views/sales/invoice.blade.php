@@ -60,7 +60,7 @@
             <i class="bi bi-printer me-2"></i> {{ __('sales.print_invoice') }}
         </button>
         <button onclick="window.close()" class="btn btn-outline-light">
-            Close
+            {{ __('common.cancel') }}
         </button>
     </div>
 
@@ -181,33 +181,33 @@
                     <table class="table table-sm table-borderless text-end mb-0">
                         <tr>
                             <td class="text-muted">{{ __('sales.subtotal') }}:</td>
-                            <td class="fw-semibold">Rs. {{ number_format((float) $sale->subtotal, 2) }}</td>
+                            <td class="fw-semibold">@npr($sale->subtotal)</td>
                         </tr>
                         @if((float) $sale->discount_total > 0)
                         <tr>
                             <td class="text-danger">{{ __('sales.discount') }}:</td>
-                            <td class="text-danger">-Rs. {{ number_format((float) $sale->discount_total, 2) }}</td>
+                            <td class="text-danger">-@npr($sale->discount_total)</td>
                         </tr>
                         @endif
                         @if((float) $sale->tax_total > 0)
                         <tr>
                             <td class="text-muted">{{ __('sales.tax') }}:</td>
-                            <td class="fw-semibold">+Rs. {{ number_format((float) $sale->tax_total, 2) }}</td>
+                            <td class="fw-semibold">+@npr($sale->tax_total)</td>
                         </tr>
                         @endif
                         <tr class="border-top">
                             <td class="fs-5 fw-bold text-dark">{{ __('sales.grand_total') }}:</td>
-                            <td class="fs-5 fw-bold text-primary">Rs. {{ number_format((float) $sale->grand_total, 2) }}</td>
+                            <td class="fs-5 fw-bold text-primary">@npr($sale->grand_total)</td>
                         </tr>
                         <tr>
                             <td class="text-success fw-semibold">{{ __('sales.paid') }}:</td>
-                            <td class="text-success fw-semibold">Rs. {{ number_format((float) $sale->paid_total, 2) }}</td>
+                            <td class="text-success fw-semibold">@npr($sale->paid_total)</td>
                         </tr>
                         @php $due = (float) $sale->dueAmount(); @endphp
                         @if($due > 0)
                         <tr class="border-top">
                             <td class="fw-bold text-danger">{{ __('sales.due') }}:</td>
-                            <td class="fw-bold text-danger">Rs. {{ number_format($due, 2) }}</td>
+                            <td class="fw-bold text-danger">@npr($due)</td>
                         </tr>
                         @endif
                     </table>

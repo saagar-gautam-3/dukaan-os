@@ -36,8 +36,8 @@
         <div>
             <strong>{{ __('cash.status_open') }}:</strong>
             Session opened at {{ $currentSession->opened_at->format('d M Y, h:i A') }}
-            | Opening: Rs {{ number_format($currentSession->opening_cash, 2) }}
-            | Expected now: Rs {{ number_format($currentSession->computeExpectedCash(), 2) }}
+            | {{ __('cash.opening_label') }} @npr($currentSession->opening_cash)
+            | {{ __('cash.expected_label') }} @npr($currentSession->computeExpectedCash())
         </div>
     </div>
     @endif
@@ -53,7 +53,7 @@
                         <th class="text-end">{{ __('cash.expected_cash') }}</th>
                         <th class="text-end">{{ __('cash.closing_cash') }}</th>
                         <th class="text-end">{{ __('cash.difference') }}</th>
-                        <th>Status</th>
+                        <th>{{ __('cash.status') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -62,11 +62,11 @@
                     <tr>
                         <td>{{ $session->opened_at->format('d M Y, H:i') }}</td>
                         <td>{{ $session->openedBy?->name ?? '—' }}</td>
-                        <td class="text-end">Rs {{ number_format($session->opening_cash, 2) }}</td>
-                        <td class="text-end">Rs {{ $session->expected_cash ? number_format($session->expected_cash, 2) : '—' }}</td>
-                        <td class="text-end">{{ $session->closing_cash ? 'Rs '.number_format($session->closing_cash, 2) : '—' }}</td>
+                        <td class="text-end">@npr($session->opening_cash)</td>
+                        <td class="text-end">{{ $session->expected_cash ? format_npr($session->expected_cash) : '—' }}</td>
+                        <td class="text-end">{{ $session->closing_cash ? format_npr($session->closing_cash) : '—' }}</td>
                         <td class="text-end {{ $session->difference !== null ? ($session->difference < 0 ? 'text-danger' : 'text-success') : '' }}">
-                            {{ $session->difference !== null ? 'Rs '.number_format(abs($session->difference), 2).($session->difference < 0 ? ' (−)' : ' (+)') : '—' }}
+                            {{ $session->difference !== null ? format_npr(abs($session->difference)).($session->difference < 0 ? ' (−)' : ' (+)') : '—' }}
                         </td>
                         <td>
                             @if($session->isOpen())
@@ -85,7 +85,7 @@
                     <tr>
                         <td colspan="8" class="text-center text-muted py-4">
                             <i class="bi bi-cash-coin fs-2 d-block mb-2"></i>
-                            No cash sessions recorded yet.
+                            {{ __('cash.no_sessions') }}
                         </td>
                     </tr>
                     @endforelse
@@ -118,8 +118,8 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Notes</label>
-                        <textarea name="notes" class="form-control" rows="2" placeholder="Optional note…"></textarea>
+                        <label class="form-label fw-semibold">{{ __('cash.notes') }}</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="{{ __('cash.notes_optional') }}"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
