@@ -160,9 +160,7 @@ class NepaliNumber
     /**
      * Format quantity (fractional units show 3 decimals, whole units 0) honouring Devanagari digit setting.
      *
-     * @param float|int|string|null $quantity
-     * @param bool|int $isFractional True for fractional (3 decimals), false for whole (0 decimals), or exact decimal count.
-     * @param string|null $locale
+     * @param  bool|int  $isFractional  True for fractional (3 decimals), false for whole (0 decimals), or exact decimal count.
      */
     public static function formatQuantity(float|int|string|null $quantity, bool|int $isFractional = false, ?string $locale = null): string
     {

@@ -49,8 +49,8 @@ return [
     'no_sales_yet' => 'No sales recorded yet.',
     'no_stock_adjustments' => 'No stock adjustments yet.',
     'no_udhar_outstanding' => 'No outstanding udhar. Great job!',
-    'filter'               => 'Filter',
-    'clear'                => 'Clear',
-    'showing_of'           => 'Showing :first to :last of :total :resource',
-    'retry'                => 'Retry',
+    'filter' => 'Filter',
+    'clear' => 'Clear',
+    'showing_of' => 'Showing :first to :last of :total :resource',
+    'retry' => 'Retry',
 ];

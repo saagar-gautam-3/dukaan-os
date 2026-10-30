@@ -133,4 +133,3 @@ class BladeHardcodedEnglishStringsTest extends TestCase
         return $files;
     }
 }
-

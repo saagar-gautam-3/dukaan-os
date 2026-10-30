@@ -18,6 +18,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ReturnSaleRequest;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Models\Customer;
+use App\Models\IdempotencyKey;
 use App\Models\Sale;
 use App\Models\Warehouse;
 use App\Tenancy\TenantContext;
@@ -117,7 +118,7 @@ class SaleController extends Controller
         $idemKey = $request->string('idempotency_key')->toString() ?: null;
         if ($idemKey !== null) {
             $shop = TenantContext::shop();
-            $existing = \App\Models\IdempotencyKey::where('shop_id', $shop->id)
+            $existing = IdempotencyKey::where('shop_id', $shop->id)
                 ->where('key', $idemKey)
                 ->where('action', 'post_sale')
                 ->first();

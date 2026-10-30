@@ -71,4 +71,3 @@ class BladeNumberFormatAndCurrencyScanTest extends TestCase
         return $files;
     }
 }
-
