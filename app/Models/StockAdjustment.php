@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\AdjustmentStatus;
+use App\Exceptions\ImmutableRecordException;
 use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Database\Factories\StockAdjustmentFactory;
@@ -17,6 +18,26 @@ class StockAdjustment extends Model
 {
     /** @use HasFactory<StockAdjustmentFactory> */
     use Auditable, BelongsToShop, HasFactory;
+
+    /**
+     * Class C: once posted/adjusted, all fields are frozen (use a reversing
+     * adjustment to correct; never mutate a financial record in-place).
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (self $model): void {
+            $originalStatus = AdjustmentStatus::tryFrom((string) $model->getOriginal('status'));
+            if ($originalStatus !== null && $originalStatus !== AdjustmentStatus::Draft) {
+                throw new ImmutableRecordException('Posted stock adjustments are immutable and cannot be modified.');
+            }
+        });
+
+        static::deleting(function (self $model): void {
+            if ($model->status !== AdjustmentStatus::Draft) {
+                throw new ImmutableRecordException('Posted stock adjustments cannot be deleted.');
+            }
+        });
+    }
 
     protected $fillable = [
         'warehouse_id',

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\CashMovementType;
 use App\Enums\CashSessionStatus;
+use App\Exceptions\ImmutableRecordException;
 use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,6 +17,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class CashSession extends Model
 {
     use Auditable, BelongsToShop, HasFactory;
+
+    /**
+     * Class C: once closed, the cash session is an immutable financial record.
+     * The open→closed transition itself is allowed (it's the closing action),
+     * but no further changes can be made after the session is closed.
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (self $model): void {
+            if ($model->getOriginal('status') === CashSessionStatus::Closed->value) {
+                throw new ImmutableRecordException('Closed cash sessions are immutable and cannot be modified.');
+            }
+        });
+
+        static::deleting(function (self $model): void {
+            if ($model->status === CashSessionStatus::Closed) {
+                throw new ImmutableRecordException('Closed cash sessions cannot be deleted.');
+            }
+        });
+    }
 
     protected $fillable = [
         'branch_id',

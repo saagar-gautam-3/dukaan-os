@@ -30,13 +30,10 @@ class ConcurrentSaleTest extends TestCase
         TenantContext::reset();
 
         if ($this->testShop) {
-            SaleItem::withoutGlobalScopes()->where('shop_id', $this->testShop->id)->delete();
-            Sale::withoutGlobalScopes()->where('shop_id', $this->testShop->id)->delete();
-            StockMovement::withoutGlobalScopes()->where('shop_id', $this->testShop->id)->delete();
-            StockBalance::withoutGlobalScopes()->where('shop_id', $this->testShop->id)->delete();
-            Product::withoutGlobalScopes()->where('shop_id', $this->testShop->id)->delete();
-            Category::withoutGlobalScopes()->where('shop_id', $this->testShop->id)->delete();
-            Warehouse::withoutGlobalScopes()->where('shop_id', $this->testShop->id)->delete();
+            // Delete the shop first — the DB-level FK cascade (cascadeOnDelete)
+            // removes all child tenant rows (sale_items, sales, stock_movements,
+            // stock_balances, products, warehouses, etc.) at the database layer,
+            // bypassing Eloquent model events and the immutability triggers.
             $this->testShop->delete();
         }
 

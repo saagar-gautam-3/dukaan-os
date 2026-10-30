@@ -23,8 +23,9 @@ class DocumentSequenceConcurrencyTest extends TestCase
         TenantContext::reset();
 
         foreach ($this->testShops as $shop) {
-            Payment::withoutGlobalScopes()->where('shop_id', $shop->id)->delete();
-            InvoiceSequence::withoutGlobalScopes()->where('shop_id', $shop->id)->delete();
+            // Delete the shop — the DB-level FK cascade removes all child
+            // tenant rows (payments, invoice_sequences, etc.) at the database
+            // layer, bypassing Eloquent model events and immutability triggers.
             $shop->delete();
         }
 

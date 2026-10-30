@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\MovementType;
+use App\Exceptions\ImmutableRecordException;
 use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Database\Factories\StockMovementFactory;
@@ -22,6 +23,17 @@ class StockMovement extends Model
      * Stock movements are strictly append-only.
      */
     public const UPDATED_AT = null;
+
+    protected static function booted(): void
+    {
+        static::updating(function (): never {
+            throw new ImmutableRecordException('Stock movements are strictly append-only and cannot be modified.');
+        });
+
+        static::deleting(function (): never {
+            throw new ImmutableRecordException('Stock movements are strictly append-only and cannot be deleted.');
+        });
+    }
 
     protected $fillable = [
         'warehouse_id',

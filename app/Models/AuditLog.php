@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Exceptions\ImmutableRecordException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,6 +18,17 @@ class AuditLog extends Model
      * Audit logs are strictly append-only. No updated_at column exists.
      */
     public const UPDATED_AT = null;
+
+    protected static function booted(): void
+    {
+        static::updating(function (): never {
+            throw new ImmutableRecordException('Audit logs are strictly append-only and cannot be modified.');
+        });
+
+        static::deleting(function (): never {
+            throw new ImmutableRecordException('Audit logs are strictly append-only and cannot be deleted.');
+        });
+    }
 
     protected $guarded = ['id'];
 

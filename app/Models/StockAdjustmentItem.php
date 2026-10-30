@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Exceptions\ImmutableRecordException;
 use App\Traits\BelongsToShop;
 use Database\Factories\StockAdjustmentItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +15,21 @@ class StockAdjustmentItem extends Model
 {
     /** @use HasFactory<StockAdjustmentItemFactory> */
     use BelongsToShop, HasFactory;
+
+    /**
+     * Class A: append-only once created (items of a posted adjustment are
+     * financial records and must not be changed; use a correcting adjustment).
+     */
+    protected static function booted(): void
+    {
+        static::updating(function (): never {
+            throw new ImmutableRecordException('Stock adjustment items are append-only and cannot be modified.');
+        });
+
+        static::deleting(function (): never {
+            throw new ImmutableRecordException('Stock adjustment items are append-only and cannot be deleted.');
+        });
+    }
 
     protected $fillable = [
         'adjustment_id',
