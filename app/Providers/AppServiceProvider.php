@@ -25,6 +25,7 @@ use App\Tenancy\TenantContext;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -58,6 +59,22 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ExpenseCategory::class, ExpenseCategoryPolicy::class);
         Gate::policy(Expense::class, ExpensePolicy::class);
         Gate::policy(CashSession::class, CashSessionPolicy::class);
+
+        Queue::before(function (): void {
+            TenantContext::reset();
+        });
+
+        Queue::after(function (): void {
+            TenantContext::reset();
+        });
+
+        Queue::failing(function (): void {
+            TenantContext::reset();
+        });
+
+        Queue::exceptionOccurred(function (): void {
+            TenantContext::reset();
+        });
 
         Blade::directive('npr', function (string $expression): string {
             return "<?php echo \App\Support\NepaliNumber::formatNpr({$expression}); ?>";

@@ -56,43 +56,43 @@ class DecrementStockWorkerCommand extends Command
             return 1;
         }
 
-        TenantContext::setShop($shop);
+        return TenantContext::runAs($shop, function () use ($productId, $warehouseId, $quantity, $adjustStock) {
+            $product = Product::find($productId);
+            $warehouse = Warehouse::find($warehouseId);
 
-        $product = Product::find($productId);
-        $warehouse = Warehouse::find($warehouseId);
+            if (! $product || ! $warehouse) {
+                $this->error('Product or Warehouse not found.');
 
-        if (! $product || ! $warehouse) {
-            $this->error('Product or Warehouse not found.');
+                return 1;
+            }
 
-            return 1;
-        }
-
-        try {
-            $adjustStock->execute(
-                warehouse: $warehouse,
-                items: [
-                    [
-                        'product_id' => $product->id,
-                        'type' => 'out',
-                        'quantity' => $quantity,
-                        'unit_cost' => $product->cost_price,
+            try {
+                $adjustStock->execute(
+                    warehouse: $warehouse,
+                    items: [
+                        [
+                            'product_id' => $product->id,
+                            'type' => 'out',
+                            'quantity' => $quantity,
+                            'unit_cost' => $product->cost_price,
+                        ],
                     ],
-                ],
-                reason: 'Concurrency test race',
-                userId: null
-            );
+                    reason: 'Concurrency test race',
+                    userId: null
+                );
 
-            $this->info('SUCCESS: Worker PID '.getmypid()." deducted {$quantity} units.");
+                $this->info('SUCCESS: Worker PID '.getmypid()." deducted {$quantity} units.");
 
-            return 0;
-        } catch (InvalidArgumentException $e) {
-            $this->warn('INSUFFICIENT_STOCK: Worker PID '.getmypid().' blocked: '.$e->getMessage());
+                return 0;
+            } catch (InvalidArgumentException $e) {
+                $this->warn('INSUFFICIENT_STOCK: Worker PID '.getmypid().' blocked: '.$e->getMessage());
 
-            return 2;
-        } catch (Throwable $e) {
-            $this->error('ERROR: Worker PID '.getmypid().' failed: '.$e->getMessage());
+                return 2;
+            } catch (Throwable $e) {
+                $this->error('ERROR: Worker PID '.getmypid().' failed: '.$e->getMessage());
 
-            return 1;
-        }
+                return 1;
+            }
+        });
     }
 }

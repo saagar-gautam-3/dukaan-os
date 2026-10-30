@@ -46,47 +46,47 @@ class PostSaleWorkerCommand extends Command
             return 1;
         }
 
-        TenantContext::setShop($shop);
+        return TenantContext::runAs($shop, function () use ($productId, $warehouseId, $quantity, $userId, $createSale, $postSale) {
+            $product = Product::find($productId);
+            $warehouse = Warehouse::find($warehouseId);
 
-        $product = Product::find($productId);
-        $warehouse = Warehouse::find($warehouseId);
+            if (! $product || ! $warehouse) {
+                $this->error('Product or warehouse not found.');
 
-        if (! $product || ! $warehouse) {
-            $this->error('Product or warehouse not found.');
+                return 1;
+            }
 
-            return 1;
-        }
-
-        try {
-            // Create draft sale
-            $sale = $createSale->handle([
-                'warehouse_id' => $warehouse->id,
-                'items' => [
-                    [
-                        'product_id' => $product->id,
-                        'quantity' => $quantity,
-                        'unit_price' => (string) $product->selling_price,
+            try {
+                // Create draft sale
+                $sale = $createSale->handle([
+                    'warehouse_id' => $warehouse->id,
+                    'items' => [
+                        [
+                            'product_id' => $product->id,
+                            'quantity' => $quantity,
+                            'unit_price' => (string) $product->selling_price,
+                        ],
                     ],
-                ],
-            ]);
+                ]);
 
-            // Attempt to post sale
-            $postSale->handle($sale, $userId, [
-                'payment_method' => 'cash',
-                'payment_amount' => $sale->grand_total,
-            ]);
+                // Attempt to post sale
+                $postSale->handle($sale, $userId, [
+                    'payment_method' => 'cash',
+                    'payment_amount' => $sale->grand_total,
+                ]);
 
-            $this->info('SUCCESS: Worker PID '.getmypid().' posted sale.');
+                $this->info('SUCCESS: Worker PID '.getmypid().' posted sale.');
 
-            return 0;
-        } catch (InvalidArgumentException $e) {
-            $this->warn('INSUFFICIENT_STOCK: Worker PID '.getmypid().' blocked: '.$e->getMessage());
+                return 0;
+            } catch (InvalidArgumentException $e) {
+                $this->warn('INSUFFICIENT_STOCK: Worker PID '.getmypid().' blocked: '.$e->getMessage());
 
-            return 2;
-        } catch (Throwable $e) {
-            $this->error('ERROR: Worker PID '.getmypid().' failed: '.$e->getMessage());
+                return 2;
+            } catch (Throwable $e) {
+                $this->error('ERROR: Worker PID '.getmypid().' failed: '.$e->getMessage());
 
-            return 1;
-        }
+                return 1;
+            }
+        });
     }
 }
