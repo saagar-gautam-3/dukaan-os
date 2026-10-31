@@ -117,8 +117,8 @@
                                         @can('purchases.manage')
                                         <form method="POST" action="{{ route('purchases.post', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.post_confirmation') }}')">
                                             @csrf
-                                            <button type="submit" class="btn btn-success" title="Post & Receive">
-                                                <i class="bi bi-box-arrow-in-down me-1"></i>Post
+                                            <button type="submit" class="btn btn-success" title="{{ __('purchases.post_purchase') }}">
+                                                <i class="bi bi-box-arrow-in-down me-1"></i>{{ __('purchases.post_short') }}
                                             </button>
                                         </form>
                                         <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.confirm_delete') }}')">
