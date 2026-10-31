@@ -432,7 +432,7 @@ class ImmutabilityTest extends TestCase
     }
 
     // ──────────────────────────────────────────────────────────────────────────
-    // Class A — sale_returns: completed/cancelled → immutable
+    // Class B — sale_returns: completed/cancelled financial fields are frozen
     // ──────────────────────────────────────────────────────────────────────────
 
     public function test_completed_sale_return_update_throws_immutable_exception(): void
@@ -449,5 +449,63 @@ class ImmutabilityTest extends TestCase
 
         $this->expectException(ImmutableRecordException::class);
         $saleReturn->delete();
+    }
+
+    public function test_completed_sale_returns_db_total_update_blocked_by_trigger(): void
+    {
+        $saleReturn = SaleReturn::factory()->create([
+            'status' => ReturnStatus::Completed,
+            'total' => '100.00',
+        ]);
+
+        $this->expectException(QueryException::class);
+        DB::update('UPDATE sale_returns SET total = ? WHERE id = ?', ['999.00', $saleReturn->id]);
+    }
+
+    public function test_completed_sale_returns_db_sale_and_shop_update_blocked_by_trigger(): void
+    {
+        $saleReturn = SaleReturn::factory()->create(['status' => ReturnStatus::Completed]);
+        $otherShop = Shop::factory()->create();
+        $otherSale = TenantContext::runAs($otherShop, fn () => Sale::factory()->create([
+            'shop_id' => $otherShop->id,
+        ]));
+
+        $this->expectException(QueryException::class);
+        DB::update(
+            'UPDATE sale_returns SET sale_id = ?, shop_id = ? WHERE id = ?',
+            [$otherSale->id, $otherShop->id, $saleReturn->id]
+        );
+    }
+
+    public function test_completed_sale_returns_db_delete_blocked_by_trigger(): void
+    {
+        $saleReturn = SaleReturn::factory()->create(['status' => ReturnStatus::Completed]);
+
+        $this->expectException(QueryException::class);
+        DB::delete('DELETE FROM sale_returns WHERE id = ?', [$saleReturn->id]);
+    }
+
+    public function test_pending_sale_return_financial_fields_can_be_updated(): void
+    {
+        $saleReturn = SaleReturn::factory()->create([
+            'status' => ReturnStatus::Pending,
+            'total' => '100.00',
+        ]);
+        $otherShop = Shop::factory()->create();
+        $otherSale = TenantContext::runAs($otherShop, fn () => Sale::factory()->create([
+            'shop_id' => $otherShop->id,
+        ]));
+
+        DB::update(
+            'UPDATE sale_returns SET total = ?, sale_id = ?, shop_id = ? WHERE id = ?',
+            ['125.00', $otherSale->id, $otherShop->id, $saleReturn->id]
+        );
+
+        $this->assertDatabaseHas('sale_returns', [
+            'id' => $saleReturn->id,
+            'total' => '125.00',
+            'sale_id' => $otherSale->id,
+            'shop_id' => $otherShop->id,
+        ]);
     }
 }
