@@ -74,7 +74,7 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Item</th>
+                                <th>{{ __('sales.item_col') }}</th>
                                 <th class="text-center">{{ __('sales.qty') }}</th>
                                 <th class="text-end">{{ __('sales.price') }}</th>
                                 @can('reports.view')
@@ -89,7 +89,7 @@
                             <tr>
                                 <td>
                                     <div class="fw-semibold">{{ $item->product->name }}</div>
-                                    <small class="text-muted">SKU: {{ $item->product->sku }}</small>
+                                    <small class="text-muted">{{ __('ui.sku_label') }} {{ $item->product->sku }}</small>
                                 </td>
                                 <td class="text-center fw-semibold">
                                     @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}
@@ -282,7 +282,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ __('sales.amount_paid') }}</label>
                         <div class="input-group">
-                            <span class="input-group-text">Rs.</span>
+                            <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                             <input type="number" name="payment_amount" step="0.01" min="0" class="form-control" value="{{ $sale->grand_total }}">
                         </div>
                         <small class="text-muted">{{ __('sales.total_payable') }} @npr($sale->grand_total)</small>

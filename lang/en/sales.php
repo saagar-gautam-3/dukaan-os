@@ -126,4 +126,6 @@ return [
     'date_label' => 'Date:',
     'rate' => 'Rate',
     'item_col' => 'Item',
+    'a4_invoice' => 'A4 invoice',
+    'return_reason_placeholder' => 'Describe the reason for the return',
 ];

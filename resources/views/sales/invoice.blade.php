@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $sale->invoice_no ?? 'Invoice' }} - {{ $sale->shop->name }}</title>
+    <title>{{ $sale->invoice_no ?? __('ui.invoice') }} - {{ $sale->shop->name }}</title>
     @vite(['resources/scss/print.scss'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -76,7 +76,7 @@
                     <p class="mb-0 text-muted"><i class="bi bi-telephone me-1"></i>{{ $sale->shop->settings['phone'] }}</p>
                 @endif
                 @if(!empty($sale->shop->settings['pan_number']))
-                    <p class="mb-0 fw-semibold text-dark">PAN/VAT: {{ $sale->shop->settings['pan_number'] }}</p>
+                    <p class="mb-0 fw-semibold text-dark">{{ __('ui.pan_vat_label') }} {{ $sale->shop->settings['pan_number'] }}</p>
                 @endif
             </div>
             <div class="col-5 text-end">
@@ -100,7 +100,7 @@
                         <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ $sale->customer->address }}</div>
                     @endif
                     @if($sale->customer->pan_no)
-                        <div class="text-muted small">PAN: {{ $sale->customer->pan_no }}</div>
+                        <div class="text-muted small">{{ __('ui.pan_label') }} {{ $sale->customer->pan_no }}</div>
                     @endif
                 @else
                     <div class="fw-semibold text-secondary">{{ __('sales.walk_in') }}</div>
@@ -119,10 +119,10 @@
                 <thead>
                     <tr>
                         <th style="width: 5%;">#</th>
-                        <th style="width: 45%;">Item / विवरण</th>
-                        <th class="text-center" style="width: 12%;">Qty / मात्रा</th>
-                        <th class="text-end" style="width: 18%;">Rate / दर (Rs.)</th>
-                        <th class="text-end" style="width: 20%;">Total / जम्मा (Rs.)</th>
+                        <th style="width: 45%;">{{ __('sales.item') }}</th>
+                        <th class="text-center" style="width: 12%;">{{ __('sales.qty') }}</th>
+                        <th class="text-end" style="width: 18%;">{{ __('sales.rate') }} ({{ __('ui.currency_symbol') }})</th>
+                        <th class="text-end" style="width: 20%;">{{ __('sales.grand_total') }} ({{ __('ui.currency_symbol') }})</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,7 +168,7 @@
                             <span class="text-uppercase fw-semibold">{{ $alloc->payment->method instanceof \BackedEnum ? $alloc->payment->method->value : $alloc->payment->method }}:</span>
                             @npr($alloc->amount)
                             @if($alloc->payment->reference_number)
-                                (Ref: {{ $alloc->payment->reference_number }})
+                                ({{ __('ui.reference_label', ['reference' => $alloc->payment->reference_number]) }})
                             @endif
                         </div>
                     @endforeach
@@ -217,8 +217,8 @@
 
         <!-- Footer -->
         <div class="text-center pt-4 border-top text-muted small">
-            <p class="mb-1 fw-semibold">धन्यवाद! पुन: आउनुहोला (Thank you for your business!)</p>
-            <p class="mb-0 opacity-75">Generated via {{ config('app.name', 'Dukaan OS') }}</p>
+            <p class="mb-1 fw-semibold">{{ __('ui.thank_you_business') }}</p>
+            <p class="mb-0 opacity-75">{{ __('ui.generated_via', ['app' => config('app.name', 'Dukaan OS')]) }}</p>
         </div>
     </div>
 </body>

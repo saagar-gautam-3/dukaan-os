@@ -126,4 +126,6 @@ return [
     'date_label' => 'मिति:',
     'rate' => 'दर',
     'item_col' => 'सामान',
+    'a4_invoice' => 'A4 बिल',
+    'return_reason_placeholder' => 'फिर्ताको कारण लेख्नुहोस्',
 ];

@@ -93,10 +93,10 @@
                 <div>{{ $sale->shop->settings['address'] }}</div>
             @endif
             @if(!empty($sale->shop->settings['phone']))
-                <div>Ph: {{ $sale->shop->settings['phone'] }}</div>
+                <div>{{ __('ui.phone_short') }} {{ $sale->shop->settings['phone'] }}</div>
             @endif
             @if(!empty($sale->shop->settings['pan_number']))
-                <div>PAN: {{ $sale->shop->settings['pan_number'] }}</div>
+                <div>{{ __('ui.pan_label') }} {{ $sale->shop->settings['pan_number'] }}</div>
             @endif
         </div>
 

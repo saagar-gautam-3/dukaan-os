@@ -39,7 +39,7 @@
                 <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="mb-0 fw-bold"><i class="bi bi-cart3 text-primary me-2"></i>{{ __('sales.cart') }}</h5>
-                        <small class="text-muted" id="cartCountBadge">0 items</small>
+                        <small class="text-muted" id="cartCountBadge">{{ __('ui.items_count', ['count' => 0]) }}</small>
                     </div>
                     <button class="btn btn-sm btn-outline-danger" id="clearCartBtn" type="button">
                         <i class="bi bi-trash3 me-1"></i>{{ __('sales.clear_cart') }}
@@ -53,7 +53,7 @@
                         <input type="text" id="customerSearchInput" class="form-control bg-white" 
                                placeholder="{{ __('sales.select_customer') }}" autocomplete="off">
                         <input type="hidden" id="selectedCustomerId" value="">
-                        <button class="btn btn-outline-secondary" type="button" id="clearCustomerBtn" title="Walk-in">
+                        <button class="btn btn-outline-secondary" type="button" id="clearCustomerBtn" title="{{ __('sales.walk_in') }}">
                             <i class="bi bi-x"></i>
                         </button>
                     </div>
@@ -78,7 +78,7 @@
                     <table class="table table-hover align-middle mb-0 d-none" id="cartTable">
                         <thead class="table-light small">
                             <tr>
-                                <th>Item</th>
+                                <th>{{ __('sales.item_col') }}</th>
                                 <th style="width: 100px;">{{ __('sales.qty') }}</th>
                                 <th class="text-end" style="width: 80px;">{{ __('sales.price') }}</th>
                                 <th class="text-end" style="width: 80px;">{{ __('sales.line_total') }}</th>
@@ -93,11 +93,11 @@
                 <div class="card-footer bg-white border-top p-3">
                     <div class="d-flex justify-content-between mb-1 small text-muted">
                         <span>{{ __('sales.subtotal') }}:</span>
-                        <span id="subtotalDisplay">Rs. 0.00</span>
+                        <span id="subtotalDisplay">{{ __('ui.currency_symbol') }} 0.00</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2 fs-5 fw-bold text-dark border-top pt-2">
                         <span>{{ __('sales.grand_total') }}:</span>
-                        <span id="grandTotalDisplay" class="text-primary">Rs. 0.00</span>
+                        <span id="grandTotalDisplay" class="text-primary">{{ __('ui.currency_symbol') }} 0.00</span>
                     </div>
 
                     <!-- Payment Section -->
@@ -114,7 +114,7 @@
                             <div class="col-6">
                                 <label class="form-label small mb-1 fw-semibold">{{ __('sales.amount_paid') }}</label>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">Rs.</span>
+                                    <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                                     <input type="number" id="amountPaidInput" step="0.01" min="0" class="form-control" placeholder="0.00">
                                 </div>
                             </div>
@@ -123,7 +123,7 @@
                         <!-- Change Due -->
                         <div class="d-flex justify-content-between small text-secondary">
                             <span>{{ __('sales.change') }}:</span>
-                            <span id="changeDisplay" class="fw-semibold text-success">Rs. 0.00</span>
+                            <span id="changeDisplay" class="fw-semibold text-success">{{ __('ui.currency_symbol') }} 0.00</span>
                         </div>
                     </div>
 
@@ -152,7 +152,7 @@
                         </div>
                     </form>
                     <div id="posNetworkError" class="alert alert-danger mt-2 d-none" role="alert" aria-live="assertive">
-                        <div>{{ __('ui.sale_network_failed') }}</div>
+                        <div id="posErrorMessage">{{ __('ui.sale_network_failed') }}</div>
                         <small>{{ __('ui.sale_retry_help') }}</small>
                         <button type="button" id="retrySaleBtn" class="btn btn-sm btn-outline-danger mt-2">{{ __('ui.retry_sale') }}</button>
                     </div>
@@ -164,6 +164,9 @@
 
 @push('scripts')
 <script>
+    const currencySymbol = @json(__('ui.currency_symbol'));
+    const itemCountText = @json(__('ui.items_count', ['count' => ':count']));
+    const creditLimitWarningTemplate = @json(__('ui.credit_limit_warning'));
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('productSearchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -200,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const postSaleBtn = document.getElementById('postSaleBtn');
     const retrySaleBtn = document.getElementById('retrySaleBtn');
     const posNetworkError = document.getElementById('posNetworkError');
+    const posErrorMessage = document.getElementById('posErrorMessage');
 
     let cart = []; // { product_id, name, unit, price, quantity, max_stock }
     let searchDebounce = null;
@@ -358,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${p.name_ne}</div>` : ''}
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="fw-bold text-primary">Rs. ${price}</span>
+                        <span class="fw-bold text-primary">${currencySymbol} ${price}</span>
                         <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
                             <i class="bi bi-plus-lg"></i>
                         </button>
@@ -433,7 +437,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const projectedBalance = currentBalance + due;
 
         if (projectedBalance > limitCents) {
-            creditLimitWarningText.textContent = `Warning: Customer credit limit is NPR ${scaledString(limitCents, 2)}. Projected balance NPR ${scaledString(projectedBalance, 2)} will exceed credit limit!`;
+            creditLimitWarningText.textContent = creditLimitWarningTemplate
+                .replace(':limit', scaledString(limitCents, 2))
+                .replace(':balance', scaledString(projectedBalance, 2));
             creditLimitWarningBadge.classList.remove('d-none');
         } else {
             creditLimitWarningBadge.classList.add('d-none');
@@ -490,14 +496,14 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cart.length === 0) {
             cartTable.classList.add('d-none');
             cartEmptyState.classList.remove('d-none');
-            cartCountBadge.textContent = '0 items';
+            cartCountBadge.textContent = itemCountText.replace(':count', '0');
             updateTotals();
             return;
         }
 
         cartTable.classList.remove('d-none');
         cartEmptyState.classList.add('d-none');
-        cartCountBadge.textContent = cart.length + ' item' + (cart.length > 1 ? 's' : '');
+        cartCountBadge.textContent = itemCountText.replace(':count', String(cart.length));
 
         cart.forEach((item, index) => {
             const row = document.createElement('tr');
@@ -514,8 +520,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <button class="btn btn-outline-secondary px-2 btn-qty-plus" type="button">+</button>
                     </div>
                 </td>
-                <td class="text-end py-2 small">Rs. ${item.price}</td>
-                <td class="text-end py-2 fw-bold text-dark small">Rs. ${scaledString(lineTotal, 2)}</td>
+                <td class="text-end py-2 small">${currencySymbol} ${item.price}</td>
+                <td class="text-end py-2 fw-bold text-dark small">${currencySymbol} ${scaledString(lineTotal, 2)}</td>
                 <td class="text-end py-2">
                     <button class="btn btn-sm btn-link text-danger p-0 btn-remove-item" type="button">
                         <i class="bi bi-x-circle-fill"></i>
@@ -567,8 +573,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateTotals() {
         const total = cartTotalCents();
 
-        subtotalDisplay.textContent = 'Rs. ' + scaledString(total, 2);
-        grandTotalDisplay.textContent = 'Rs. ' + scaledString(total, 2);
+        subtotalDisplay.textContent = currencySymbol + ' ' + scaledString(total, 2);
+        grandTotalDisplay.textContent = currencySymbol + ' ' + scaledString(total, 2);
 
         // Auto-fill paid amount with grand total if not manually edited or method is cash
         if (!amountPaidInput.dataset.manual) {
@@ -587,20 +593,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const total = cartTotalCents();
         const paid = scaledInteger(amountPaidInput.value, 2);
         const change = paid > total ? paid - total : 0n;
-        changeDisplay.textContent = 'Rs. ' + scaledString(change, 2);
+        changeDisplay.textContent = currencySymbol + ' ' + scaledString(change, 2);
         checkCreditLimit();
     }
 
     // Submit logic
     let pendingPostImmediately = true;
+    let submissionPending = false;
 
     async function submitOrder(postImmediately) {
+        if (submissionPending) return;
+
         if (cart.length === 0) {
             alert(@json(__('sales.cart_empty_alert')));
             return;
         }
 
         pendingPostImmediately = postImmediately;
+        submissionPending = true;
         posNetworkError.classList.add('d-none');
 
         formCustomerId.value = selectedCustomerId.value;
@@ -629,15 +639,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 credentials: 'same-origin',
             });
             const result = await response.json();
-            if (!response.ok || !result.redirect) {
-                throw new Error(result.message || @json(__('ui.sale_network_failed')));
+            if (!response.ok) {
+                posErrorMessage.textContent = result.message || @json(__('common.error_generic'));
+                posNetworkError.classList.remove('d-none');
+                retrySaleBtn.classList.toggle('d-none', response.status < 500);
+                return;
+            }
+            if (!result.redirect) {
+                throw new Error(@json(__('common.error_generic')));
             }
 
             clearIdempotencyStorage();
             window.location.assign(result.redirect);
         } catch (error) {
+            posErrorMessage.textContent = @json(__('ui.sale_network_failed'));
             posNetworkError.classList.remove('d-none');
+            retrySaleBtn.classList.remove('d-none');
         } finally {
+            submissionPending = false;
             buttons.forEach(button => { button.disabled = false; });
         }
     }
