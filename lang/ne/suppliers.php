@@ -22,4 +22,12 @@ return [
     'updated_success' => 'सप्लायर सफलतापूर्वक अद्यावधिक गरियो।',
     'deleted_success' => 'सप्लायर सफलतापूर्वक हटाइयो।',
     'no_suppliers_found' => 'कुनै सप्लायर फेला परेन।',
+    'name_placeholder' => 'जस्तै: वितरक वा कम्पनीको नाम',
+    'contact_placeholder' => 'जस्तै: सम्पर्क व्यक्तिको नाम',
+    'phone_placeholder' => 'जस्तै: ९८४१२३४५६७',
+    'email_placeholder' => 'सप्लायरको इमेल ठेगाना',
+    'pan_placeholder' => '९ अङ्कको प्यान नम्बर',
+    'address_placeholder' => 'जस्तै: बजार क्षेत्र, काठमाडौं',
+    'confirm_delete' => ':name सप्लायर मेटाउने हो?',
+    'supplier' => 'सप्लायर',
 ];

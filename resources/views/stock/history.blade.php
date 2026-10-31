@@ -10,7 +10,7 @@
                 <i class="bi bi-clock-history me-2"></i>{{ __('inventory.stock_movements') }}
             </h2>
             <p class="text-muted mb-0 small">
-                <span class="fw-semibold text-dark">{{ $product->name }}</span> &bull; <code>{{ $product->sku ?: 'No SKU' }}</code> &bull; Unit: {{ $product->unit?->name }} ({{ $product->unit?->symbol }})
+                <span class="fw-semibold text-dark">{{ $product->name }}</span> &bull; <code>{{ $product->sku ?: __('inventory.no_sku') }}</code> &bull; {{ __('ui.unit_label') }} {{ $product->unit?->name }} ({{ $product->unit?->symbol }})
             </p>
         </div>
 

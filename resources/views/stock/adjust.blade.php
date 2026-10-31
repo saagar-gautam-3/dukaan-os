@@ -73,7 +73,7 @@
                     <!-- Quantity -->
                     <div class="col-12 col-md-6">
                         <label for="quantity" class="form-label fw-semibold">{{ __('inventory.quantity') }} <span class="text-danger">*</span></label>
-                        <input type="number" step="0.001" min="0.001" name="quantity" id="quantity" class="form-control @error('quantity') is-invalid @enderror" value="{{ old('quantity') }}" required placeholder="e.g. 5.000">
+                        <input type="number" step="0.001" min="0.001" name="quantity" id="quantity" class="form-control @error('quantity') is-invalid @enderror" value="{{ old('quantity') }}" required placeholder="{{ __('inventory.quantity_placeholder') }}">
                         @error('quantity')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -81,10 +81,10 @@
 
                     <!-- Unit Cost -->
                     <div class="col-12 col-md-6">
-                        <label for="unit_cost" class="form-label fw-semibold">{{ __('inventory.unit_cost') }} (Optional)</label>
+                        <label for="unit_cost" class="form-label fw-semibold">{{ __('inventory.unit_cost') }} ({{ __('ui.optional') }})</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light">NPR</span>
-                            <input type="number" step="0.01" min="0" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" value="{{ old('unit_cost') }}" placeholder="Defaults to current product cost">
+                            <span class="input-group-text bg-light">{{ __('ui.currency_symbol') }}</span>
+                            <input type="number" step="0.01" min="0" name="unit_cost" id="unit_cost" class="form-control @error('unit_cost') is-invalid @enderror" value="{{ old('unit_cost') }}" placeholder="{{ __('inventory.cost_placeholder') }}">
                         </div>
                         @error('unit_cost')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -94,7 +94,7 @@
                     <!-- Reason -->
                     <div class="col-12 col-md-6">
                         <label for="reason" class="form-label fw-semibold">{{ __('inventory.reason') }} <span class="text-danger">*</span></label>
-                        <input type="text" name="reason" id="reason" class="form-control @error('reason') is-invalid @enderror" value="{{ old('reason') }}" placeholder="e.g. Broken packaging, periodic stock count" required>
+                        <input type="text" name="reason" id="reason" class="form-control @error('reason') is-invalid @enderror" value="{{ old('reason') }}" placeholder="{{ __('inventory.reason_placeholder') }}" required>
                         @error('reason')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

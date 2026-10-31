@@ -46,4 +46,10 @@ return [
     'warehouse_code' => 'गोदाम कोड',
     'no_sku' => 'कुनै SKU छैन',
     'immutable_heading' => 'अपरिवर्तनीय दाखिला गरिएको रेकर्ड',
+    'delivery_note_placeholder' => 'ढुवानी साधनको विवरण वा रसिदसम्बन्धी कैफियत',
+    'select_product' => 'सामान छान्नुहोस्',
+    'save_purchase_draft' => 'खरिदको मस्यौदा सुरक्षित गर्नुहोस्',
+    'search_placeholder' => 'बिल नम्बर वा सप्लायर खोज्नुहोस्...',
+    'post_short' => 'दाखिला',
+    'rate' => 'दर',
 ];

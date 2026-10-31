@@ -48,4 +48,8 @@ return [
     'all_healthy' => 'All Stock Levels Healthy!',
     'low_stock_desc' => 'Products that have reached or fallen below their reorder thresholds.',
     'movements_count' => ':count movements',
+    'cost_placeholder' => 'Uses the current product cost by default',
+    'reason_placeholder' => 'e.g. Damaged packaging or stock count adjustment',
+    'no_sku' => 'No SKU',
+    'quantity_placeholder' => 'e.g. 5.000',
 ];

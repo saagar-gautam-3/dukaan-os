@@ -48,4 +48,8 @@ return [
     'all_healthy' => 'सबै मौज्दात स्तर ठीक छन्!',
     'low_stock_desc' => 'पुनः अर्डर सीमामा पुगेका वा तलका सामानहरू।',
     'movements_count' => ':count चलाचल',
+    'cost_placeholder' => 'नलेखिएमा सामानको हालको लागत प्रयोग हुनेछ',
+    'reason_placeholder' => 'जस्तै: प्याकेट बिग्रिएको वा मौज्दात गणना',
+    'no_sku' => 'SKU छैन',
+    'quantity_placeholder' => 'जस्तै: ५.०००',
 ];

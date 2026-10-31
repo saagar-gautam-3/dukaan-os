@@ -8,7 +8,7 @@
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
                 <h2 class="fw-bold mb-0" style="color: #1a3a5c;">
-                    <i class="bi bi-receipt me-2"></i>Purchase #{{ $purchase->purchase_no }}
+                    <i class="bi bi-receipt me-2"></i>{{ __('ui.purchase_number') }}{{ $purchase->purchase_no }}
                 </h2>
                 <span class="badge {{ $purchase->isPosted() ? 'bg-success fs-6' : 'bg-warning text-dark fs-6' }} px-3 py-1">
                     {{ $purchase->isPosted() ? __('purchases.status_posted') : __('purchases.status_draft') }}
@@ -84,7 +84,7 @@
                         <div class="small"><i class="bi bi-telephone me-1 text-primary"></i>{{ $purchase->supplier->phone }}</div>
                     @endif
                     @if($purchase->supplier->pan_vat)
-                        <div class="small text-muted">PAN: <code>{{ $purchase->supplier->pan_vat }}</code></div>
+                        <div class="small text-muted">{{ __('ui.pan_label') }} <code>{{ $purchase->supplier->pan_vat }}</code></div>
                     @endif
                 </div>
             </div>
@@ -162,7 +162,7 @@
                         </span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 small">
-                        <span class="text-muted">Rate: @npr($item->unit_cost)</span>
+                        <span class="text-muted">{{ __('purchases.rate') }}: @npr($item->unit_cost)</span>
                         <span class="fw-bold text-success fs-6">@npr($item->line_total)</span>
                     </div>
                 </div>

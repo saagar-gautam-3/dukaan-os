@@ -29,7 +29,7 @@
                     <div class="col-12 col-md-6">
                         <label for="name" class="form-label fw-semibold">{{ __('suppliers.name') }} <span class="text-danger">*</span></label>
                         <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" 
-                               value="{{ old('name', $supplier->name ?? '') }}" required autofocus placeholder="e.g. Chaudhary Distributors">
+                               value="{{ old('name', $supplier->name ?? '') }}" required autofocus placeholder="{{ __('suppliers.name_placeholder') }}">
                         @error('name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -38,7 +38,7 @@
                     <div class="col-12 col-md-6">
                         <label for="contact_person" class="form-label fw-semibold">{{ __('suppliers.contact_person') }}</label>
                         <input type="text" name="contact_person" id="contact_person" class="form-control @error('contact_person') is-invalid @enderror" 
-                               value="{{ old('contact_person', $supplier->contact_person ?? '') }}" placeholder="e.g. Ramesh Shrestha">
+                               value="{{ old('contact_person', $supplier->contact_person ?? '') }}" placeholder="{{ __('suppliers.contact_placeholder') }}">
                         @error('contact_person')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -47,7 +47,7 @@
                     <div class="col-12 col-md-6">
                         <label for="phone" class="form-label fw-semibold">{{ __('suppliers.phone') }}</label>
                         <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" 
-                               value="{{ old('phone', $supplier->phone ?? '') }}" placeholder="e.g. 9841234567">
+                               value="{{ old('phone', $supplier->phone ?? '') }}" placeholder="{{ __('suppliers.phone_placeholder') }}">
                         @error('phone')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -56,7 +56,7 @@
                     <div class="col-12 col-md-6">
                         <label for="email" class="form-label fw-semibold">{{ __('suppliers.email') }}</label>
                         <input type="email" name="email" id="email" class="form-control @error('email') is-invalid @enderror" 
-                               value="{{ old('email', $supplier->email ?? '') }}" placeholder="supplier@example.com">
+                               value="{{ old('email', $supplier->email ?? '') }}" placeholder="{{ __('suppliers.email_placeholder') }}">
                         @error('email')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -65,7 +65,7 @@
                     <div class="col-12 col-md-6">
                         <label for="pan_vat" class="form-label fw-semibold">{{ __('suppliers.pan_vat') }}</label>
                         <input type="text" name="pan_vat" id="pan_vat" class="form-control @error('pan_vat') is-invalid @enderror" 
-                               value="{{ old('pan_vat', $supplier->pan_vat ?? '') }}" placeholder="9-digit PAN">
+                               value="{{ old('pan_vat', $supplier->pan_vat ?? '') }}" placeholder="{{ __('suppliers.pan_placeholder') }}">
                         @error('pan_vat')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -75,7 +75,7 @@
                     <div class="col-12 col-md-6">
                         <label for="opening_balance" class="form-label fw-semibold">{{ __('suppliers.opening_balance') }}</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light">NPR</span>
+                            <span class="input-group-text bg-light">{{ __('ui.currency_symbol') }}</span>
                             <input type="number" step="0.01" name="opening_balance" id="opening_balance" 
                                    class="form-control @error('opening_balance') is-invalid @enderror" 
                                    value="{{ old('opening_balance', '0.00') }}">
@@ -89,7 +89,7 @@
                     <div class="col-12">
                         <label for="address" class="form-label fw-semibold">{{ __('suppliers.address') }}</label>
                         <input type="text" name="address" id="address" class="form-control @error('address') is-invalid @enderror" 
-                               value="{{ old('address', $supplier->address ?? '') }}" placeholder="e.g. Kalimati, Kathmandu">
+                               value="{{ old('address', $supplier->address ?? '') }}" placeholder="{{ __('suppliers.address_placeholder') }}">
                         @error('address')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
