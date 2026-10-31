@@ -171,11 +171,46 @@ class ShopSwitchingTest extends TestCase
 
         $this->assertSame(1, (int) $user->fresh()->permissions_version);
 
+        $freshSessionResponse = $this->actingAs($user->fresh())
+            ->withSession(['current_shop_id' => $shop->id, 'permissions_version' => 1])
+            ->get('/settings/shop');
+
+        $freshSessionResponse->assertOk();
+        $freshSessionResponse->assertSee($shop->name);
+
         $response2 = $this->actingAs($user->fresh())
             ->withSession(['current_shop_id' => $shop->id, 'permissions_version' => 0])
             ->get('/settings/shop');
 
         $response2->assertRedirect(route('login'));
+    }
+
+    public function test_role_demotion_denies_permission_with_fresh_session(): void
+    {
+        $user = User::factory()->create();
+        $shop = Shop::factory()->create();
+
+        $roles = app(RbacService::class)->createDefaultRolesForShop($shop);
+        $membership = ShopUser::factory()->create([
+            'shop_id' => $shop->id,
+            'user_id' => $user->id,
+            'role_id' => $roles['Shop Owner']->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['current_shop_id' => $shop->id, 'permissions_version' => 0])
+            ->get('/settings/shop')
+            ->assertOk();
+
+        $membership->update(['role_id' => $roles['Cashier']->id]);
+        $currentVersion = (int) $user->fresh()->permissions_version;
+        $this->assertSame(1, $currentVersion);
+
+        $this->actingAs($user->fresh())
+            ->withSession(['current_shop_id' => $shop->id, 'permissions_version' => $currentVersion])
+            ->get('/settings/shop')
+            ->assertForbidden();
     }
 
     public function test_membership_deactivation_invalidates_existing_user_session(): void
