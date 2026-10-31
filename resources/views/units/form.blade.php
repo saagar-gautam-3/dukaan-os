@@ -10,7 +10,7 @@
         </label>
         <input type="text" name="name" id="name{{ isset($unit) ? '_'.$unit->id : '' }}" 
                class="form-control @error('name') is-invalid @enderror" 
-               placeholder="e.g. Kilogram" 
+               placeholder="{{ __('ui.unit_name_example') }}" 
                value="{{ old('name', $unit->name ?? '') }}" required>
         @error('name')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -24,7 +24,7 @@
         </label>
         <input type="text" name="symbol" id="symbol" 
                class="form-control @error('symbol') is-invalid @enderror" 
-               placeholder="e.g. kg, pkt, ltr" 
+               placeholder="{{ __('ui.unit_symbol_example') }}" 
                value="{{ old('symbol') }}" required>
         @error('symbol')
             <div class="invalid-feedback">{{ $message }}</div>

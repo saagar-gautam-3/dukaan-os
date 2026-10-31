@@ -128,10 +128,10 @@
                                         <a href="{{ route('products.edit', $product) }}" class="btn btn-outline-primary" title="{{ __('products.edit_product') }}">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline" onsubmit="return confirm('Delete product {{ $product->name }}?')">
+                                        <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline" onsubmit="return confirm(@json(__('ui.delete_product_confirmation', ['product' => $product->name])))">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                            <button type="submit" class="btn btn-outline-danger" title="{{ __('common.delete') }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>

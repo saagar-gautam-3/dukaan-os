@@ -30,15 +30,15 @@
                         @csrf
                         <div class="mb-3">
                             <label for="name" class="form-label fw-semibold">{{ __('products.category_name') }} <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. Spices & Masala" value="{{ old('name') }}" required>
+                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="{{ __('ui.category_example') }}" value="{{ old('name') }}" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
 
                         <div class="mb-3">
-                            <label for="slug" class="form-label fw-semibold">{{ __('products.category_slug') }} (Optional)</label>
-                            <input type="text" name="slug" id="slug" class="form-control" placeholder="auto-generated if empty">
+                            <label for="slug" class="form-label fw-semibold">{{ __('products.category_slug') }} ({{ __('ui.optional') }})</label>
+                            <input type="text" name="slug" id="slug" class="form-control" placeholder="{{ __('ui.slug_auto_generated') }}">
                         </div>
 
                         <button type="submit" class="btn btn-primary w-100">
@@ -59,7 +59,7 @@
                     @if($categories->isEmpty())
                         <div class="text-center py-5 text-muted">
                             <i class="bi bi-tag fs-1 d-block mb-2 text-muted opacity-50"></i>
-                            <p class="mb-0">No categories found.</p>
+                            <p class="mb-0">{{ __('ui.no_categories_found') }}</p>
                         </div>
                     @else
                         <!-- Desktop Table -->
@@ -81,7 +81,7 @@
                                                 @csrf
                                                 @method('PUT')
                                                 <input type="text" name="name" class="form-control form-control-sm" value="{{ $category->name }}" required style="max-width: 250px;">
-                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Save name">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="{{ __('ui.save_name') }}">
                                                     <i class="bi bi-check-lg"></i>
                                                 </button>
                                             </form>
@@ -89,15 +89,15 @@
                                         <td><code>{{ $category->slug }}</code></td>
                                         <td class="text-center">
                                             <span class="badge bg-secondary-subtle text-secondary px-2">
-                                                {{ $category->products_count }} items
+                                                {{ __('ui.items_count', ['count' => $category->products_count]) }}
                                             </span>
                                         </td>
                                         <td class="text-end pe-3">
                                             @can('products.manage')
-                                            <form method="POST" action="{{ route('categories.destroy', $category) }}" class="d-inline" onsubmit="return confirm('Delete category {{ $category->name }}?')">
+                                            <form method="POST" action="{{ route('categories.destroy', $category) }}" class="d-inline" onsubmit="return confirm(@json(__('ui.delete_category_confirmation', ['category' => $category->name])))">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm" title="{{ __('common.delete') }}">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
@@ -116,13 +116,13 @@
                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                     <h6 class="fw-bold mb-0 text-dark">{{ $category->name }}</h6>
                                     <span class="badge bg-secondary-subtle text-secondary">
-                                        {{ $category->products_count }} items
+                                        {{ __('ui.items_count', ['count' => $category->products_count]) }}
                                     </span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <code class="small text-muted">{{ $category->slug }}</code>
                                     @can('products.manage')
-                                    <form method="POST" action="{{ route('categories.destroy', $category) }}" class="d-inline" onsubmit="return confirm('Delete category {{ $category->name }}?')">
+                                    <form method="POST" action="{{ route('categories.destroy', $category) }}" class="d-inline" onsubmit="return confirm(@json(__('ui.delete_category_confirmation', ['category' => $category->name])))">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-outline-danger btn-sm">

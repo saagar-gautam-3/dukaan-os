@@ -54,4 +54,5 @@ return [
     'retry' => 'Retry',
     'close' => 'Close',
     'toggle_sidebar' => 'Toggle sidebar',
+    'delete' => 'Delete',
 ];

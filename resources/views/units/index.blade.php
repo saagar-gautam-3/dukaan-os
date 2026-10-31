@@ -30,7 +30,7 @@
                                 <tr>
                                     <th class="ps-3">{{ __('products.unit_name') }}</th>
                                     <th>{{ __('products.unit_symbol') }}</th>
-                                    <th>Decimals Allowed</th>
+                                    <th>{{ __('ui.decimals_allowed') }}</th>
                                     <th class="text-center">{{ __('products.title') }}</th>
                                 </tr>
                             </thead>
@@ -41,12 +41,12 @@
                                     <td><span class="badge bg-light text-dark border">{{ $unit->symbol }}</span></td>
                                     <td>
                                         <span class="badge {{ $unit->is_fractional ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}">
-                                            {{ $unit->is_fractional ? 'Yes (Fractional)' : 'No (Whole integer)' }}
+                                            {{ $unit->is_fractional ? __('ui.fractional_yes') : __('ui.whole_no') }}
                                         </span>
                                     </td>
                                     <td class="text-center">
                                         <span class="badge bg-light text-muted border">
-                                            {{ $unit->products_count }} products
+                                            {{ __('ui.products_count', ['count' => $unit->products_count]) }}
                                         </span>
                                     </td>
                                 </tr>

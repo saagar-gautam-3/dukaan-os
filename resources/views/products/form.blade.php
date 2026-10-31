@@ -56,7 +56,7 @@
                     <div class="col-12 col-md-4">
                         <label for="sku" class="form-label fw-semibold">{{ __('products.sku') }}</label>
                         <input type="text" name="sku" id="sku" class="form-control @error('sku') is-invalid @enderror" 
-                               value="{{ old('sku', $product->sku ?? '') }}" placeholder="e.g. WAI-WAI-75G">
+                               value="{{ old('sku', $product->sku ?? '') }}" placeholder="{{ __('ui.sku_example') }}">
                         @error('sku')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -66,7 +66,7 @@
                     <div class="col-12 col-md-4">
                         <label for="barcode" class="form-label fw-semibold">{{ __('products.barcode') }}</label>
                         <input type="text" name="barcode" id="barcode" class="form-control @error('barcode') is-invalid @enderror" 
-                               value="{{ old('barcode', $product->barcode ?? '') }}" placeholder="Scan or enter barcode">
+                               value="{{ old('barcode', $product->barcode ?? '') }}" placeholder="{{ __('ui.barcode_hint') }}">
                         @error('barcode')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -76,7 +76,7 @@
                     <div class="col-12 col-md-4">
                         <label for="unit_id" class="form-label fw-semibold">{{ __('products.unit') }} <span class="text-danger">*</span></label>
                         <select name="unit_id" id="unit_id" class="form-select @error('unit_id') is-invalid @enderror" required>
-                            <option value="">Select unit</option>
+                            <option value="">{{ __('ui.select_unit') }}</option>
                             @foreach($units as $unit)
                                 <option value="{{ $unit->id }}" {{ old('unit_id', $product->unit_id ?? '') == $unit->id ? 'selected' : '' }}>
                                     {{ $unit->name }} ({{ $unit->symbol }})
@@ -92,7 +92,7 @@
                     <div class="col-12 col-md-4">
                         <label for="cost_price" class="form-label fw-semibold">{{ __('products.cost_price') }} <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text">Rs.</span>
+                            <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                             <input type="number" step="0.01" min="0" name="cost_price" id="cost_price" 
                                    class="form-control @error('cost_price') is-invalid @enderror" 
                                    value="{{ old('cost_price', $product->cost_price ?? '') }}" required>
@@ -106,7 +106,7 @@
                     <div class="col-12 col-md-4">
                         <label for="selling_price" class="form-label fw-semibold">{{ __('products.selling_price') }} <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text">Rs.</span>
+                            <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                             <input type="number" step="0.01" min="0" name="selling_price" id="selling_price" 
                                    class="form-control @error('selling_price') is-invalid @enderror" 
                                    value="{{ old('selling_price', $product->selling_price ?? '') }}" required>
