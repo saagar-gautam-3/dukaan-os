@@ -52,4 +52,5 @@ return [
     'search_placeholder' => 'Search bill number or supplier...',
     'post_short' => 'Post',
     'rate' => 'Rate',
+    'immutable_exception' => 'Purchase #:id is :status and cannot be changed. Correct a posted purchase with a return or stock adjustment.',
 ];
