@@ -17,9 +17,8 @@ class SaleReturn extends Model
     use BelongsToShop, HasFactory;
 
     /**
-     * Class A: sale returns are append-only financial records. Once processed,
-     * they cannot be modified or removed — issue a new sale to re-sell returned
-     * goods instead.
+     * Class B: once completed or cancelled, return records are immutable through
+     * the model; database triggers protect their financial and tenant fields.
      */
     protected static function booted(): void
     {
