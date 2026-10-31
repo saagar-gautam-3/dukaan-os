@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Inventory;
 
-use App\Actions\Inventory\AdjustStock;
+use App\Actions\Inventory\PerformStockAdjustment;
 use App\Actions\Inventory\QueryStockAlerts;
 use App\Actions\Inventory\QueryStockBalances;
+use App\Actions\Inventory\QueryStockForms;
 use App\Actions\Inventory\QueryStockMovements;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\AdjustStockRequest;
 use App\Models\Product;
 use App\Models\StockBalance;
-use App\Models\Warehouse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,12 +23,12 @@ class StockController extends Controller
     /**
      * Display current stock balances across products and warehouses.
      */
-    public function index(Request $request, QueryStockBalances $queryStockBalances): View
+    public function index(Request $request, QueryStockBalances $queryStockBalances, QueryStockForms $queryStockForms): View
     {
         $this->authorize('viewAny', StockBalance::class);
 
-        $balances = $queryStockBalances->execute($request->all());
-        $warehouses = Warehouse::orderBy('name')->get();
+        $balances = $queryStockBalances->execute($request->only(['warehouse_id', 'search', 'filter']));
+        $warehouses = $queryStockForms->warehouses();
 
         return view('stock.index', compact('balances', 'warehouses'));
     }
@@ -36,12 +36,12 @@ class StockController extends Controller
     /**
      * Display movement history for a specific product.
      */
-    public function history(Product $product, Request $request, QueryStockMovements $queryStockMovements): View
+    public function history(Product $product, Request $request, QueryStockMovements $queryStockMovements, QueryStockForms $queryStockForms): View
     {
         $this->authorize('view', $product);
 
-        $movements = $queryStockMovements->execute($product, $request->all());
-        $warehouses = Warehouse::orderBy('name')->get();
+        $movements = $queryStockMovements->execute($product, $request->only(['warehouse_id', 'date_from', 'date_to']));
+        $warehouses = $queryStockForms->warehouses();
 
         return view('stock.history', compact('product', 'movements', 'warehouses'));
     }
@@ -49,12 +49,11 @@ class StockController extends Controller
     /**
      * Show form for stock adjustment.
      */
-    public function adjustForm(): View
+    public function adjustForm(QueryStockForms $queryStockForms): View
     {
         $this->authorize('adjust', StockBalance::class);
 
-        $products = Product::where('is_active', true)->with('unit')->orderBy('name')->get();
-        $warehouses = Warehouse::orderBy('name')->get();
+        ['products' => $products, 'warehouses' => $warehouses] = $queryStockForms->adjustment();
 
         return view('stock.adjust', compact('products', 'warehouses'));
     }
@@ -62,30 +61,16 @@ class StockController extends Controller
     /**
      * Process stock adjustment.
      */
-    public function adjust(AdjustStockRequest $request, AdjustStock $adjustStock): RedirectResponse
+    public function adjust(AdjustStockRequest $request, PerformStockAdjustment $performStockAdjustment): RedirectResponse
     {
         try {
-            $validated = $request->validated();
-            $warehouse = Warehouse::findOrFail($validated['warehouse_id']);
-            $product = Product::findOrFail($validated['product_id']);
-
-            $adjustStock->execute(
-                warehouse: $warehouse,
-                items: [
-                    [
-                        'product_id' => $product->id,
-                        'type' => $validated['type'],
-                        'quantity' => $validated['quantity'],
-                        'unit_cost' => $validated['unit_cost'] ?? $product->cost_price,
-                    ],
-                ],
-                reason: $validated['reason'],
-                userId: auth()->id()
-            );
+            $performStockAdjustment->handle($request->validated(), (int) auth()->id());
 
             return redirect()->route('stock.index')->with('status', __('inventory.adjustment_success'));
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 

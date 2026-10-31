@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Reports;
 
 use App\Actions\Cash\CloseCashSession;
 use App\Actions\Cash\OpenCashSession;
+use App\Actions\Cash\QueryCashSessions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\CloseCashSessionRequest;
 use App\Http\Requests\Reports\OpenCashSessionRequest;
@@ -24,13 +25,11 @@ class CashSessionController extends Controller
         private readonly CashReportService $cashReport,
     ) {}
 
-    public function index(): View
+    public function index(QueryCashSessions $queryCashSessions): View
     {
         $this->authorize('viewAny', CashSession::class);
 
-        $sessions = CashSession::with(['openedBy', 'closedBy'])
-            ->orderByDesc('opened_at')
-            ->paginate(20);
+        $sessions = $queryCashSessions->index();
 
         $currentSession = $this->cashReport->currentSession(
             TenantContext::shop()->id

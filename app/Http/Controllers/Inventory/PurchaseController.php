@@ -6,15 +6,13 @@ namespace App\Http\Controllers\Inventory;
 
 use App\Actions\Inventory\DeletePurchase;
 use App\Actions\Inventory\PostPurchase;
+use App\Actions\Inventory\QueryPurchaseFormData;
 use App\Actions\Inventory\QueryPurchases;
 use App\Actions\Inventory\StorePurchase;
 use App\Exceptions\ImmutableRecordException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\StorePurchaseRequest;
-use App\Models\Product;
 use App\Models\Purchase;
-use App\Models\Supplier;
-use App\Models\Warehouse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,12 +23,12 @@ class PurchaseController extends Controller
     /**
      * Display a listing of purchases.
      */
-    public function index(Request $request, QueryPurchases $queryPurchases): View
+    public function index(Request $request, QueryPurchases $queryPurchases, QueryPurchaseFormData $formData): View
     {
         $this->authorize('viewAny', Purchase::class);
 
-        $purchases = $queryPurchases->execute($request->all());
-        $suppliers = Supplier::orderBy('name')->get();
+        $purchases = $queryPurchases->execute($request->only(['status', 'supplier_id', 'search']));
+        $suppliers = $formData->suppliers();
 
         return view('purchases.index', compact('purchases', 'suppliers'));
     }
@@ -38,13 +36,11 @@ class PurchaseController extends Controller
     /**
      * Show the form for creating a new purchase draft.
      */
-    public function create(): View
+    public function create(QueryPurchaseFormData $formData): View
     {
         $this->authorize('create', Purchase::class);
 
-        $suppliers = Supplier::orderBy('name')->get();
-        $warehouses = Warehouse::orderBy('name')->get();
-        $products = Product::where('is_active', true)->with('unit')->orderBy('name')->get();
+        ['suppliers' => $suppliers, 'warehouses' => $warehouses, 'products' => $products] = $formData->handle();
 
         return view('purchases.form', compact('suppliers', 'warehouses', 'products'));
     }
@@ -59,7 +55,9 @@ class PurchaseController extends Controller
 
             return redirect()->route('purchases.show', $purchase)->with('status', __('purchases.created_success'));
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -89,7 +87,9 @@ class PurchaseController extends Controller
         } catch (ImmutableRecordException $e) {
             return back()->with('error', $e->getMessage());
         } catch (Throwable $e) {
-            return back()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->with('error', __('common.error_generic'));
         }
     }
 
@@ -107,7 +107,9 @@ class PurchaseController extends Controller
         } catch (ImmutableRecordException $e) {
             return back()->with('error', $e->getMessage());
         } catch (Throwable $e) {
-            return back()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->with('error', __('common.error_generic'));
         }
     }
 }

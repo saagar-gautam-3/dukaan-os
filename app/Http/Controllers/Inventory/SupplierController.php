@@ -23,7 +23,7 @@ class SupplierController extends Controller
     {
         $this->authorize('viewAny', Supplier::class);
 
-        $suppliers = $querySuppliers->execute($request->all());
+        $suppliers = $querySuppliers->execute($request->only(['search']));
 
         return view('suppliers.index', compact('suppliers'));
     }
@@ -42,7 +42,9 @@ class SupplierController extends Controller
 
             return redirect()->route('suppliers.index')->with('status', __('suppliers.created_success'));
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -60,7 +62,9 @@ class SupplierController extends Controller
 
             return redirect()->route('suppliers.index')->with('status', __('suppliers.updated_success'));
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -73,7 +77,9 @@ class SupplierController extends Controller
 
             return redirect()->route('suppliers.index')->with('status', __('suppliers.deleted_success'));
         } catch (Throwable $e) {
-            return back()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->with('error', __('common.error_generic'));
         }
     }
 }

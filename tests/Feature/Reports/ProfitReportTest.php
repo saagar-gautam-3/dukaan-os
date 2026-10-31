@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Reports;
 
+use App\Actions\Expenses\CreateExpense;
 use App\Actions\Sales\CreateSale;
 use App\Actions\Sales\PostSale;
 use App\Actions\Sales\ReturnSale;
@@ -17,12 +18,14 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\ShopUser;
+use App\Models\StockBalance;
 use App\Models\Unit;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Services\ProfitReportService;
 use App\Services\RbacService;
 use App\Tenancy\TenantContext;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -366,6 +369,63 @@ final class ProfitReportTest extends TestCase
 
         $response = $this->get(route('reports.profit'));
         $response->assertForbidden();
+    }
+
+    public function test_profit_report_exposes_daily_weekly_and_monthly_period_presets(): void
+    {
+        $response = $this->actingAs($this->user)
+            ->withSession(['current_shop_id' => $this->shop->id])
+            ->get(route('reports.profit', ['range' => 'this_week']));
+
+        $response->assertOk()
+            ->assertSee('value="today"', false)
+            ->assertSee('value="this_week"', false)
+            ->assertSee('value="this_month"', false);
+    }
+
+    public function test_stock_alert_list_and_dashboard_show_low_stock(): void
+    {
+        $product = $this->createProduct();
+        $product->update(['name' => 'F4 Low Stock Product', 'low_stock_threshold' => '5.000']);
+        StockBalance::factory()->create([
+            'shop_id' => $this->shop->id,
+            'warehouse_id' => $this->warehouse->id,
+            'product_id' => $product->id,
+            'quantity' => '2.000',
+        ]);
+
+        $this->actingAs($this->user)
+            ->withSession(['current_shop_id' => $this->shop->id])
+            ->get(route('stock.alerts'))
+            ->assertOk()
+            ->assertSee('F4 Low Stock Product');
+
+        $this->withSession(['current_shop_id' => $this->shop->id])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(__('dashboard.stats.low_stock'))
+            ->assertSee('1');
+    }
+
+    public function test_forced_database_error_is_reported_as_generic_message(): void
+    {
+        $this->mock(CreateExpense::class)
+            ->shouldReceive('handle')
+            ->once()
+            ->andThrow(new QueryException('mysql', 'select secret_sql', [], new \RuntimeException('secret database detail')));
+
+        $response = $this->actingAs($this->user)
+            ->withSession(['current_shop_id' => $this->shop->id])
+            ->post(route('expenses.store'), [
+                'category_id' => ExpenseCategory::factory()->create(['shop_id' => $this->shop->id])->id,
+                'amount' => '12.50',
+                'expense_date' => now()->toDateString(),
+                'payment_method' => 'cash',
+            ]);
+
+        $response->assertRedirect()
+            ->assertSessionHas('error', __('common.error_generic'))
+            ->assertDontSee('secret database detail');
     }
 
     // ─────────────────────────────────────────────────────────────────────

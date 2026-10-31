@@ -44,6 +44,13 @@ class LedgerService
             ->paginate($perPage);
     }
 
+    public function totalOutstanding(): string
+    {
+        return (string) CustomerLedgerEntry::where('shop_id', TenantContext::shop()->id)
+            ->selectRaw('COALESCE(SUM(debit) - SUM(credit), 0) as balance')
+            ->value('balance');
+    }
+
     /**
      * Ageing report: buckets by overdue days — current, 1-30, 31-60, 61-90, 90+.
      * Uses posted_at / due_date as the reference date.

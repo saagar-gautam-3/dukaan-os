@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Udhar;
 
 use App\Actions\Udhar\CollectPayment;
+use App\Actions\Udhar\QueryUdharCollectionForm;
 use App\Actions\Udhar\SendReminder;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Udhar\CollectPaymentRequest;
@@ -12,7 +13,6 @@ use App\Jobs\SendReminderJob;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Services\LedgerService;
-use App\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -25,6 +25,7 @@ final class UdharController extends Controller
         private readonly LedgerService $ledgerService,
         private readonly CollectPayment $collectPayment,
         private readonly SendReminder $sendReminder,
+        private readonly QueryUdharCollectionForm $queryCollectionForm,
     ) {}
 
     /**
@@ -34,15 +35,11 @@ final class UdharController extends Controller
     {
         $this->authorize('viewAny', CustomerLedgerEntry::class);
 
-        $shop = TenantContext::shop();
         $search = $request->string('search')->toString() ?: null;
 
         $customers = $this->ledgerService->outstandingList($search, 20);
 
-        // Calculate total outstanding balance across all customers
-        $totalOutstanding = (string) CustomerLedgerEntry::where('shop_id', $shop->id)
-            ->selectRaw('COALESCE(SUM(debit) - SUM(credit), 0) as balance')
-            ->value('balance');
+        $totalOutstanding = $this->ledgerService->totalOutstanding();
 
         return view('udhar.outstanding', [
             'customers' => $customers,
@@ -58,7 +55,6 @@ final class UdharController extends Controller
     {
         $this->authorize('viewAny', CustomerLedgerEntry::class);
 
-        $shop = TenantContext::shop();
         $report = $this->ledgerService->ageingReport();
 
         return view('udhar.ageing', [
@@ -74,8 +70,7 @@ final class UdharController extends Controller
     {
         $this->authorize('collect', $customer);
 
-        $balance = $customer->ledgerBalance();
-        $openSales = $customer->openSales()->get();
+        ['balance' => $balance, 'openSales' => $openSales] = $this->queryCollectionForm->handle($customer);
 
         return view('udhar.collect', [
             'customer' => $customer,

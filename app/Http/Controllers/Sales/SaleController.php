@@ -6,8 +6,10 @@ namespace App\Http\Controllers\Sales;
 
 use App\Actions\Sales\CancelSale;
 use App\Actions\Sales\CreateSale;
+use App\Actions\Sales\FindIdempotentSale;
 use App\Actions\Sales\PostSale;
 use App\Actions\Sales\QuerySales;
+use App\Actions\Sales\ResolvePosWarehouse;
 use App\Actions\Sales\ReturnSale;
 use App\Actions\Sales\SearchPosCustomers;
 use App\Actions\Sales\SearchPosProducts;
@@ -18,11 +20,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ReturnSaleRequest;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Models\Customer;
-use App\Models\IdempotencyKey;
 use App\Models\Sale;
-use App\Models\Warehouse;
 use App\Support\Money;
-use App\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,6 +39,8 @@ class SaleController extends Controller
         private readonly QuerySales $querySales,
         private readonly SearchPosProducts $searchPosProducts,
         private readonly SearchPosCustomers $searchPosCustomers,
+        private readonly ResolvePosWarehouse $resolvePosWarehouse,
+        private readonly FindIdempotentSale $findIdempotentSale,
     ) {}
 
     /**
@@ -49,9 +50,7 @@ class SaleController extends Controller
     {
         $this->authorize('create', Sale::class);
 
-        $shop = TenantContext::shop();
-        $warehouse = Warehouse::where('shop_id', $shop->id)->where('is_default', true)->first()
-            ?? Warehouse::where('shop_id', $shop->id)->first();
+        $warehouse = $this->resolvePosWarehouse->handle();
 
         return view('sales.pos', [
             'warehouse' => $warehouse,
@@ -118,14 +117,9 @@ class SaleController extends Controller
 
         $idemKey = $request->string('idempotency_key')->toString() ?: null;
         if ($idemKey !== null) {
-            $shop = TenantContext::shop();
-            $existing = IdempotencyKey::where('shop_id', $shop->id)
-                ->where('key', $idemKey)
-                ->where('action', 'post_sale')
-                ->first();
+            $existingSale = $this->findIdempotentSale->handle($idemKey);
 
-            if ($existing) {
-                $existingSale = Sale::findOrFail($existing->result_id);
+            if ($existingSale) {
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
                         'redirect' => route('sales.show', $existingSale),
