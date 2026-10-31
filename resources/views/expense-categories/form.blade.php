@@ -27,11 +27,11 @@
                 @endisset
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">{{ __('expenses.category') }} Name <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold">{{ __('expenses.category') }} {{ __('ui.name') }} <span class="text-danger">*</span></label>
                     <input type="text" name="name"
                            class="form-control @error('name') is-invalid @enderror"
                            value="{{ old('name', $category->name ?? '') }}"
-                           required autofocus placeholder="e.g. Rent, Salary, Utilities">
+                           required autofocus placeholder="{{ __('expenses.category_placeholder') }}">
                     @error('name')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

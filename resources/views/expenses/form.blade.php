@@ -47,7 +47,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">{{ __('expenses.amount') }} <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text">Rs</span>
+                            <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                             <input type="number" name="amount" step="0.01" min="0.01"
                                    class="form-control @error('amount') is-invalid @enderror"
                                    value="{{ old('amount', $expense->amount ?? '') }}" required>
@@ -75,10 +75,10 @@
                     <label class="form-label fw-semibold">{{ __('expenses.payment_method') }} <span class="text-danger">*</span></label>
                     <select name="payment_method" class="form-select @error('payment_method') is-invalid @enderror" required>
                         <option value="cash" @selected(old('payment_method', $expense->payment_method ?? 'cash') === 'cash')>
-                            <i class="bi bi-cash-stack"></i> Cash
+                            <i class="bi bi-cash-stack"></i> {{ __('ui.payment_cash') }}
                         </option>
-                        <option value="bank" @selected(old('payment_method', $expense->payment_method ?? '') === 'bank')>Bank</option>
-                        <option value="qr" @selected(old('payment_method', $expense->payment_method ?? '') === 'qr')>QR / UPI</option>
+                        <option value="bank" @selected(old('payment_method', $expense->payment_method ?? '') === 'bank')>{{ __('expenses.bank') }}</option>
+                        <option value="qr" @selected(old('payment_method', $expense->payment_method ?? '') === 'qr')>{{ __('expenses.qr_upi') }}</option>
                     </select>
                     @error('payment_method')
                         <div class="invalid-feedback">{{ $message }}</div>
@@ -91,7 +91,7 @@
                     <input type="text" name="reference_number"
                            class="form-control @error('reference_number') is-invalid @enderror"
                            value="{{ old('reference_number', $expense->reference_number ?? '') }}"
-                           placeholder="Optional voucher/receipt number">
+                           placeholder="{{ __('expenses.reference_placeholder') }}">
                     @error('reference_number')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
@@ -102,7 +102,7 @@
                     <label class="form-label fw-semibold">{{ __('expenses.description') }}</label>
                     <textarea name="description" rows="3"
                               class="form-control @error('description') is-invalid @enderror"
-                              placeholder="Brief description of the expense…">{{ old('description', $expense->description ?? '') }}</textarea>
+                              placeholder="{{ __('expenses.description_placeholder') }}">{{ old('description', $expense->description ?? '') }}</textarea>
                     @error('description')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

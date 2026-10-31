@@ -35,7 +35,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>{{ __('expenses.category') }}</th>
-                        <th class="text-center">Expenses</th>
+                        <th class="text-center">{{ __('expenses.expenses') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -67,7 +67,7 @@
                     <tr>
                         <td colspan="3" class="text-center text-muted py-4">
                             <i class="bi bi-tags fs-2 d-block mb-2"></i>
-                            No categories yet. Create one to start recording expenses.
+                            {{ __('ui.no_expense_categories') }}
                         </td>
                     </tr>
                     @endforelse
