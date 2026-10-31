@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Actions\Sales;
 
 use App\Models\Product;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Collection;
 
 class SearchPosProducts
 {
     /**
-     * @return Collection<int, array{id: int, name: string, sku: string, price: string, track_stock: bool, unit: ?string, stock: float}>
+     * @return Collection<int, array{id: int, name: string, sku: string, price: string, track_stock: bool, unit: ?string, stock: string}>
      */
     public function handle(string $query): Collection
     {
@@ -36,7 +37,10 @@ class SearchPosProducts
                 'price' => (string) $p->selling_price,
                 'track_stock' => $p->track_stock,
                 'unit' => $p->unit?->symbol,
-                'stock' => (float) $p->stockBalances->sum('quantity'),
+                'stock' => $p->stockBalances->reduce(
+                    fn (string $sum, $balance): string => Money::add($sum, (string) $balance->quantity, 3),
+                    '0.000'
+                ),
             ]);
     }
 }

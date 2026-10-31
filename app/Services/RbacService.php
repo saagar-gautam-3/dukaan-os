@@ -44,6 +44,7 @@ class RbacService
         'expenses.manage' => 'Record and manage expenses and categories',
         'expenses.delete' => 'Delete expenses',
         'cash.view' => 'View cash sessions and drawer history',
+        'payments.verify' => 'Verify or fail pending QR payments',
         'cash.manage' => 'Open, close, and manage cash sessions',
         'reports.view' => 'View operational reports',
         'reports.profit.view' => 'View gross and net profit reports',

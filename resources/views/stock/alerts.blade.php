@@ -55,14 +55,14 @@
                         <tbody>
                             @foreach($products as $product)
                             @php
-                                $stock = (float) $product->stockBalances->sum('quantity');
-                                $minAlert = (float) $product->min_stock_alert;
-                                $isOut = $stock <= 0;
+                                $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
+                                $minAlert = (string) $product->min_stock_alert;
+                                $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                             @endphp
                             <tr>
                                 <td class="ps-3">
                                     <div class="fw-bold text-dark">{{ $product->name }}</div>
-                                    <small class="text-muted"><code>{{ $product->sku ?: 'No SKU' }}</code></small>
+                                    <small class="text-muted"><code>{{ $product->sku ?: __('ui.no_sku') }}</code></small>
                                 </td>
                                 <td><span class="badge bg-light text-dark border">{{ $product->category?->name ?? 'General' }}</span></td>
                                 <td class="text-end fw-semibold">@npr($product->selling_price)</td>
@@ -101,15 +101,15 @@
                 <div class="d-md-none divide-y">
                     @foreach($products as $product)
                     @php
-                        $stock = (float) $product->stockBalances->sum('quantity');
-                        $minAlert = (float) $product->min_stock_alert;
-                        $isOut = $stock <= 0;
+                        $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
+                        $minAlert = (string) $product->min_stock_alert;
+                                $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                     @endphp
                     <div class="p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">{{ $product->name }}</h6>
-                                <small class="text-muted"><code>{{ $product->sku ?: 'No SKU' }}</code></small>
+                                <small class="text-muted"><code>{{ $product->sku ?: __('ui.no_sku') }}</code></small>
                             </div>
                             <span class="badge {{ $isOut ? 'bg-danger' : 'bg-warning text-dark' }} px-2 py-1">
                                 @qty($stock, $product->unit?->is_fractional) / @qty($minAlert, $product->unit?->is_fractional) {{ $product->unit?->symbol }}

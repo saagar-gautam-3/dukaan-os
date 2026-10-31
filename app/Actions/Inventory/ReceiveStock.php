@@ -10,6 +10,7 @@ use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Services\CostingService;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -29,15 +30,15 @@ class ReceiveStock
     public function execute(
         Product $product,
         Warehouse $warehouse,
-        string|float $quantity,
-        string|float $unitCost,
+        string|int $quantity,
+        string|int $unitCost,
         MovementType $movementType = MovementType::PurchaseReceive,
         ?string $referenceType = null,
         ?int $referenceId = null,
         ?string $notes = null,
         ?int $userId = null
     ): array {
-        if (bccomp((string) $quantity, '0', 3) <= 0) {
+        if (Money::compare((string) $quantity, '0', 3) <= 0) {
             throw new InvalidArgumentException('Received quantity must be greater than zero.');
         }
 
@@ -52,24 +53,25 @@ class ReceiveStock
             $notes,
             $userId
         ) {
-            // Lock or create the StockBalance row
+            // Race-safe: insert a zero row if missing (ignored on unique conflict),
+            // then lock it. This avoids two concurrent receives both inserting.
+            DB::table('stock_balances')->insertOrIgnore([
+                'shop_id' => $warehouse->shop_id,
+                'warehouse_id' => $warehouse->id,
+                'product_id' => $product->id,
+                'quantity' => '0.000',
+                'average_cost' => '0.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Lock the StockBalance row
             /** @var StockBalance $balance */
             $balance = StockBalance::query()
                 ->where('warehouse_id', $warehouse->id)
                 ->where('product_id', $product->id)
                 ->lockForUpdate()
-                ->first();
-
-            if ($balance === null) {
-                $balance = new StockBalance;
-                $balance->warehouse_id = $warehouse->id;
-                $balance->product_id = $product->id;
-                $balance->quantity = '0.000';
-                $balance->save();
-
-                // Re-lock
-                $balance = StockBalance::where('id', $balance->id)->lockForUpdate()->first();
-            }
+                ->firstOrFail();
 
             // Calculate moving weighted average cost if this is a purchase receive
             $newCost = (string) $product->cost_price;
@@ -95,7 +97,7 @@ class ReceiveStock
             }
 
             // Increment balance quantity and persist weighted average cost per warehouse
-            $newQuantity = bcadd((string) $balance->quantity, (string) $quantity, 3);
+            $newQuantity = Money::add((string) $balance->quantity, (string) $quantity, 3);
             $balance->quantity = $newQuantity;
             $balance->average_cost = $newCost;
             $balance->save();
@@ -106,8 +108,8 @@ class ReceiveStock
             $movement->warehouse_id = $warehouse->id;
             $movement->product_id = $product->id;
             $movement->movement_type = $movementType;
-            $movement->quantity = number_format((float) $quantity, 3, '.', '');
-            $movement->unit_cost = number_format((float) $unitCost, 2, '.', '');
+            $movement->quantity = Money::round((string) $quantity, 3);
+            $movement->unit_cost = Money::round((string) $unitCost, 2);
             $movement->reference_type = $referenceType;
             $movement->reference_id = $referenceId;
             $movement->notes = $notes;

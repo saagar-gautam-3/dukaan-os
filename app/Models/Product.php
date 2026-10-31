@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\Money;
 use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Database\Factories\ProductFactory;
@@ -78,8 +79,8 @@ class Product extends Model
         return $this->hasMany(PurchaseItem::class);
     }
 
-    public function isLowStock(float|string $currentQuantity): bool
+    public function isLowStock(string|int $currentQuantity): bool
     {
-        return bccomp((string) $currentQuantity, (string) $this->low_stock_threshold, 3) <= 0;
+        return Money::compare((string) $currentQuantity, (string) $this->low_stock_threshold, 3) <= 0;
     }
 }

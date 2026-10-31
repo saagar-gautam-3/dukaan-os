@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Expenses;
 
 use App\Models\Expense;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use InvalidArgumentException;
 
@@ -14,7 +15,7 @@ class CreateExpense
     {
         $shop = TenantContext::shop();
 
-        if (bccomp((string) ($data['amount'] ?? '0'), '0', 2) <= 0) {
+        if (Money::compare((string) ($data['amount'] ?? '0'), '0', 2) <= 0) {
             throw new InvalidArgumentException(__('expenses.invalid_amount'));
         }
 

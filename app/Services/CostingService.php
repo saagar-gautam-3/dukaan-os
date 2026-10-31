@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Support\Money;
+
 class CostingService
 {
     /**
@@ -17,10 +19,10 @@ class CostingService
      * If current_qty <= 0, incoming_unit_cost is adopted directly.
      */
     public function calculateWeightedAverage(
-        string|float $currentQty,
-        string|float $currentCost,
-        string|float $incomingQty,
-        string|float $incomingCost
+        string|int $currentQty,
+        string|int $currentCost,
+        string|int $incomingQty,
+        string|int $incomingCost
     ): string {
         $curQty = (string) $currentQty;
         $curCost = (string) $currentCost;
@@ -28,26 +30,26 @@ class CostingService
         $incCost = (string) $incomingCost;
 
         // If current stock is zero or negative, new cost is simply the incoming purchase cost
-        if (bccomp($curQty, '0', 3) <= 0) {
-            return number_format((float) $incCost, 2, '.', '');
+        if (Money::compare($curQty, '0', 3) <= 0) {
+            return Money::round($incCost, 2);
         }
 
         // If incoming quantity is zero, retain current cost
-        if (bccomp($incQty, '0', 3) <= 0) {
-            return number_format((float) $curCost, 2, '.', '');
+        if (Money::compare($incQty, '0', 3) <= 0) {
+            return Money::round($curCost, 2);
         }
 
-        $currentValue = bcmul($curQty, $curCost, 6);
-        $incomingValue = bcmul($incQty, $incCost, 6);
-        $totalValue = bcadd($currentValue, $incomingValue, 6);
-        $totalQuantity = bcadd($curQty, $incQty, 6);
+        $currentValue = Money::multiply($curQty, $curCost, 6);
+        $incomingValue = Money::multiply($incQty, $incCost, 6);
+        $totalValue = Money::add($currentValue, $incomingValue, 6);
+        $totalQuantity = Money::add($curQty, $incQty, 6);
 
-        if (bccomp($totalQuantity, '0', 6) <= 0) {
-            return number_format((float) $incCost, 2, '.', '');
+        if (Money::compare($totalQuantity, '0', 6) <= 0) {
+            return Money::round($incCost, 2);
         }
 
-        $weightedCost = bcdiv($totalValue, $totalQuantity, 4);
+        $weightedCost = Money::divide($totalValue, $totalQuantity, 4);
 
-        return number_format((float) $weightedCost, 2, '.', '');
+        return Money::round($weightedCost, 2);
     }
 }

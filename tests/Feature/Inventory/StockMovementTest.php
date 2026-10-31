@@ -47,8 +47,8 @@ class StockMovementTest extends TestCase
         $result = $receiveAction->execute(
             product: $product,
             warehouse: $warehouse,
-            quantity: 20.000,
-            unitCost: 120.00,
+            quantity: '20.000',
+            unitCost: '120.00',
             notes: 'Test PO delivery'
         );
 
@@ -92,8 +92,8 @@ class StockMovementTest extends TestCase
                 $receiveAction->execute(
                     product: $product,
                     warehouse: $warehouse,
-                    quantity: 15.000,
-                    unitCost: 80.00
+                    quantity: '15.000',
+                    unitCost: '80.00'
                 );
 
                 throw new Exception('Simulated fatal transaction failure');
@@ -255,8 +255,8 @@ class StockMovementTest extends TestCase
         $receiveResult = app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $warehouse,
-            quantity: 20.000,
-            unitCost: 100.00
+            quantity: '20.000',
+            unitCost: '100.00'
         );
 
         $originalMovement = $receiveResult['movement'];
@@ -289,8 +289,8 @@ class StockMovementTest extends TestCase
         $receiveResult = app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $warehouse,
-            quantity: 10.000,
-            unitCost: 50.00
+            quantity: '10.000',
+            unitCost: '50.00'
         );
 
         $reversalAction = app(ReverseStockMovement::class);

@@ -10,7 +10,7 @@
         </label>
         <input type="text" name="name" id="name{{ isset($category) ? '_'.$category->id : '' }}" 
                class="form-control @error('name') is-invalid @enderror" 
-               placeholder="e.g. Spices & Masala" 
+               placeholder="{{ __('ui.category_example') }}" 
                value="{{ old('name', $category->name ?? '') }}" required>
         @error('name')
             <div class="invalid-feedback">{{ $message }}</div>
@@ -19,8 +19,8 @@
 
     @if(!isset($category))
     <div class="mb-3">
-        <label for="slug" class="form-label fw-semibold">{{ __('products.category_slug') }} (Optional)</label>
-        <input type="text" name="slug" id="slug" class="form-control" placeholder="auto-generated if empty">
+        <label for="slug" class="form-label fw-semibold">{{ __('products.category_slug') }} ({{ __('ui.optional') }})</label>
+        <input type="text" name="slug" id="slug" class="form-control" placeholder="{{ __('ui.slug_auto_generated') }}">
     </div>
     @endif
 

@@ -35,7 +35,7 @@
         <i class="bi bi-exclamation-triangle-fill fs-5"></i>
         <div>
             <strong>{{ __('cash.status_open') }}:</strong>
-            Session opened at {{ $currentSession->opened_at->format('d M Y, h:i A') }}
+            {{ __('ui.session_opened_at', ['time' => $currentSession->opened_at->format('d M Y, h:i A')]) }}
             | {{ __('cash.opening_label') }} @npr($currentSession->opening_cash)
             | {{ __('cash.expected_label') }} @npr($currentSession->computeExpectedCash())
         </div>
@@ -112,7 +112,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ __('cash.opening_cash') }} <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <span class="input-group-text">Rs</span>
+                            <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                             <input type="number" name="opening_cash" step="0.01" min="0"
                                    class="form-control" value="0.00" required>
                         </div>

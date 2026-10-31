@@ -8,6 +8,7 @@ use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Sale;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -43,6 +44,13 @@ class LedgerService
             ->paginate($perPage);
     }
 
+    public function totalOutstanding(): string
+    {
+        return (string) CustomerLedgerEntry::where('shop_id', TenantContext::shop()->id)
+            ->selectRaw('COALESCE(SUM(debit) - SUM(credit), 0) as balance')
+            ->value('balance');
+    }
+
     /**
      * Ageing report: buckets by overdue days — current, 1-30, 31-60, 61-90, 90+.
      * Uses posted_at / due_date as the reference date.
@@ -67,8 +75,8 @@ class LedgerService
             ->withSum('ledgerEntries as total_debit', 'debit')
             ->withSum('ledgerEntries as total_credit', 'credit')
             ->get()
-            ->filter(fn ($c) => bccomp(
-                bcsub((string) ($c->total_debit ?? '0'), (string) ($c->total_credit ?? '0'), 2),
+            ->filter(fn ($c) => Money::compare(
+                Money::subtract((string) ($c->total_debit ?? '0'), (string) ($c->total_credit ?? '0'), 2),
                 '0',
                 2
             ) > 0);
@@ -80,7 +88,7 @@ class LedgerService
 
             foreach ($customer->sales as $sale) {
                 $due = $sale->dueAmount();
-                if (bccomp($due, '0', 2) <= 0) {
+                if (Money::compare($due, '0', 2) <= 0) {
                     continue;
                 }
 
@@ -97,9 +105,9 @@ class LedgerService
                     default => 'over_90',
                 };
 
-                $buckets[$bucket] = bcadd($buckets[$bucket], $due, 2);
-                $totals[$bucket] = bcadd($totals[$bucket], $due, 2);
-                $totals['total'] = bcadd($totals['total'], $due, 2);
+                $buckets[$bucket] = Money::add($buckets[$bucket], $due, 2);
+                $totals[$bucket] = Money::add($totals[$bucket], $due, 2);
+                $totals['total'] = Money::add($totals['total'], $due, 2);
             }
 
             $customer->ageing_buckets = $buckets;
@@ -123,7 +131,7 @@ class LedgerService
             ->where('customer_id', $customer->id)
             ->sum('credit');
 
-        return bcsub((string) $debit, (string) $credit, 2);
+        return Money::subtract((string) $debit, (string) $credit, 2);
     }
 
     /**
@@ -154,9 +162,9 @@ class LedgerService
         foreach ($allCustomerIds as $customerId) {
             $ledger = (string) ($ledgerBalances->get($customerId) ?? '0.00');
             $cached = (string) ($cachedBalances->get($customerId) ?? '0.00');
-            $drift = bcsub($ledger, $cached, 2);
+            $drift = Money::subtract($ledger, $cached, 2);
 
-            if (bccomp($drift, '0', 2) !== 0) {
+            if (Money::compare($drift, '0', 2) !== 0) {
                 $drifts[] = [
                     'customer_id' => (int) $customerId,
                     'ledger_balance' => $ledger,

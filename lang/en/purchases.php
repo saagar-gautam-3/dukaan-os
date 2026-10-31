@@ -46,4 +46,11 @@ return [
     'warehouse_code' => 'Warehouse Code',
     'no_sku' => 'No SKU',
     'immutable_heading' => 'Immutable Posted Record',
+    'delivery_note_placeholder' => 'e.g. Delivery truck reference or receipt note',
+    'select_product' => 'Select Product',
+    'save_purchase_draft' => 'Save Purchase Draft',
+    'search_placeholder' => 'Search bill number or supplier...',
+    'post_short' => 'Post',
+    'rate' => 'Rate',
+    'immutable_exception' => 'Purchase #:id is :status and cannot be modified or deleted. Purchase is already posted and cannot be re-posted.',
 ];

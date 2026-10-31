@@ -18,6 +18,52 @@ window.bootstrap = bootstrap;
 
 // 3. Sidebar toggle for mobile
 document.addEventListener('DOMContentLoaded', () => {
+    const networkStatus = document.getElementById('network-status');
+
+    const showNetworkMessage = (message) => {
+        if (!networkStatus) return;
+        networkStatus.textContent = message;
+        networkStatus.classList.remove('d-none');
+    };
+    const hideNetworkMessage = () => networkStatus?.classList.add('d-none');
+
+    window.addEventListener('offline', () => showNetworkMessage(networkStatus?.dataset.offline ?? ''));
+    window.addEventListener('online', () => {
+        showNetworkMessage(networkStatus?.dataset.online ?? '');
+        window.setTimeout(hideNetworkMessage, 3500);
+    });
+    const nativeFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+        const startedAt = performance.now();
+        try {
+            const response = await nativeFetch(...args);
+            if (performance.now() - startedAt > 3000 && navigator.onLine) {
+                showNetworkMessage(networkStatus?.dataset.slow ?? '');
+                window.setTimeout(hideNetworkMessage, 5000);
+            }
+            return response;
+        } catch (error) {
+            if (!navigator.onLine) showNetworkMessage(networkStatus?.dataset.offline ?? '');
+            throw error;
+        }
+    };
+
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement) || form.dataset.skipLoading === 'true') return;
+
+        for (const button of form.querySelectorAll('button[type="submit"], input[type="submit"]')) {
+            button.disabled = true;
+            if (button instanceof HTMLButtonElement) {
+                const spinner = document.createElement('span');
+                spinner.className = 'spinner-border spinner-border-sm me-2';
+                spinner.setAttribute('aria-hidden', 'true');
+                button.replaceChildren(spinner, document.createTextNode(window.appMessages?.submitting ?? button.textContent));
+                button.setAttribute('aria-busy', 'true');
+            }
+        }
+    });
+
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('.app-sidebar');
 

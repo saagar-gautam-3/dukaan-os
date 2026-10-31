@@ -17,7 +17,7 @@
             {{ \App\Tenancy\TenantContext::has() ? \App\Tenancy\TenantContext::currentShop()->name : '' }}
         </div>
         <small class="text-white-50">
-            {{ \App\Tenancy\TenantContext::currentMembership()?->role?->name ?? 'Staff' }}
+            {{ \App\Tenancy\TenantContext::currentMembership()?->role?->name ?? __('ui.staff') }}
         </small>
     </div>
 

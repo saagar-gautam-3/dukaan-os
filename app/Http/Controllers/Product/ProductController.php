@@ -6,14 +6,13 @@ namespace App\Http\Controllers\Product;
 
 use App\Actions\Product\CreateProduct;
 use App\Actions\Product\DeleteProduct;
+use App\Actions\Product\QueryProductFormData;
 use App\Actions\Product\QueryProducts;
 use App\Actions\Product\UpdateProduct;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
-use App\Models\Category;
 use App\Models\Product;
-use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -24,12 +23,12 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource with server-side search, filtering, and pagination.
      */
-    public function index(Request $request, QueryProducts $queryProducts): View
+    public function index(Request $request, QueryProducts $queryProducts, QueryProductFormData $formData): View
     {
         $this->authorize('viewAny', Product::class);
 
-        $products = $queryProducts->execute($request->all());
-        $categories = Category::orderBy('name')->get();
+        $products = $queryProducts->execute($request->only(['search', 'category_id']));
+        $categories = $formData->categories();
 
         return view('products.index', compact('products', 'categories'));
     }
@@ -37,12 +36,12 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new product.
      */
-    public function create(): View
+    public function create(QueryProductFormData $formData): View
     {
         $this->authorize('create', Product::class);
 
-        $categories = Category::orderBy('name')->get();
-        $units = Unit::orderBy('name')->get();
+        $categories = $formData->categories();
+        $units = $formData->units();
 
         return view('products.form', compact('categories', 'units'));
     }
@@ -62,19 +61,21 @@ class ProductController extends Controller
 
             return redirect()->route('products.index')->with('status', __('products.created_success'));
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
     /**
      * Show the form for editing the specified product.
      */
-    public function edit(Product $product): View
+    public function edit(Product $product, QueryProductFormData $formData): View
     {
         $this->authorize('update', $product);
 
-        $categories = Category::orderBy('name')->get();
-        $units = Unit::orderBy('name')->get();
+        $categories = $formData->categories();
+        $units = $formData->units();
 
         return view('products.form', compact('product', 'categories', 'units'));
     }
@@ -94,7 +95,9 @@ class ProductController extends Controller
 
             return redirect()->route('products.index')->with('status', __('products.updated_success'));
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -110,7 +113,9 @@ class ProductController extends Controller
 
             return redirect()->route('products.index')->with('status', __('products.deleted_success'));
         } catch (Throwable $e) {
-            return back()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->with('error', __('common.error_generic'));
         }
     }
 }

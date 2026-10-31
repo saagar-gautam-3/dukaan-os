@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Sales;
 
 use App\Actions\Sales\ArchiveCustomer;
 use App\Actions\Sales\CreateCustomer;
+use App\Actions\Sales\QueryCustomerDetails;
 use App\Actions\Sales\QueryCustomers;
 use App\Actions\Sales\UpdateCustomer;
 use App\Http\Controllers\Controller;
@@ -23,6 +24,7 @@ class CustomerController extends Controller
         private readonly CreateCustomer $createCustomer,
         private readonly UpdateCustomer $updateCustomer,
         private readonly ArchiveCustomer $archiveCustomer,
+        private readonly QueryCustomerDetails $queryCustomerDetails,
     ) {}
 
     public function index(Request $request): View
@@ -40,17 +42,7 @@ class CustomerController extends Controller
     {
         $this->authorize('view', $customer);
 
-        $customer->load(['sales' => fn ($q) => $q->orderByDesc('created_at')->limit(20)]);
-
-        $ledgerEntries = $customer->ledgerEntries()
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->paginate(15, ['*'], 'ledger_page');
-
-        $openSales = $customer->openSales()->get();
-        $balance = $customer->ledgerBalance();
-        $headroom = $customer->creditLimitHeadroom();
-        $reminderLogs = $customer->reminderLogs()->orderByDesc('created_at')->limit(10)->get();
+        ['ledgerEntries' => $ledgerEntries, 'openSales' => $openSales, 'balance' => $balance, 'headroom' => $headroom, 'reminderLogs' => $reminderLogs] = $this->queryCustomerDetails->handle($customer);
 
         return view('customers.show', compact(
             'customer',
@@ -81,7 +73,7 @@ class CustomerController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -104,7 +96,7 @@ class CustomerController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -120,7 +112,7 @@ class CustomerController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->with('error', __('common.unexpected_error'));
+            return back()->with('error', __('common.error_generic'));
         }
     }
 }

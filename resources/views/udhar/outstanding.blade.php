@@ -31,7 +31,7 @@
                         {{ __('udhar.total_outstanding') }}
                     </div>
                     <div class="h3 fw-bold text-danger mb-0">
-                        NPR @npr($totalOutstanding)
+                        {{ __('ui.currency_symbol') }} @npr($totalOutstanding)
                     </div>
                 </div>
             </div>
@@ -115,7 +115,7 @@
                             <a href="{{ route('customers.show', $customer) }}" class="fw-bold text-decoration-none">
                                 {{ $customer->name }}
                             </a>
-                            @if((float) $customer->credit_limit > 0 && bccomp((string) $customer->balance, (string) $customer->credit_limit, 2) >= 0)
+                            @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0 && \App\Support\Money::compare((string) $customer->balance, (string) $customer->credit_limit, 2) >= 0)
                                 <span class="badge bg-danger ms-1" title="{{ __('udhar.credit_limit_exceeded_notice') }}">
                                     <i class="bi bi-exclamation-triangle"></i> {{ __('udhar.credit_limit') }}
                                 </span>
@@ -129,15 +129,15 @@
                             @endif
                         </td>
                         <td class="text-end">
-                            @if((float) $customer->credit_limit > 0)
-                                NPR @npr($customer->credit_limit)
+                            @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
+                                {{ __('ui.currency_symbol') }} @npr($customer->credit_limit)
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
                             <span class="fw-bold fs-6 text-danger">
-                                NPR @npr($customer->balance)
+                                {{ __('ui.currency_symbol') }} @npr($customer->balance)
                             </span>
                         </td>
                         <td class="text-end">

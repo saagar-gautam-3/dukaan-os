@@ -12,6 +12,7 @@ use App\Models\StockAdjustmentItem;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,7 +23,7 @@ class AdjustStock
     /**
      * Perform stock adjustments atomically with row-locking and negative stock validation.
      *
-     * @param  array<int, array{product_id: int, type: string, quantity: string|float, unit_cost?: string|float|null}>  $items
+     * @param  array<int, array{product_id: int, type: string, quantity: string|int, unit_cost?: string|int|null}>  $items
      * @return array{adjustment: StockAdjustment, movements: array<int, StockMovement>}
      */
     public function execute(
@@ -60,7 +61,7 @@ class AdjustStock
                 $qty = (string) $itemData['quantity'];
                 $unitCost = (string) ($itemData['unit_cost'] ?? $product->cost_price);
 
-                if (bccomp($qty, '0', 3) <= 0) {
+                if (Money::compare($qty, '0', 3) <= 0) {
                     throw new InvalidArgumentException("Quantity for product [{$product->name}] must be positive.");
                 }
 
@@ -82,16 +83,16 @@ class AdjustStock
                 }
 
                 if ($type === 'out') {
-                    $newBalance = bcsub((string) $balance->quantity, $qty, 3);
-                    if (! $allowNegativeStock && bccomp($newBalance, '0', 3) < 0) {
+                    $newBalance = Money::subtract((string) $balance->quantity, $qty, 3);
+                    if (! $allowNegativeStock && Money::compare($newBalance, '0', 3) < 0) {
                         throw new InvalidArgumentException("Insufficient stock for product [{$product->name}]. Negative stock is not permitted.");
                     }
                     $movementType = MovementType::AdjustmentOut;
-                    $signedQuantity = '-'.number_format((float) $qty, 3, '.', '');
+                    $signedQuantity = '-'.Money::round($qty, 3);
                 } elseif ($type === 'in') {
-                    $newBalance = bcadd((string) $balance->quantity, $qty, 3);
+                    $newBalance = Money::add((string) $balance->quantity, $qty, 3);
                     $movementType = MovementType::AdjustmentIn;
-                    $signedQuantity = number_format((float) $qty, 3, '.', '');
+                    $signedQuantity = Money::round($qty, 3);
                 } else {
                     throw new InvalidArgumentException("Invalid adjustment type [{$type}]. Expected 'in' or 'out'.");
                 }
@@ -105,8 +106,8 @@ class AdjustStock
                 $adjustmentItem->adjustment_id = $adjustment->id;
                 $adjustmentItem->product_id = $product->id;
                 $adjustmentItem->type = $type;
-                $adjustmentItem->quantity = number_format((float) $qty, 3, '.', '');
-                $adjustmentItem->unit_cost = number_format((float) $unitCost, 2, '.', '');
+                $adjustmentItem->quantity = Money::round($qty, 3);
+                $adjustmentItem->unit_cost = Money::round($unitCost, 2);
                 $adjustmentItem->save();
 
                 // Create Stock Movement
@@ -116,7 +117,7 @@ class AdjustStock
                 $movement->product_id = $product->id;
                 $movement->movement_type = $movementType;
                 $movement->quantity = $signedQuantity;
-                $movement->unit_cost = number_format((float) $unitCost, 2, '.', '');
+                $movement->unit_cost = Money::round($unitCost, 2);
                 $movement->reference_type = StockAdjustment::class;
                 $movement->reference_id = $adjustment->id;
                 $movement->notes = "Adjustment #{$adjustmentNo}: {$reason}";

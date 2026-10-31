@@ -78,7 +78,7 @@ final class UdharLedgerTest extends TestCase
         $this->category = Category::factory()->create(['shop_id' => $this->shop->id]);
     }
 
-    private function createStockedProduct(string $costPrice = '100.00', string $sellingPrice = '150.00', float $qty = 50.0): Product
+    private function createStockedProduct(string $costPrice = '100.00', string $sellingPrice = '150.00', string $qty = '50.0'): Product
     {
         $product = Product::factory()->create([
             'shop_id' => $this->shop->id,
@@ -386,7 +386,7 @@ final class UdharLedgerTest extends TestCase
     public function test_collection_flow_allocates_oldest_due_first_and_leftover_becomes_advance(): void
     {
         $customer = Customer::factory()->create(['shop_id' => $this->shop->id]);
-        $product = $this->createStockedProduct(sellingPrice: '100.00', qty: 100.0);
+        $product = $this->createStockedProduct(sellingPrice: '100.00', qty: '100.0');
 
         // Sale 1: Due 300.00 (older due date)
         $sale1 = app(CreateSale::class)->handle([
@@ -453,7 +453,7 @@ final class UdharLedgerTest extends TestCase
     public function test_collection_flow_with_custom_allocations(): void
     {
         $customer = Customer::factory()->create(['shop_id' => $this->shop->id]);
-        $product = $this->createStockedProduct(sellingPrice: '200.00', qty: 50.0);
+        $product = $this->createStockedProduct(sellingPrice: '200.00', qty: '50.0');
 
         $sale1 = app(CreateSale::class)->handle([
             'shop_id' => $this->shop->id,

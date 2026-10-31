@@ -3,10 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Receipt - {{ $sale->invoice_no ?? '#' . $sale->id }}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>{{ __('ui.receipt_title') }} - {{ $sale->invoice_no ?? '#' . $sale->id }}</title>
+    @vite(['resources/scss/print.scss'])
     <style>
         * {
             box-sizing: border-box;
@@ -14,7 +12,7 @@
             padding: 0;
         }
         body {
-            font-family: 'Mukta', 'Courier New', monospace;
+            font-family: 'Noto Sans Devanagari', 'Courier New', monospace;
             background: #f1f5f9;
             color: #000;
             font-size: 12px;
@@ -95,10 +93,10 @@
                 <div>{{ $sale->shop->settings['address'] }}</div>
             @endif
             @if(!empty($sale->shop->settings['phone']))
-                <div>Ph: {{ $sale->shop->settings['phone'] }}</div>
+                <div>{{ __('ui.phone_short') }} {{ $sale->shop->settings['phone'] }}</div>
             @endif
             @if(!empty($sale->shop->settings['pan_number']))
-                <div>PAN: {{ $sale->shop->settings['pan_number'] }}</div>
+                <div>{{ __('ui.pan_label') }} {{ $sale->shop->settings['pan_number'] }}</div>
             @endif
         </div>
 
@@ -106,7 +104,7 @@
 
         <!-- Meta -->
         <div>
-            <div><strong>{{ __('sales.invoice') }}:</strong> {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</div>
+            <div><strong>{{ __('sales.invoice') }}:</strong> {{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}</div>
             <div><strong>{{ __('sales.date') }}:</strong> {{ $sale->created_at->format('Y-m-d H:i') }}</div>
             <div><strong>{{ __('sales.customer') }}:</strong> {{ $sale->customer?->name ?? __('sales.walk_in') }}</div>
             @if($sale->customer?->phone)
@@ -148,13 +146,13 @@
                 <td class="text-left">{{ __('sales.subtotal') }}:</td>
                 <td class="text-right">@npr($sale->subtotal)</td>
             </tr>
-            @if((float) $sale->discount_total > 0)
+            @if(\App\Support\Money::compare((string) $sale->discount_total, '0', 2) > 0)
             <tr>
                 <td class="text-left">{{ __('sales.discount') }}:</td>
                 <td class="text-right">-@npr($sale->discount_total)</td>
             </tr>
             @endif
-            @if((float) $sale->tax_total > 0)
+            @if(\App\Support\Money::compare((string) $sale->tax_total, '0', 2) > 0)
             <tr>
                 <td class="text-left">{{ __('sales.tax') }}:</td>
                 <td class="text-right">+@npr($sale->tax_total)</td>
@@ -168,7 +166,7 @@
                 <td class="text-left">{{ __('sales.paid') }}:</td>
                 <td class="text-right">@npr($sale->paid_total)</td>
             </tr>
-            @php $due = (float) $sale->dueAmount(); @endphp
+            @php $due = (string) $sale->dueAmount(); @endphp
             @if($due > 0)
             <tr class="fw-bold">
                 <td class="text-left">{{ __('sales.due') }}:</td>

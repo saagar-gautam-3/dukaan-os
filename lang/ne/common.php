@@ -30,7 +30,6 @@ return [
     'english' => 'English',
     'nepali' => 'नेपाली',
     'error' => 'त्रुटि',
-    'unexpected_error' => 'अप्रत्याशित त्रुटि देखा पर्यो। कृपया पुनः प्रयास गर्नुहोस्।',
     'created_success' => 'सफलतापूर्वक सिर्जना गरियो।',
     'updated_success' => 'सफलतापूर्वक अद्यावधिक गरियो।',
     'deleted_success' => 'सफलतापूर्वक मेटाइयो।',
@@ -53,4 +52,7 @@ return [
     'clear' => 'हटाउनुहोस्',
     'showing_of' => ':first देखि :last सम्म, कुल :total :resource',
     'retry' => 'पुनः प्रयास',
+    'close' => 'बन्द गर्नुहोस्',
+    'toggle_sidebar' => 'साइडबार खोल्नुहोस् वा बन्द गर्नुहोस्',
+    'delete' => 'मेटाउनुहोस्',
 ];

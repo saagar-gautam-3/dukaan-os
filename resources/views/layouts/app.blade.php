@@ -7,6 +7,13 @@
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
 <body>
+    <div id="network-status" class="alert alert-warning rounded-0 mb-0 d-none" role="status"
+         data-offline="{{ __('ui.offline_message') }}"
+         data-online="{{ __('ui.online_message') }}"
+         data-slow="{{ __('ui.slow_network_message') }}"></div>
+    <script>
+        window.appMessages = { submitting: @json(__('ui.submitting')) };
+    </script>
     <div class="app-layout">
         @include('layouts.partials.sidebar')
 
@@ -17,14 +24,14 @@
                 @if (session('status') || session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <i class="bi bi-check-circle me-2"></i>{{ session('status') ?? session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('common.close') }}"></button>
                     </div>
                 @endif
 
                 @if (session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('common.close') }}"></button>
                     </div>
                 @endif
 

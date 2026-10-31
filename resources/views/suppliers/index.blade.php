@@ -34,7 +34,7 @@
                 </div>
                 <div class="col-12 col-md-3 d-flex gap-2">
                     <button type="submit" class="btn btn-secondary flex-grow-1">
-                        <i class="bi bi-funnel me-1"></i>Search
+                        <i class="bi bi-funnel me-1"></i>{{ __('ui.search') }}
                     </button>
                     @if(request()->filled('search'))
                         <a href="{{ route('suppliers.index') }}" class="btn btn-outline-secondary">
@@ -92,13 +92,13 @@
                                 <td class="text-end pe-3">
                                     @can('suppliers.manage')
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-primary" title="Edit">
+                                        <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-primary" title="{{ __('ui.edit') }}">
                                             <i class="bi bi-pencil"></i>
                                         </a>
-                                        <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" class="d-inline" onsubmit="return confirm('Delete supplier {{ $supplier->name }}?')">
+                                        <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" class="d-inline" onsubmit="return confirm(@js(__('suppliers.confirm_delete', ['name' => $supplier->name])))">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                            <button type="submit" class="btn btn-outline-danger" title="{{ __('common.delete') }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -118,7 +118,7 @@
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">{{ $supplier->name }}</h6>
-                                <small class="text-muted">{{ $supplier->contact_person ?: 'Supplier' }}</small>
+                                <small class="text-muted">{{ $supplier->contact_person ?: __('suppliers.supplier') }}</small>
                             </div>
                             @if($supplier->phone)
                                 <a href="tel:{{ $supplier->phone }}" class="btn btn-sm btn-outline-success">
@@ -127,7 +127,7 @@
                             @endif
                         </div>
                         <div class="small text-muted mb-2">
-                            <span>PAN: <code>{{ $supplier->pan_vat ?: '—' }}</code></span>
+                            <span>{{ __('ui.pan_label') }} <code>{{ $supplier->pan_vat ?: '—' }}</code></span>
                             @if($supplier->address)
                                 &bull; <span>{{ $supplier->address }}</span>
                             @endif
@@ -135,7 +135,7 @@
                         <div class="d-flex justify-content-end gap-1 pt-1 border-top">
                             @can('suppliers.manage')
                             <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-pencil me-1"></i>Edit
+                                <i class="bi bi-pencil me-1"></i>{{ __('ui.edit') }}
                             </a>
                             @endcan
                         </div>
@@ -145,7 +145,7 @@
 
                 <div class="p-3 border-top d-flex justify-content-between align-items-center">
                     <span class="text-muted small">
-                        Showing {{ $suppliers->firstItem() ?? 0 }} to {{ $suppliers->lastItem() ?? 0 }} of {{ $suppliers->total() }} suppliers
+                        {{ __('ui.showing_suppliers', ['first' => $suppliers->firstItem() ?? 0, 'last' => $suppliers->lastItem() ?? 0, 'total' => $suppliers->total()]) }}
                     </span>
                     <div>
                         {{ $suppliers->links() }}

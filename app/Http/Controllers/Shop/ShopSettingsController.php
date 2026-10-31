@@ -38,7 +38,9 @@ class ShopSettingsController extends Controller
 
             return back()->with('status', trans('shops.settings_updated'));
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            report($e);
+
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 }

@@ -113,7 +113,7 @@ class AuthenticationTest extends TestCase
             'password' => 'wrong-password',
         ]);
 
-        $response->assertSessionHasErrors('email');
+        $response->assertStatus(429);
         $this->assertGuest();
     }
 

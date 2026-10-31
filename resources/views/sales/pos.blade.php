@@ -39,7 +39,7 @@
                 <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="mb-0 fw-bold"><i class="bi bi-cart3 text-primary me-2"></i>{{ __('sales.cart') }}</h5>
-                        <small class="text-muted" id="cartCountBadge">0 items</small>
+                        <small class="text-muted" id="cartCountBadge">{{ __('ui.items_count', ['count' => 0]) }}</small>
                     </div>
                     <button class="btn btn-sm btn-outline-danger" id="clearCartBtn" type="button">
                         <i class="bi bi-trash3 me-1"></i>{{ __('sales.clear_cart') }}
@@ -53,7 +53,7 @@
                         <input type="text" id="customerSearchInput" class="form-control bg-white" 
                                placeholder="{{ __('sales.select_customer') }}" autocomplete="off">
                         <input type="hidden" id="selectedCustomerId" value="">
-                        <button class="btn btn-outline-secondary" type="button" id="clearCustomerBtn" title="Walk-in">
+                        <button class="btn btn-outline-secondary" type="button" id="clearCustomerBtn" title="{{ __('sales.walk_in') }}">
                             <i class="bi bi-x"></i>
                         </button>
                     </div>
@@ -78,7 +78,7 @@
                     <table class="table table-hover align-middle mb-0 d-none" id="cartTable">
                         <thead class="table-light small">
                             <tr>
-                                <th>Item</th>
+                                <th>{{ __('sales.item_col') }}</th>
                                 <th style="width: 100px;">{{ __('sales.qty') }}</th>
                                 <th class="text-end" style="width: 80px;">{{ __('sales.price') }}</th>
                                 <th class="text-end" style="width: 80px;">{{ __('sales.line_total') }}</th>
@@ -93,11 +93,11 @@
                 <div class="card-footer bg-white border-top p-3">
                     <div class="d-flex justify-content-between mb-1 small text-muted">
                         <span>{{ __('sales.subtotal') }}:</span>
-                        <span id="subtotalDisplay">Rs. 0.00</span>
+                        <span id="subtotalDisplay">{{ __('ui.currency_symbol') }} 0.00</span>
                     </div>
                     <div class="d-flex justify-content-between mb-2 fs-5 fw-bold text-dark border-top pt-2">
                         <span>{{ __('sales.grand_total') }}:</span>
-                        <span id="grandTotalDisplay" class="text-primary">Rs. 0.00</span>
+                        <span id="grandTotalDisplay" class="text-primary">{{ __('ui.currency_symbol') }} 0.00</span>
                     </div>
 
                     <!-- Payment Section -->
@@ -114,7 +114,7 @@
                             <div class="col-6">
                                 <label class="form-label small mb-1 fw-semibold">{{ __('sales.amount_paid') }}</label>
                                 <div class="input-group input-group-sm">
-                                    <span class="input-group-text">Rs.</span>
+                                    <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                                     <input type="number" id="amountPaidInput" step="0.01" min="0" class="form-control" placeholder="0.00">
                                 </div>
                             </div>
@@ -123,7 +123,7 @@
                         <!-- Change Due -->
                         <div class="d-flex justify-content-between small text-secondary">
                             <span>{{ __('sales.change') }}:</span>
-                            <span id="changeDisplay" class="fw-semibold text-success">Rs. 0.00</span>
+                            <span id="changeDisplay" class="fw-semibold text-success">{{ __('ui.currency_symbol') }} 0.00</span>
                         </div>
                     </div>
 
@@ -151,6 +151,11 @@
                             </div>
                         </div>
                     </form>
+                    <div id="posNetworkError" class="alert alert-danger mt-2 d-none" role="alert" aria-live="assertive">
+                        <div id="posErrorMessage">{{ __('ui.sale_network_failed') }}</div>
+                        <small>{{ __('ui.sale_retry_help') }}</small>
+                        <button type="button" id="retrySaleBtn" class="btn btn-sm btn-outline-danger mt-2">{{ __('ui.retry_sale') }}</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -159,6 +164,11 @@
 
 @push('scripts')
 <script>
+    const currencySymbol = @json(__('ui.currency_symbol'));
+    const noSkuText = @json(__('ui.no_sku'));
+    const noPhoneText = @json(__('ui.no_phone'));
+    const itemCountText = @json(__('ui.items_count', ['count' => ':count']));
+    const creditLimitWarningTemplate = @json(__('ui.credit_limit_warning'));
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('productSearchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -193,9 +203,38 @@ document.addEventListener('DOMContentLoaded', function () {
     const formItemsContainer = document.getElementById('formItemsContainer');
     const saveDraftBtn = document.getElementById('saveDraftBtn');
     const postSaleBtn = document.getElementById('postSaleBtn');
+    const retrySaleBtn = document.getElementById('retrySaleBtn');
+    const posNetworkError = document.getElementById('posNetworkError');
+    const posErrorMessage = document.getElementById('posErrorMessage');
 
     let cart = []; // { product_id, name, unit, price, quantity, max_stock }
     let searchDebounce = null;
+
+    function scaledInteger(value, scale) {
+        const raw = String(value ?? '0').trim();
+        if (!/^[+-]?\d+(?:\.\d*)?$/.test(raw)) return 0n;
+        const negative = raw.startsWith('-');
+        const unsigned = raw.replace(/^[+-]/, '');
+        const [whole, fraction = ''] = unsigned.split('.');
+        const scaled = BigInt(whole + fraction.slice(0, scale).padEnd(scale, '0'));
+        return negative ? -scaled : scaled;
+    }
+
+    function scaledString(value, scale) {
+        const negative = value < 0n;
+        const digits = (negative ? -value : value).toString().padStart(scale + 1, '0');
+        const result = scale ? `${digits.slice(0, -scale)}.${digits.slice(-scale)}` : digits;
+        return `${negative ? '-' : ''}${result}`;
+    }
+
+    function itemTotalCents(item) {
+        const product = scaledInteger(item.price, 2) * scaledInteger(item.quantity, 3);
+        return (product + (product >= 0n ? 500n : -500n)) / 1000n;
+    }
+
+    function cartTotalCents() {
+        return cart.reduce((total, item) => total + itemTotalCents(item), 0n);
+    }
 
     function getCartSignature() {
         const sorted = [...cart].sort((a, b) => a.product_id - b.product_id);
@@ -305,9 +344,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         products.forEach(p => {
-            const stock = parseFloat(p.stock) || 0;
-            const price = parseFloat(p.price) || 0;
-            const inStock = !p.track_stock || stock > 0;
+            const stock = String(p.stock || '0.000');
+            const price = String(p.price || '0.00');
+            const inStock = !p.track_stock || scaledInteger(stock, 3) > 0n;
 
             const card = document.createElement('div');
             card.className = 'col-sm-6 col-md-4 col-6';
@@ -315,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="card h-100 border text-start p-2 shadow-sm product-item-card ${!inStock ? 'opacity-50' : 'cursor-pointer'}" 
                      style="transition: transform 0.15s, box-shadow 0.15s;">
                     <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;">${p.sku || 'No SKU'}</span>
+                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;">${p.sku || noSkuText}</span>
                         <small class="badge ${stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">
                             ${p.track_stock ? stock + ' ' + (p.unit || '') : 'Non-stock'}
                         </small>
@@ -325,7 +364,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${p.name_ne}</div>` : ''}
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="fw-bold text-primary">Rs. ${price.toFixed(2)}</span>
+                        <span class="fw-bold text-primary">${currencySymbol} ${price}</span>
                         <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
                             <i class="bi bi-plus-lg"></i>
                         </button>
@@ -364,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             const a = document.createElement('a');
                             a.href = '#';
                             a.className = 'list-group-item list-group-item-action small py-2';
-                            a.innerHTML = `<strong>${c.name}</strong> <span class="text-muted">(${c.phone || 'No phone'})</span>`;
+                            a.innerHTML = `<strong>${c.name}</strong> <span class="text-muted">(${c.phone || noPhoneText})</span>`;
                             a.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 selectCustomer(c);
@@ -387,24 +426,22 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const limit = parseFloat(currentCustomer.credit_limit) || 0;
-        if (limit <= 0) {
+        const limitCents = scaledInteger(currentCustomer.credit_limit, 2);
+        if (limitCents <= 0n) {
             creditLimitWarningBadge.classList.add('d-none');
             return;
         }
 
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.quantity;
-        });
-
-        const paid = parseFloat(amountPaidInput.value) || 0;
-        const due = Math.max(0, total - paid);
-        const currentBalance = parseFloat(currentCustomer.balance) || 0;
+        const total = cartTotalCents();
+        const paid = scaledInteger(amountPaidInput.value, 2);
+        const due = total > paid ? total - paid : 0n;
+        const currentBalance = scaledInteger(currentCustomer.balance, 2);
         const projectedBalance = currentBalance + due;
 
-        if (projectedBalance > limit) {
-            creditLimitWarningText.textContent = `Warning: Customer credit limit is NPR ${limit.toFixed(2)}. Projected balance NPR ${projectedBalance.toFixed(2)} will exceed credit limit!`;
+        if (projectedBalance > limitCents) {
+            creditLimitWarningText.textContent = creditLimitWarningTemplate
+                .replace(':limit', scaledString(limitCents, 2))
+                .replace(':balance', scaledString(projectedBalance, 2));
             creditLimitWarningBadge.classList.remove('d-none');
         } else {
             creditLimitWarningBadge.classList.add('d-none');
@@ -441,16 +478,16 @@ document.addEventListener('DOMContentLoaded', function () {
     function addToCart(p) {
         const existing = cart.find(item => item.product_id === p.id);
         if (existing) {
-            existing.quantity = Math.round((existing.quantity + 1) * 1000) / 1000;
+            existing.quantity = scaledString(scaledInteger(existing.quantity, 3) + 1000n, 3);
         } else {
             cart.push({
                 product_id: p.id,
                 name: p.name,
                 unit: p.unit || '',
-                price: parseFloat(p.price) || 0,
-                quantity: 1,
+                price: String(p.price || '0.00'),
+                quantity: '1.000',
                 track_stock: p.track_stock,
-                max_stock: parseFloat(p.stock) || 0,
+                max_stock: String(p.stock || '0.000'),
             });
         }
         renderCart();
@@ -461,18 +498,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (cart.length === 0) {
             cartTable.classList.add('d-none');
             cartEmptyState.classList.remove('d-none');
-            cartCountBadge.textContent = '0 items';
+            cartCountBadge.textContent = itemCountText.replace(':count', '0');
             updateTotals();
             return;
         }
 
         cartTable.classList.remove('d-none');
         cartEmptyState.classList.add('d-none');
-        cartCountBadge.textContent = cart.length + ' item' + (cart.length > 1 ? 's' : '');
+        cartCountBadge.textContent = itemCountText.replace(':count', String(cart.length));
 
         cart.forEach((item, index) => {
             const row = document.createElement('tr');
-            const lineTotal = item.price * item.quantity;
+            const lineTotal = itemTotalCents(item);
 
             row.innerHTML = `
                 <td class="py-2">
@@ -481,12 +518,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td class="py-2">
                     <div class="input-group input-group-sm">
                         <button class="btn btn-outline-secondary px-2 btn-qty-minus" type="button">-</button>
-                        <input type="number" step="1" min="0.001" class="form-control text-center p-0 item-qty-input" value="${item.quantity}">
+                        <input type="number" step="0.001" min="0.001" class="form-control text-center p-0 item-qty-input" value="${item.quantity}">
                         <button class="btn btn-outline-secondary px-2 btn-qty-plus" type="button">+</button>
                     </div>
                 </td>
-                <td class="text-end py-2 small">Rs. ${item.price.toFixed(2)}</td>
-                <td class="text-end py-2 fw-bold text-dark small">Rs. ${lineTotal.toFixed(2)}</td>
+                <td class="text-end py-2 small">${currencySymbol} ${item.price}</td>
+                <td class="text-end py-2 fw-bold text-dark small">${currencySymbol} ${scaledString(lineTotal, 2)}</td>
                 <td class="text-end py-2">
                     <button class="btn btn-sm btn-link text-danger p-0 btn-remove-item" type="button">
                         <i class="bi bi-x-circle-fill"></i>
@@ -496,8 +533,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Qty +/- listeners
             row.querySelector('.btn-qty-minus').addEventListener('click', () => {
-                if (item.quantity > 1) {
-                    item.quantity -= 1;
+                if (scaledInteger(item.quantity, 3) > 1000n) {
+                    item.quantity = scaledString(scaledInteger(item.quantity, 3) - 1000n, 3);
                 } else {
                     cart.splice(index, 1);
                 }
@@ -505,14 +542,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             row.querySelector('.btn-qty-plus').addEventListener('click', () => {
-                item.quantity += 1;
+                item.quantity = scaledString(scaledInteger(item.quantity, 3) + 1000n, 3);
                 renderCart();
             });
 
             row.querySelector('.item-qty-input').addEventListener('change', function () {
-                const val = parseFloat(this.value);
-                if (val > 0) {
-                    item.quantity = val;
+                const val = scaledInteger(this.value, 3);
+                if (val > 0n) {
+                    item.quantity = scaledString(val, 3);
                 } else {
                     cart.splice(index, 1);
                 }
@@ -536,17 +573,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function updateTotals() {
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.quantity;
-        });
+        const total = cartTotalCents();
 
-        subtotalDisplay.textContent = 'Rs. ' + total.toFixed(2);
-        grandTotalDisplay.textContent = 'Rs. ' + total.toFixed(2);
+        subtotalDisplay.textContent = currencySymbol + ' ' + scaledString(total, 2);
+        grandTotalDisplay.textContent = currencySymbol + ' ' + scaledString(total, 2);
 
         // Auto-fill paid amount with grand total if not manually edited or method is cash
         if (!amountPaidInput.dataset.manual) {
-            amountPaidInput.value = total > 0 ? total.toFixed(2) : '';
+            amountPaidInput.value = total > 0n ? scaledString(total, 2) : '';
         }
 
         calcChange();
@@ -558,23 +592,28 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function calcChange() {
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.quantity;
-        });
-
-        const paid = parseFloat(amountPaidInput.value) || 0;
-        const change = paid > total ? paid - total : 0;
-        changeDisplay.textContent = 'Rs. ' + change.toFixed(2);
+        const total = cartTotalCents();
+        const paid = scaledInteger(amountPaidInput.value, 2);
+        const change = paid > total ? paid - total : 0n;
+        changeDisplay.textContent = currencySymbol + ' ' + scaledString(change, 2);
         checkCreditLimit();
     }
 
     // Submit logic
-    function submitOrder(postImmediately) {
+    let pendingPostImmediately = true;
+    let submissionPending = false;
+
+    async function submitOrder(postImmediately) {
+        if (submissionPending) return;
+
         if (cart.length === 0) {
-            alert('Please add at least one item to the cart.');
+            alert(@json(__('sales.cart_empty_alert')));
             return;
         }
+
+        pendingPostImmediately = postImmediately;
+        submissionPending = true;
+        posNetworkError.classList.add('d-none');
 
         formCustomerId.value = selectedCustomerId.value;
         formPaymentMethod.value = paymentMethodSelect.value;
@@ -586,15 +625,47 @@ document.addEventListener('DOMContentLoaded', function () {
             formItemsContainer.innerHTML += `
                 <input type="hidden" name="items[${idx}][product_id]" value="${item.product_id}">
                 <input type="hidden" name="items[${idx}][quantity]" value="${item.quantity}">
-                <input type="hidden" name="items[${idx}][unit_price]" value="${item.price.toFixed(2)}">
+                <input type="hidden" name="items[${idx}][unit_price]" value="${item.price}">
             `;
         });
 
-        posSaleForm.submit();
+        formIdempotencyKey.value = getOrCreateIdempotencyKey();
+        const buttons = [postSaleBtn, saveDraftBtn, retrySaleBtn];
+        buttons.forEach(button => { button.disabled = true; });
+
+        try {
+            const response = await fetch(posSaleForm.action, {
+                method: 'POST',
+                body: new FormData(posSaleForm),
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                posErrorMessage.textContent = result.message || @json(__('common.error_generic'));
+                posNetworkError.classList.remove('d-none');
+                retrySaleBtn.classList.toggle('d-none', response.status < 500);
+                return;
+            }
+            if (!result.redirect) {
+                throw new Error(@json(__('common.error_generic')));
+            }
+
+            clearIdempotencyStorage();
+            window.location.assign(result.redirect);
+        } catch (error) {
+            posErrorMessage.textContent = @json(__('ui.sale_network_failed'));
+            posNetworkError.classList.remove('d-none');
+            retrySaleBtn.classList.remove('d-none');
+        } finally {
+            submissionPending = false;
+            buttons.forEach(button => { button.disabled = false; });
+        }
     }
 
     postSaleBtn.addEventListener('click', () => submitOrder(true));
     saveDraftBtn.addEventListener('click', () => submitOrder(false));
+    retrySaleBtn.addEventListener('click', () => submitOrder(pendingPostImmediately));
 });
 </script>
 @endpush

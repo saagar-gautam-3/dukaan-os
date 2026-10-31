@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Actions\Expenses;
 
 use App\Models\Expense;
+use App\Support\Money;
 use InvalidArgumentException;
 
 class UpdateExpense
 {
     public function handle(Expense $expense, array $data): Expense
     {
-        if (isset($data['amount']) && bccomp((string) $data['amount'], '0', 2) <= 0) {
+        if (isset($data['amount']) && Money::compare((string) $data['amount'], '0', 2) <= 0) {
             throw new InvalidArgumentException(__('expenses.invalid_amount'));
         }
 

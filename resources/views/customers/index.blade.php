@@ -8,7 +8,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h1 class="h3 fw-bold mb-1">{{ __('sales.customers') }}</h1>
-            <p class="text-muted small mb-0">Customer directory & Udhar Khata profiles</p>
+            <p class="text-muted small mb-0">{{ __('ui.customer_directory') }}</p>
         </div>
         <div>
             @can('create', \App\Models\Customer::class)
@@ -34,16 +34,16 @@
                     <div class="input-group">
                         <span class="input-group-text bg-light border-0"><i class="bi bi-search text-muted"></i></span>
                         <input type="text" name="search" class="form-control bg-light border-0" 
-                               placeholder="Search customer by name or phone..." value="{{ request('search') }}">
+                               placeholder="{{ __('ui.search_customer_placeholder') }}" value="{{ request('search') }}">
                     </div>
                 </div>
                 <div class="col-md-6 col-12 d-flex gap-2">
                     <button type="submit" class="btn btn-dark">
-                        <i class="bi bi-search me-1"></i> Search
+                        <i class="bi bi-search me-1"></i>{{ __('ui.search') }}
                     </button>
                     @if(request('search'))
                     <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle me-1"></i> Clear
+                        <i class="bi bi-x-circle me-1"></i>{{ __('ui.clear') }}
                     </a>
                     @endif
                 </div>
@@ -60,9 +60,9 @@
                         <th>{{ __('sales.customer_name') }}</th>
                         <th>{{ __('sales.phone') }}</th>
                         <th>{{ __('sales.address') }}</th>
-                        <th>PAN / VAT</th>
-                        <th class="text-center">Total Bills</th>
-                        <th class="text-end" style="width: 120px;">Actions</th>
+                        <th>{{ __('ui.customer_pan_vat') }}</th>
+                        <th class="text-center">{{ __('ui.total_bills') }}</th>
+                        <th class="text-end" style="width: 120px;">{{ __('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -81,11 +81,11 @@
                         </td>
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary" title="View details">
+                                <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary" title="{{ __('ui.view_details') }}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 @can('update', $customer)
-                                <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-secondary" title="Edit">
+                                <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-secondary" title="{{ __('ui.edit') }}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 @endcan

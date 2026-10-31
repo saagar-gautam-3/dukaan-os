@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsurePermissionsVersion;
 use App\Http\Middleware\EnsureShopAccess;
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -22,7 +24,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            SecurityHeaders::class,
             SetLocale::class,
+            EnsurePermissionsVersion::class,
         ]);
 
         $middleware->alias([
@@ -34,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
             StartSession::class,
             ShareErrorsFromSession::class,
             AuthenticatesRequests::class,
+            EnsurePermissionsVersion::class,
             ResolveTenant::class,
             EnsureShopAccess::class,
             SubstituteBindings::class,

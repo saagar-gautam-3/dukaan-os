@@ -7,10 +7,10 @@ namespace App\Http\Controllers\Reports;
 use App\Actions\Expenses\CreateExpense;
 use App\Actions\Expenses\DeleteExpense;
 use App\Actions\Expenses\UpdateExpense;
+use App\Actions\Reports\QueryExpenses;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\StoreExpenseRequest;
 use App\Models\Expense;
-use App\Models\ExpenseCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -22,21 +22,14 @@ class ExpenseController extends Controller
         private readonly CreateExpense $createExpense,
         private readonly UpdateExpense $updateExpense,
         private readonly DeleteExpense $deleteExpense,
+        private readonly QueryExpenses $queryExpenses,
     ) {}
 
     public function index(Request $request): View
     {
         $this->authorize('viewAny', Expense::class);
 
-        $expenses = Expense::with('category')
-            ->when($request->date_from, fn ($q, $v) => $q->whereDate('expense_date', '>=', $v))
-            ->when($request->date_to, fn ($q, $v) => $q->whereDate('expense_date', '<=', $v))
-            ->when($request->category_id, fn ($q, $v) => $q->where('category_id', $v))
-            ->orderByDesc('expense_date')
-            ->paginate(25)
-            ->withQueryString();
-
-        $categories = ExpenseCategory::orderBy('name')->get();
+        ['expenses' => $expenses, 'categories' => $categories] = $this->queryExpenses->index($request->only(['date_from', 'date_to', 'category_id']));
 
         return view('expenses.index', compact('expenses', 'categories'));
     }
@@ -45,7 +38,7 @@ class ExpenseController extends Controller
     {
         $this->authorize('create', Expense::class);
 
-        $categories = ExpenseCategory::orderBy('name')->get();
+        $categories = $this->queryExpenses->categories();
 
         return view('expenses.form', compact('categories'));
     }
@@ -71,7 +64,7 @@ class ExpenseController extends Controller
     {
         $this->authorize('update', $expense);
 
-        $categories = ExpenseCategory::orderBy('name')->get();
+        $categories = $this->queryExpenses->categories();
 
         return view('expenses.form', compact('expense', 'categories'));
     }

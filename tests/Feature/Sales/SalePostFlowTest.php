@@ -13,6 +13,7 @@ use App\Actions\Sales\RecordPayment;
 use App\Actions\Sales\ReturnSale;
 use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
+use App\Models\AuditLog;
 use App\Models\Category;
 use App\Models\Customer;
 use App\Models\Product;
@@ -83,7 +84,7 @@ class SalePostFlowTest extends TestCase
         parent::tearDown();
     }
 
-    private function createProductWithStock(string $name, string $costPrice, string $sellingPrice, float $stockQty): Product
+    private function createProductWithStock(string $name, string $costPrice, string $sellingPrice, string $stockQty): Product
     {
         $product = Product::factory()->create([
             'shop_id' => $this->shop->id,
@@ -99,7 +100,7 @@ class SalePostFlowTest extends TestCase
             product: $product,
             warehouse: $this->warehouse,
             quantity: $stockQty,
-            unitCost: (float) $costPrice,
+            unitCost: $costPrice,
             notes: 'Initial stocking'
         );
 
@@ -108,8 +109,8 @@ class SalePostFlowTest extends TestCase
 
     public function test_postsale_is_atomic_and_rolls_back_if_stock_insufficient(): void
     {
-        $productInStock = $this->createProductWithStock('Malingo Rice 25kg', '2000.00', '2500.00', 10.0);
-        $productLowStock = $this->createProductWithStock('Ghee 1L', '1000.00', '1250.00', 1.0); // only 1 in stock
+        $productInStock = $this->createProductWithStock('Malingo Rice 25kg', '2000.00', '2500.00', '10.0');
+        $productLowStock = $this->createProductWithStock('Ghee 1L', '1000.00', '1250.00', '1.0'); // only 1 in stock
 
         $createSale = app(CreateSale::class);
         $postSale = app(PostSale::class);
@@ -159,11 +160,16 @@ class SalePostFlowTest extends TestCase
         // 3. Product 2 stock is still exactly 1.000
         $stock2 = StockBalance::where('product_id', $productLowStock->id)->value('quantity');
         $this->assertEquals('1.000', $stock2);
+
+        $this->assertDatabaseMissing('audit_logs', [
+            'auditable_type' => $draft->getMorphClass(),
+            'auditable_id' => $draft->id,
+        ]);
     }
 
     public function test_postsale_is_idempotent_with_same_idempotency_key(): void
     {
-        $product = $this->createProductWithStock('Mustard Oil 1L', '200.00', '260.00', 20.0);
+        $product = $this->createProductWithStock('Mustard Oil 1L', '200.00', '260.00', '20.0');
         $createSale = app(CreateSale::class);
         $postSale = app(PostSale::class);
 
@@ -190,6 +196,18 @@ class SalePostFlowTest extends TestCase
         $this->assertEquals(SaleStatus::Posted, $sale1->status);
         $this->assertNotNull($sale1->invoice_no);
 
+        $audit = AuditLog::query()
+            ->where('auditable_type', $sale1->getMorphClass())
+            ->where('auditable_id', $sale1->id)
+            ->where('event', 'posted')
+            ->firstOrFail();
+        $this->assertSame($this->shop->id, $audit->shop_id);
+        $this->assertSame($this->user->id, $audit->user_id);
+        $this->assertSame('draft', $audit->old_values['sale']['status']);
+        $this->assertSame('posted', $audit->new_values['sale']['status']);
+        $this->assertCount(1, $audit->new_values['items']);
+        $this->assertCount(1, $audit->new_values['payments']);
+
         // Remaining stock should be 16.000 (20 - 4)
         $stockAfterFirst = StockBalance::where('product_id', $product->id)->value('quantity');
         $this->assertEquals('16.000', $stockAfterFirst);
@@ -213,7 +231,7 @@ class SalePostFlowTest extends TestCase
     public function test_unit_cost_snapshot_stored_and_immune_to_later_cost_changes(): void
     {
         // 1. Initial product with moving average cost of 100.00
-        $product = $this->createProductWithStock('Sugar 1kg', '100.00', '130.00', 50.0);
+        $product = $this->createProductWithStock('Sugar 1kg', '100.00', '130.00', '50.0');
 
         $createSale = app(CreateSale::class);
         $postSale = app(PostSale::class);
@@ -243,8 +261,8 @@ class SalePostFlowTest extends TestCase
         app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $this->warehouse,
-            quantity: 50.0,
-            unitCost: 200.00,
+            quantity: '50.0',
+            unitCost: '200.00',
             notes: 'High cost shipment'
         );
 
@@ -258,7 +276,7 @@ class SalePostFlowTest extends TestCase
 
     public function test_partial_payment_and_multi_method_payments_allocate_correctly(): void
     {
-        $product = $this->createProductWithStock('Basmati Rice', '120.00', '150.00', 30.0);
+        $product = $this->createProductWithStock('Basmati Rice', '120.00', '150.00', '30.0');
         $customer = Customer::factory()->create(['shop_id' => $this->shop->id]);
 
         $createSale = app(CreateSale::class);
@@ -307,7 +325,7 @@ class SalePostFlowTest extends TestCase
 
     public function test_returns_restore_stock_at_original_unit_cost_snapshot(): void
     {
-        $product = $this->createProductWithStock('Chana Dal 1kg', '110.00', '140.00', 25.0);
+        $product = $this->createProductWithStock('Chana Dal 1kg', '110.00', '140.00', '25.0');
 
         $createSale = app(CreateSale::class);
         $postSale = app(PostSale::class);
@@ -345,6 +363,16 @@ class SalePostFlowTest extends TestCase
         $this->assertNotNull($saleReturn);
         $this->assertEquals('560.00', $saleReturn->total); // 4 * 140
 
+        $audit = AuditLog::query()
+            ->where('auditable_type', $saleReturn->getMorphClass())
+            ->where('auditable_id', $saleReturn->id)
+            ->where('event', 'returned')
+            ->firstOrFail();
+        $this->assertSame($this->shop->id, $audit->shop_id);
+        $this->assertSame($this->user->id, $audit->user_id);
+        $this->assertSame($posted->id, $audit->old_values['sale_id']);
+        $this->assertSame('560.00', $audit->new_values['total']);
+
         // Restored stock: 15 + 4 = 19.000
         $stockAfterReturn = StockBalance::where('product_id', $product->id)->value('quantity');
         $this->assertEquals('19.000', $stockAfterReturn);
@@ -361,7 +389,7 @@ class SalePostFlowTest extends TestCase
 
     public function test_cannot_return_more_than_sold_quantity(): void
     {
-        $product = $this->createProductWithStock('Soap', '40.00', '50.00', 10.0);
+        $product = $this->createProductWithStock('Soap', '40.00', '50.00', '10.0');
         $createSale = app(CreateSale::class);
         $postSale = app(PostSale::class);
         $returnSale = app(ReturnSale::class);
@@ -398,7 +426,7 @@ class SalePostFlowTest extends TestCase
 
     public function test_draft_sale_cancellation_leaves_stock_untouched(): void
     {
-        $product = $this->createProductWithStock('Tea 500g', '250.00', '320.00', 15.0);
+        $product = $this->createProductWithStock('Tea 500g', '250.00', '320.00', '15.0');
         $createSale = app(CreateSale::class);
         $cancelSale = app(CancelSale::class);
 
@@ -423,7 +451,7 @@ class SalePostFlowTest extends TestCase
 
     public function test_posted_sale_cannot_be_cancelled(): void
     {
-        $product = $this->createProductWithStock('Coffee 200g', '400.00', '550.00', 10.0);
+        $product = $this->createProductWithStock('Coffee 200g', '400.00', '550.00', '10.0');
         $createSale = app(CreateSale::class);
         $postSale = app(PostSale::class);
         $cancelSale = app(CancelSale::class);
@@ -445,14 +473,17 @@ class SalePostFlowTest extends TestCase
         ]);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('cannot be cancelled');
+        $this->expectExceptionMessage(__('sales.immutable_exception', [
+            'id' => $posted->id,
+            'status' => __('sales.status_posted'),
+        ]));
 
         $cancelSale->handle($posted, $this->user->id);
     }
 
     public function test_cross_tenant_sale_access_is_blocked_with_404(): void
     {
-        $productA = $this->createProductWithStock('Shop A Flour', '60.00', '80.00', 20.0);
+        $productA = $this->createProductWithStock('Shop A Flour', '60.00', '80.00', '20.0');
         $createSale = app(CreateSale::class);
         $postSale = app(PostSale::class);
 

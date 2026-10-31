@@ -10,7 +10,7 @@
                 <i class="bi bi-clock-history me-2"></i>{{ __('inventory.stock_movements') }}
             </h2>
             <p class="text-muted mb-0 small">
-                <span class="fw-semibold text-dark">{{ $product->name }}</span> &bull; <code>{{ $product->sku ?: 'No SKU' }}</code> &bull; Unit: {{ $product->unit?->name }} ({{ $product->unit?->symbol }})
+                <span class="fw-semibold text-dark">{{ $product->name }}</span> &bull; <code>{{ $product->sku ?: __('inventory.no_sku') }}</code> &bull; {{ __('ui.unit_label') }} {{ $product->unit?->name }} ({{ $product->unit?->symbol }})
             </p>
         </div>
 
@@ -82,7 +82,7 @@
                             @foreach($movements as $movement)
                             @php
                                 $isInflow = $movement->movement_type->isInflow();
-                                $qty = (float) $movement->quantity;
+                                $qty = (string) $movement->quantity;
                             @endphp
                             <tr>
                                 <td class="ps-3 text-muted small">
@@ -104,7 +104,7 @@
                                     </small>
                                 </td>
                                 <td>
-                                    <small class="text-muted">{{ $movement->user?->name ?? 'System' }}</small>
+                                    <small class="text-muted">{{ $movement->user?->name ?? __('ui.system') }}</small>
                                 </td>
                                 <td class="pe-3 small text-muted text-truncate" style="max-width: 200px;">
                                     {{ $movement->notes ?: '—' }}
@@ -120,7 +120,7 @@
                     @foreach($movements as $movement)
                     @php
                         $isInflow = $movement->movement_type->isInflow();
-                        $qty = (float) $movement->quantity;
+                        $qty = (string) $movement->quantity;
                     @endphp
                     <div class="p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-center mb-1">

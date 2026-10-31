@@ -12,7 +12,7 @@
             </h2>
             <p class="text-muted mb-0 small">
                 {{ __('dashboard.overview') }} &mdash; <span class="fw-medium text-dark">{{ $shop->name }}</span>
-                <span class="badge bg-secondary-subtle text-secondary ms-1">{{ $membership?->role?->name ?? 'Staff' }}</span>
+                <span class="badge bg-secondary-subtle text-secondary ms-1">{{ $membership?->role?->name ?? __('ui.staff') }}</span>
             </p>
         </div>
 

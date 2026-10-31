@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $sale->invoice_no ?? 'Invoice' }} - {{ $sale->shop->name }}</title>
+    <title>{{ $sale->invoice_no ?? __('ui.invoice') }} - {{ $sale->shop->name }}</title>
     @vite(['resources/scss/print.scss'])
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -76,14 +76,14 @@
                     <p class="mb-0 text-muted"><i class="bi bi-telephone me-1"></i>{{ $sale->shop->settings['phone'] }}</p>
                 @endif
                 @if(!empty($sale->shop->settings['pan_number']))
-                    <p class="mb-0 fw-semibold text-dark">PAN/VAT: {{ $sale->shop->settings['pan_number'] }}</p>
+                    <p class="mb-0 fw-semibold text-dark">{{ __('ui.pan_vat_label') }} {{ $sale->shop->settings['pan_number'] }}</p>
                 @endif
             </div>
             <div class="col-5 text-end">
                 <h4 class="text-uppercase fw-bold text-secondary mb-1">{{ __('sales.invoice') }}</h4>
-                <div class="fw-bold fs-6 text-dark">{{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</div>
+                    <div class="fw-bold fs-6 text-dark">{{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}</div>
                 <div class="text-muted small">{{ __('sales.date') }}: {{ $sale->created_at->format('Y-m-d') }}</div>
-                <div class="text-muted small">{{ __('sales.sold_by') }}: {{ $sale->postedBy?->name ?? 'Staff' }}</div>
+                <div class="text-muted small">{{ __('sales.sold_by') }}: {{ $sale->postedBy?->name ?? __('ui.staff') }}</div>
             </div>
         </div>
 
@@ -100,7 +100,7 @@
                         <div class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ $sale->customer->address }}</div>
                     @endif
                     @if($sale->customer->pan_no)
-                        <div class="text-muted small">PAN: {{ $sale->customer->pan_no }}</div>
+                        <div class="text-muted small">{{ __('ui.pan_label') }} {{ $sale->customer->pan_no }}</div>
                     @endif
                 @else
                     <div class="fw-semibold text-secondary">{{ __('sales.walk_in') }}</div>
@@ -119,10 +119,10 @@
                 <thead>
                     <tr>
                         <th style="width: 5%;">#</th>
-                        <th style="width: 45%;">Item / विवरण</th>
-                        <th class="text-center" style="width: 12%;">Qty / मात्रा</th>
-                        <th class="text-end" style="width: 18%;">Rate / दर (Rs.)</th>
-                        <th class="text-end" style="width: 20%;">Total / जम्मा (Rs.)</th>
+                        <th style="width: 45%;">{{ __('sales.item') }}</th>
+                        <th class="text-center" style="width: 12%;">{{ __('sales.qty') }}</th>
+                        <th class="text-end" style="width: 18%;">{{ __('sales.rate') }} ({{ __('ui.currency_symbol') }})</th>
+                        <th class="text-end" style="width: 20%;">{{ __('sales.grand_total') }} ({{ __('ui.currency_symbol') }})</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -136,7 +136,7 @@
                             @endif
                         </td>
                         <td class="text-center fw-semibold">
-                            {{ (float) $item->quantity }} {{ $item->product->unit?->symbol }}
+                            @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}
                         </td>
                         <td class="text-end">
                             @npr($item->unit_price)
@@ -168,7 +168,7 @@
                             <span class="text-uppercase fw-semibold">{{ $alloc->payment->method instanceof \BackedEnum ? $alloc->payment->method->value : $alloc->payment->method }}:</span>
                             @npr($alloc->amount)
                             @if($alloc->payment->reference_number)
-                                (Ref: {{ $alloc->payment->reference_number }})
+                                ({{ __('ui.reference_label', ['reference' => $alloc->payment->reference_number]) }})
                             @endif
                         </div>
                     @endforeach
@@ -183,13 +183,13 @@
                             <td class="text-muted">{{ __('sales.subtotal') }}:</td>
                             <td class="fw-semibold">@npr($sale->subtotal)</td>
                         </tr>
-                        @if((float) $sale->discount_total > 0)
+                        @if(\App\Support\Money::compare((string) $sale->discount_total, '0', 2) > 0)
                         <tr>
                             <td class="text-danger">{{ __('sales.discount') }}:</td>
                             <td class="text-danger">-@npr($sale->discount_total)</td>
                         </tr>
                         @endif
-                        @if((float) $sale->tax_total > 0)
+                        @if(\App\Support\Money::compare((string) $sale->tax_total, '0', 2) > 0)
                         <tr>
                             <td class="text-muted">{{ __('sales.tax') }}:</td>
                             <td class="fw-semibold">+@npr($sale->tax_total)</td>
@@ -203,7 +203,7 @@
                             <td class="text-success fw-semibold">{{ __('sales.paid') }}:</td>
                             <td class="text-success fw-semibold">@npr($sale->paid_total)</td>
                         </tr>
-                        @php $due = (float) $sale->dueAmount(); @endphp
+                        @php $due = (string) $sale->dueAmount(); @endphp
                         @if($due > 0)
                         <tr class="border-top">
                             <td class="fw-bold text-danger">{{ __('sales.due') }}:</td>
@@ -217,8 +217,8 @@
 
         <!-- Footer -->
         <div class="text-center pt-4 border-top text-muted small">
-            <p class="mb-1 fw-semibold">धन्यवाद! पुन: आउनुहोला (Thank you for your business!)</p>
-            <p class="mb-0 opacity-75">Generated via {{ config('app.name', 'Dukaan OS') }}</p>
+            <p class="mb-1 fw-semibold">{{ __('ui.thank_you_business') }}</p>
+            <p class="mb-0 opacity-75">{{ __('ui.generated_via', ['app' => config('app.name', 'Dukaan OS')]) }}</p>
         </div>
     </div>
 </body>

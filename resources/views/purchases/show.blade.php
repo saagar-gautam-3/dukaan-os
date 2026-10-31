@@ -8,7 +8,7 @@
         <div>
             <div class="d-flex align-items-center gap-2 mb-1">
                 <h2 class="fw-bold mb-0" style="color: #1a3a5c;">
-                    <i class="bi bi-receipt me-2"></i>Purchase #{{ $purchase->purchase_no }}
+                    <i class="bi bi-receipt me-2"></i>{{ __('ui.purchase_number') }}{{ $purchase->purchase_no }}
                 </h2>
                 <span class="badge {{ $purchase->isPosted() ? 'bg-success fs-6' : 'bg-warning text-dark fs-6' }} px-3 py-1">
                     {{ $purchase->isPosted() ? __('purchases.status_posted') : __('purchases.status_draft') }}
@@ -16,7 +16,7 @@
             </div>
             <p class="text-muted mb-0 small">
                 {{ __('purchases.purchase_date') }}: <span class="fw-medium text-dark">{{ $purchase->purchase_date?->format('Y-m-d') }}</span> &bull;
-                {{ __('purchases.created_by') }}: <span class="fw-medium text-dark">{{ $purchase->createdBy?->name ?? 'System' }}</span>
+                {{ __('purchases.created_by') }}: <span class="fw-medium text-dark">{{ $purchase->createdBy?->name ?? __('ui.system') }}</span>
                 @if($purchase->posted_at)
                     &bull; {{ __('purchases.posted_at') }}: <span class="fw-medium text-dark">{{ $purchase->posted_at->format('Y-m-d H:i') }}</span>
                 @endif
@@ -84,7 +84,7 @@
                         <div class="small"><i class="bi bi-telephone me-1 text-primary"></i>{{ $purchase->supplier->phone }}</div>
                     @endif
                     @if($purchase->supplier->pan_vat)
-                        <div class="small text-muted">PAN: <code>{{ $purchase->supplier->pan_vat }}</code></div>
+                        <div class="small text-muted">{{ __('ui.pan_label') }} <code>{{ $purchase->supplier->pan_vat }}</code></div>
                     @endif
                 </div>
             </div>
@@ -100,7 +100,7 @@
                 </div>
                 <div class="card-body">
                     <h5 class="fw-bold text-dark mb-1">{{ $purchase->warehouse->name }}</h5>
-                    <div class="text-muted small mb-2">{{ __('purchases.warehouse_code') }}: <code>{{ $purchase->warehouse->code ?: 'N/A' }}</code></div>
+                    <div class="text-muted small mb-2">{{ __('purchases.warehouse_code') }}: <code>{{ $purchase->warehouse->code ?: __('ui.not_available') }}</code></div>
                     @if($purchase->notes)
                         <div class="p-2 bg-light rounded small text-muted">
                             <strong>{{ __('purchases.notes') }}:</strong> {{ $purchase->notes }}
@@ -162,7 +162,7 @@
                         </span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-2 small">
-                        <span class="text-muted">Rate: @npr($item->unit_cost)</span>
+                        <span class="text-muted">{{ __('purchases.rate') }}: @npr($item->unit_cost)</span>
                         <span class="fw-bold text-success fs-6">@npr($item->line_total)</span>
                     </div>
                 </div>
@@ -177,7 +177,7 @@
                             <span class="text-muted">{{ __('purchases.subtotal') }}:</span>
                             <span class="fw-semibold text-dark">@npr($purchase->subtotal)</span>
                         </div>
-                        @if((float) $purchase->discount_total > 0)
+                        @if(\App\Support\Money::compare((string) $purchase->discount_total, '0', 2) > 0)
                         <div class="d-flex justify-content-between mb-1">
                             <span class="text-muted">{{ __('purchases.discount') }}:</span>
                             <span class="text-danger">- @npr($purchase->discount_total)</span>

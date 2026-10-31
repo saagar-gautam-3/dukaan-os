@@ -12,7 +12,7 @@
             </a>
             <div>
                 <h1 class="h3 fw-bold mb-0">{{ $customer->name }}</h1>
-                <small class="text-muted">Customer since {{ $customer->created_at->format('M Y') }}</small>
+                <small class="text-muted">{{ __('ui.customer_since', ['date' => $customer->created_at->format('M Y')]) }}</small>
             </div>
         </div>
         <div class="d-flex gap-2">
@@ -53,26 +53,26 @@
                     <h5 class="mb-0 fw-bold">{{ __('udhar.balance') }}</h5>
                 </div>
                 <div class="card-body p-3">
-                    <div class="p-3 {{ bccomp($balance, '0', 2) > 0 ? 'bg-danger-subtle' : 'bg-success-subtle' }} rounded text-center mb-3">
+                    <div class="p-3 {{ \App\Support\Money::compare($balance, '0', 2) > 0 ? 'bg-danger-subtle' : 'bg-success-subtle' }} rounded text-center mb-3">
                         <small class="text-muted text-uppercase fw-semibold d-block mb-1">{{ __('udhar.total_outstanding') }}</small>
-                        <div class="h3 fw-bold {{ bccomp($balance, '0', 2) > 0 ? 'text-danger' : 'text-success' }} mb-0">
-                            NPR @npr($balance)
+                        <div class="h3 fw-bold {{ \App\Support\Money::compare($balance, '0', 2) > 0 ? 'text-danger' : 'text-success' }} mb-0">
+                            {{ __('ui.currency_symbol') }} @npr($balance)
                         </div>
                     </div>
 
-                    @if((float) $customer->credit_limit > 0)
+                    @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
                     <div class="border rounded p-3 mb-2">
                         <div class="d-flex justify-content-between mb-1">
                             <small class="text-muted">{{ __('udhar.credit_limit') }}:</small>
-                            <span class="fw-bold">NPR @npr($customer->credit_limit)</span>
+                            <span class="fw-bold">{{ __('ui.currency_symbol') }} @npr($customer->credit_limit)</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <small class="text-muted">{{ __('udhar.credit_headroom') }}:</small>
-                            <span class="fw-semibold {{ bccomp($headroom, '0', 2) < 0 ? 'text-danger' : 'text-success' }}">
-                                NPR @npr($headroom)
+                            <span class="fw-semibold {{ \App\Support\Money::compare($headroom, '0', 2) < 0 ? 'text-danger' : 'text-success' }}">
+                                {{ __('ui.currency_symbol') }} @npr($headroom)
                             </span>
                         </div>
-                        @if(bccomp($headroom, '0', 2) <= 0)
+                        @if(\App\Support\Money::compare($headroom, '0', 2) <= 0)
                             <div class="badge bg-danger w-100 py-2">
                                 <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ __('udhar.credit_limit_exceeded_notice') }}
                             </div>
@@ -90,19 +90,19 @@
                 <div class="card-body p-3">
                     <div class="mb-2">
                         <small class="text-muted d-block">{{ __('sales.phone') }}</small>
-                        <span class="fw-semibold">{{ $customer->phone ?: 'Not provided' }}</span>
+                        <span class="fw-semibold">{{ $customer->phone ?: __('ui.not_provided') }}</span>
                     </div>
                     <div class="mb-2">
-                        <small class="text-muted d-block">Email</small>
-                        <span>{{ $customer->email ?: 'Not provided' }}</span>
+                        <small class="text-muted d-block">{{ __('ui.customer_email') }}</small>
+                        <span>{{ $customer->email ?: __('ui.not_provided') }}</span>
                     </div>
                     <div class="mb-2">
                         <small class="text-muted d-block">{{ __('sales.address') }}</small>
-                        <span>{{ $customer->address ?: 'Not provided' }}</span>
+                        <span>{{ $customer->address ?: __('ui.not_provided') }}</span>
                     </div>
                     <div class="mb-0">
-                        <small class="text-muted d-block">PAN / VAT</small>
-                        <span>{{ $customer->pan_no ?: 'Not provided' }}</span>
+                        <small class="text-muted d-block">{{ __('ui.customer_pan_vat') }}</small>
+                        <span>{{ $customer->pan_no ?: __('ui.not_provided') }}</span>
                     </div>
                 </div>
             </div>
@@ -112,7 +112,7 @@
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom p-3">
                     <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-bell text-warning me-1"></i> Reminder History
+                        <i class="bi bi-bell text-warning me-1"></i>{{ __('ui.reminder_history') }}
                     </h6>
                 </div>
                 <div class="list-group list-group-flush small">
@@ -123,7 +123,7 @@
                             <small class="text-muted">{{ $log->created_at->diffForHumans() }}</small>
                         </div>
                         <div class="text-muted mb-1">
-                            To: <span class="fw-semibold">{{ $log->phone_masked }}</span>
+                            {{ __('ui.to') }} <span class="fw-semibold">{{ $log->phone_masked }}</span>
                         </div>
                         <div class="fst-italic text-secondary">
                             "{{ $log->message_preview }}"
@@ -144,7 +144,7 @@
                         <i class="bi bi-file-earmark-text text-primary me-2"></i>{{ __('udhar.open_invoices') }}
                     </h5>
                     @if(isset($openSales) && $openSales->isNotEmpty())
-                    <span class="badge bg-danger">{{ $openSales->count() }} Unpaid / Partial</span>
+                    <span class="badge bg-danger">{{ $openSales->count() }} {{ __('ui.unpaid_partial') }}</span>
                     @endif
                 </div>
                 <div class="table-responsive">
@@ -165,7 +165,7 @@
                             <tr>
                                 <td>
                                     <a href="{{ route('sales.show', $sale) }}" class="fw-bold text-decoration-none">
-                                        {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}
+                                        {{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}
                                     </a>
                                 </td>
                                 <td>
@@ -177,11 +177,11 @@
                                         <span class="text-muted small">-</span>
                                     @endif
                                 </td>
-                                <td class="text-end">NPR @npr($sale->grand_total)</td>
-                                <td class="text-end text-success">NPR @npr($sale->paid_total)</td>
-                                <td class="text-end fw-bold text-danger">NPR @npr($due)</td>
+                                <td class="text-end">{{ __('ui.currency_symbol') }} @npr($sale->grand_total)</td>
+                                <td class="text-end text-success">{{ __('ui.currency_symbol') }} @npr($sale->paid_total)</td>
+                                <td class="text-end fw-bold text-danger">{{ __('ui.currency_symbol') }} @npr($due)</td>
                                 <td class="text-end">
-                                    <a href="{{ route('sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary" title="View Bill">
+                                    <a href="{{ route('sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary" title="{{ __('ui.view_bill') }}">
                                         <i class="bi bi-eye"></i>
                                     </a>
                                 </td>
@@ -205,7 +205,7 @@
                         <h5 class="mb-0 fw-bold">
                             <i class="bi bi-journal-bookmark text-success me-2"></i>{{ __('udhar.ledger_history') }}
                         </h5>
-                        <small class="text-muted">Immutable financial ledger entries</small>
+                        <small class="text-muted">{{ __('ui.immutable_ledger') }}</small>
                     </div>
                 </div>
                 <div class="table-responsive">
@@ -239,15 +239,15 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    @if(bccomp((string) $entry->debit, '0', 2) > 0)
-                                        <span class="text-danger fw-bold">NPR @npr($entry->debit)</span>
+                                    @if(\App\Support\Money::compare((string) $entry->debit, '0', 2) > 0)
+                                        <span class="text-danger fw-bold">{{ __('ui.currency_symbol') }} @npr($entry->debit)</span>
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    @if(bccomp((string) $entry->credit, '0', 2) > 0)
-                                        <span class="text-success fw-bold">NPR @npr($entry->credit)</span>
+                                    @if(\App\Support\Money::compare((string) $entry->credit, '0', 2) > 0)
+                                        <span class="text-success fw-bold">{{ __('ui.currency_symbol') }} @npr($entry->credit)</span>
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif
@@ -276,10 +276,10 @@
             <!-- Recent Sales History -->
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold">Recent Bills</h5>
+                    <h5 class="mb-0 fw-bold">{{ __('ui.recent_bills') }}</h5>
                     @can('sales.create')
                     <a href="{{ route('pos') }}" class="btn btn-sm btn-primary">
-                        <i class="bi bi-plus-lg me-1"></i> New Bill
+                        <i class="bi bi-plus-lg me-1"></i>{{ __('ui.new_bill') }}
                     </a>
                     @endcan
                 </div>
@@ -287,13 +287,13 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Invoice</th>
-                                <th>Date</th>
-                                <th class="text-end">Total</th>
-                                <th class="text-end">Paid</th>
-                                <th class="text-end">Due</th>
-                                <th class="text-center">Status</th>
-                                <th class="text-end">Action</th>
+                                <th>{{ __('ui.invoice') }}</th>
+                                <th>{{ __('ui.date') }}</th>
+                                <th class="text-end">{{ __('ui.total') }}</th>
+                                <th class="text-end">{{ __('ui.paid') }}</th>
+                                <th class="text-end">{{ __('ui.due') }}</th>
+                                <th class="text-center">{{ __('ui.status') }}</th>
+                                <th class="text-end">{{ __('ui.action') }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -301,18 +301,18 @@
                             <tr>
                                 <td>
                                     <a href="{{ route('sales.show', $sale) }}" class="fw-bold text-decoration-none">
-                                        {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}
+                                        {{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}
                                     </a>
                                 </td>
                                 <td>{{ $sale->created_at->format('Y-m-d') }}</td>
-                                <td class="text-end fw-bold">NPR @npr($sale->grand_total)</td>
-                                <td class="text-end text-success">NPR @npr($sale->paid_total)</td>
+                                <td class="text-end fw-bold">{{ __('ui.currency_symbol') }} @npr($sale->grand_total)</td>
+                                <td class="text-end text-success">{{ __('ui.currency_symbol') }} @npr($sale->paid_total)</td>
                                 <td class="text-end">
                                     @php $due = $sale->dueAmount(); @endphp
-                                    @if(bccomp((string) $due, '0', 2) > 0)
-                                        <span class="text-danger fw-bold">NPR @npr($due)</span>
+                                    @if(\App\Support\Money::compare((string) $due, '0', 2) > 0)
+                                        <span class="text-danger fw-bold">{{ __('ui.currency_symbol') }} @npr($due)</span>
                                     @else
-                                        <span class="text-muted">NPR 0.00</span>
+                                        <span class="text-muted">{{ __('ui.currency_symbol') }} 0.00</span>
                                     @endif
                                 </td>
                                 <td class="text-center">
@@ -329,7 +329,7 @@
                             @empty
                             <tr>
                                 <td colspan="7" class="text-center py-4 text-muted">
-                                    No sales recorded for this customer yet.
+                                {{ __('ui.no_customer_sales') }}
                                 </td>
                             </tr>
                             @endforelse
@@ -341,3 +341,4 @@
     </div>
 </div>
 @endsection
+

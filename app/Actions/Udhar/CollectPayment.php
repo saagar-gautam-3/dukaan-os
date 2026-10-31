@@ -11,6 +11,7 @@ use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Sale;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -44,7 +45,7 @@ class CollectPayment
         $shop = TenantContext::shop();
         $amount = (string) $data['amount'];
 
-        if (bccomp($amount, '0', 2) <= 0) {
+        if (Money::compare($amount, '0', 2) <= 0) {
             throw new InvalidArgumentException('Collection amount must be greater than zero.');
         }
 
@@ -86,7 +87,7 @@ class CollectPayment
 
                 foreach ($allocationMap as $saleId => $allocationAmount) {
                     $allocationAmount = (string) $allocationAmount;
-                    if (bccomp($allocationAmount, '0', 2) <= 0) {
+                    if (Money::compare($allocationAmount, '0', 2) <= 0) {
                         continue;
                     }
 
@@ -97,10 +98,10 @@ class CollectPayment
                     }
 
                     $due = $sale->dueAmount();
-                    $toAllocate = bccomp($allocationAmount, $due, 2) > 0 ? $due : $allocationAmount;
-                    $toAllocate = bccomp($toAllocate, $remaining, 2) > 0 ? $remaining : $toAllocate;
+                    $toAllocate = Money::compare($allocationAmount, $due, 2) > 0 ? $due : $allocationAmount;
+                    $toAllocate = Money::compare($toAllocate, $remaining, 2) > 0 ? $remaining : $toAllocate;
 
-                    if (bccomp($toAllocate, '0', 2) <= 0) {
+                    if (Money::compare($toAllocate, '0', 2) <= 0) {
                         continue;
                     }
 
@@ -110,7 +111,7 @@ class CollectPayment
                         'amount' => $toAllocate,
                     ]);
 
-                    $sale->update(['paid_total' => bcadd((string) $sale->paid_total, $toAllocate, 2)]);
+                    $sale->update(['paid_total' => Money::add((string) $sale->paid_total, $toAllocate, 2)]);
 
                     // Ledger: credit entry for this payment allocation against the sale
                     $this->addLedgerEntry->handle($customer, [
@@ -123,9 +124,9 @@ class CollectPayment
                     ]);
 
                     $allocated[$saleId] = $toAllocate;
-                    $remaining = bcsub($remaining, $toAllocate, 2);
+                    $remaining = Money::subtract($remaining, $toAllocate, 2);
 
-                    if (bccomp($remaining, '0', 2) <= 0) {
+                    if (Money::compare($remaining, '0', 2) <= 0) {
                         break;
                     }
                 }
@@ -140,12 +141,12 @@ class CollectPayment
                     ->get();
 
                 foreach ($openSales as $sale) {
-                    if (bccomp($remaining, '0', 2) <= 0) {
+                    if (Money::compare($remaining, '0', 2) <= 0) {
                         break;
                     }
 
                     $due = $sale->dueAmount();
-                    $toAllocate = bccomp($remaining, $due, 2) >= 0 ? $due : $remaining;
+                    $toAllocate = Money::compare($remaining, $due, 2) >= 0 ? $due : $remaining;
 
                     $payment->allocations()->create([
                         'shop_id' => $shop->id,
@@ -153,7 +154,7 @@ class CollectPayment
                         'amount' => $toAllocate,
                     ]);
 
-                    $sale->update(['paid_total' => bcadd((string) $sale->paid_total, $toAllocate, 2)]);
+                    $sale->update(['paid_total' => Money::add((string) $sale->paid_total, $toAllocate, 2)]);
 
                     $this->addLedgerEntry->handle($customer, [
                         'entry_type' => LedgerEntryType::PaymentCredit,
@@ -165,13 +166,13 @@ class CollectPayment
                     ]);
 
                     $allocated[$sale->id] = $toAllocate;
-                    $remaining = bcsub($remaining, $toAllocate, 2);
+                    $remaining = Money::subtract($remaining, $toAllocate, 2);
                 }
             }
 
             // Leftover = advance credit
             $advance = $remaining;
-            if (bccomp($advance, '0', 2) > 0) {
+            if (Money::compare($advance, '0', 2) > 0) {
                 $this->addLedgerEntry->handle($customer, [
                     'entry_type' => LedgerEntryType::AdvanceCredit,
                     'credit' => $advance,

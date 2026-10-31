@@ -6,8 +6,11 @@ namespace App\Http\Controllers\Sales;
 
 use App\Actions\Sales\CancelSale;
 use App\Actions\Sales\CreateSale;
+use App\Actions\Sales\FindIdempotentSale;
 use App\Actions\Sales\PostSale;
+use App\Actions\Sales\QuerySaleDetails;
 use App\Actions\Sales\QuerySales;
+use App\Actions\Sales\ResolvePosWarehouse;
 use App\Actions\Sales\ReturnSale;
 use App\Actions\Sales\SearchPosCustomers;
 use App\Actions\Sales\SearchPosProducts;
@@ -18,10 +21,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\ReturnSaleRequest;
 use App\Http\Requests\Sales\StoreSaleRequest;
 use App\Models\Customer;
-use App\Models\IdempotencyKey;
 use App\Models\Sale;
-use App\Models\Warehouse;
-use App\Tenancy\TenantContext;
+use App\Support\Money;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -39,6 +40,9 @@ class SaleController extends Controller
         private readonly QuerySales $querySales,
         private readonly SearchPosProducts $searchPosProducts,
         private readonly SearchPosCustomers $searchPosCustomers,
+        private readonly ResolvePosWarehouse $resolvePosWarehouse,
+        private readonly FindIdempotentSale $findIdempotentSale,
+        private readonly QuerySaleDetails $querySaleDetails,
     ) {}
 
     /**
@@ -48,9 +52,7 @@ class SaleController extends Controller
     {
         $this->authorize('create', Sale::class);
 
-        $shop = TenantContext::shop();
-        $warehouse = Warehouse::where('shop_id', $shop->id)->where('is_default', true)->first()
-            ?? Warehouse::where('shop_id', $shop->id)->first();
+        $warehouse = $this->resolvePosWarehouse->handle();
 
         return view('sales.pos', [
             'warehouse' => $warehouse,
@@ -103,7 +105,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        $sale->load(['items.product.unit', 'customer', 'paymentAllocations.payment', 'returns.items']);
+        $this->querySaleDetails->show($sale);
 
         return view('sales.show', compact('sale'));
     }
@@ -117,14 +119,9 @@ class SaleController extends Controller
 
         $idemKey = $request->string('idempotency_key')->toString() ?: null;
         if ($idemKey !== null) {
-            $shop = TenantContext::shop();
-            $existing = IdempotencyKey::where('shop_id', $shop->id)
-                ->where('key', $idemKey)
-                ->where('action', 'post_sale')
-                ->first();
+            $existingSale = $this->findIdempotentSale->handle($idemKey);
 
-            if ($existing) {
-                $existingSale = Sale::findOrFail($existing->result_id);
+            if ($existingSale) {
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
                         'redirect' => route('sales.show', $existingSale),
@@ -182,10 +179,10 @@ class SaleController extends Controller
             report($e);
 
             if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['message' => __('common.unexpected_error')], 500);
+                return response()->json(['message' => __('common.error_generic')], 500);
             }
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -215,7 +212,7 @@ class SaleController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -236,7 +233,7 @@ class SaleController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->with('error', __('common.unexpected_error'));
+            return back()->with('error', __('common.error_generic'));
         }
     }
 
@@ -247,7 +244,7 @@ class SaleController extends Controller
     {
         $this->authorize('return', $sale);
 
-        $sale->load(['items.product.unit']);
+        $this->querySaleDetails->returnForm($sale);
 
         return view('sales.return', compact('sale'));
     }
@@ -261,7 +258,7 @@ class SaleController extends Controller
 
         try {
             $data = $request->validated();
-            $filteredItems = array_values(array_filter($data['items'], fn ($i) => (float) ($i['quantity'] ?? 0) > 0));
+            $filteredItems = array_values(array_filter($data['items'], fn ($i) => Money::compare((string) ($i['quantity'] ?? '0'), '0', 3) > 0));
 
             if (empty($filteredItems)) {
                 return back()->withInput()->with('error', 'Please enter a return quantity greater than 0 for at least one item.');
@@ -276,7 +273,7 @@ class SaleController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -287,7 +284,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        $sale->load(['items.product.unit', 'customer', 'shop']);
+        $this->querySaleDetails->invoice($sale);
 
         return view('sales.invoice', compact('sale'));
     }
@@ -299,7 +296,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        $sale->load(['items.product.unit', 'customer', 'shop']);
+        $this->querySaleDetails->invoice($sale);
 
         return view('sales.thermal', compact('sale'));
     }

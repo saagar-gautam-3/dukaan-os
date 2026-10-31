@@ -73,8 +73,8 @@
                         <div class="mb-4">
                             <label for="timezone" class="form-label fw-semibold">{{ __('shops.timezone') }}</label>
                             <select class="form-select @error('timezone') is-invalid @enderror" id="timezone" name="timezone" required>
-                                <option value="Asia/Kathmandu" {{ old('timezone', $shop->timezone ?? '') === 'Asia/Kathmandu' ? 'selected' : '' }}>Asia/Kathmandu (Nepal Time UTC+5:45)</option>
-                                <option value="UTC" {{ old('timezone', $shop->timezone ?? '') === 'UTC' ? 'selected' : '' }}>UTC</option>
+                                <option value="Asia/Kathmandu" {{ old('timezone', $shop->timezone ?? '') === 'Asia/Kathmandu' ? 'selected' : '' }}>{{ __('ui.nepal_timezone_label') }}</option>
+                                <option value="UTC" {{ old('timezone', $shop->timezone ?? '') === 'UTC' ? 'selected' : '' }}>{{ __('ui.utc_timezone_label') }}</option>
                             </select>
                             @error('timezone')
                                 <div class="invalid-feedback">{{ $message }}</div>

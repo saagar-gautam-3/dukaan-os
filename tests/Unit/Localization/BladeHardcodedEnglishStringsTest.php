@@ -4,132 +4,98 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Localization;
 
+use Illuminate\Support\Facades\Blade;
 use Tests\TestCase;
 
-class BladeHardcodedEnglishStringsTest extends TestCase
+final class BladeHardcodedEnglishStringsTest extends TestCase
 {
-    /**
-     * Known allowed non-localized tokens, brand names, technical identifiers,
-     * acronyms, and boilerplate that legitimately appear in Blade files.
-     *
-     * @var array<int, string>
-     */
-    private const ALLOWLIST = [
-        'Dukaan OS',
-        'Dukaan',
-        'OS',
-        'NPR',
-        'PAN',
-        'VAT',
-        'SKU',
-        'POS',
-        'QR',
-        'CSV',
-        'A4',
-        '80mm',
-        'Ref',
-        'Ph',
-        'ID',
-        'CSS',
-        'JS',
-        'HTML',
-        'N/A',
-        'Max',
-        'Rate',
-        'Total',
-        'Item',
-        'Qty',
-        'Bill',
-        'Date',
-        'Phone',
-        'Customer',
-        'Subtotal',
-        'Discount',
-        'Tax',
-        'Paid',
-        'Due',
-    ];
-
-    /**
-     * Patterns of known user-visible hardcoded phrases that MUST NOT appear.
-     *
-     * @var array<int, string>
-     */
-    private const FORBIDDEN_PHRASES = [
-        'Opening:',
-        'Expected now:',
-        'Expected:',
-        'Total Value',
-        'Paid via',
-        'Cost Snapshot',
-        'Payment History',
-        'Sale Items',
-        'Receiving Location',
-        'Warehouse Code',
-        'Immutable Posted Record',
-        'Draft Purchase Order',
-        'Delete Draft',
-        'Cancel Draft',
-        'Confirm & Post',
-        'Total payable:',
-        'No cash sessions recorded yet',
-        'No expenses recorded yet',
-        'No tracked stock found',
-        'All Stock Levels Healthy',
-        'Items below reorder level',
-        'POS Billing',
-        'Customer Khata',
-        'Inventory Catalog',
-        'Shop Outflow',
-    ];
-
-    public function test_views_do_not_contain_flagged_hardcoded_english_phrases(): void
+    public function test_blade_visible_text_is_localized_or_documented_in_the_allowlist(): void
     {
         $viewsPath = resource_path('views');
         $this->assertDirectoryExists($viewsPath);
 
-        $files = $this->getBladeFiles($viewsPath);
+        $allowlist = require base_path('tests/Support/blade-visible-text-allowlist.php');
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($viewsPath, \FilesystemIterator::SKIP_DOTS)
+        );
         $violations = [];
+        $scannedFiles = 0;
 
-        foreach ($files as $file) {
-            $content = file_get_contents($file);
-            $relPath = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file);
+        foreach ($iterator as $file) {
+            if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
+                continue;
+            }
 
-            // Strip blade comments and script/style tags
-            $stripped = preg_replace('/\{\{--.*?--\}\}/s', '', $content) ?? $content;
-            $stripped = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $stripped) ?? $stripped;
-            $stripped = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $stripped) ?? $stripped;
+            $scannedFiles++;
+            $path = $file->getRealPath();
+            $relativePath = str_replace('\\', '/', substr($path, strlen(base_path()) + 1));
 
-            foreach (self::FORBIDDEN_PHRASES as $phrase) {
-                if (stripos($stripped, $phrase) !== false) {
-                    $violations[] = "{$relPath} contains forbidden hardcoded English phrase: '{$phrase}'";
+            foreach ($this->visibleTextFragments((string) file_get_contents($path)) as $fragment) {
+                if (! preg_match('/[A-Za-z]/', $fragment) || isset($allowlist[$relativePath][$fragment])) {
+                    continue;
                 }
+
+                $violations[] = "{$relativePath}: '{$fragment}'";
             }
         }
 
+        $this->assertGreaterThan(0, $scannedFiles, 'The Blade scan must inspect at least one view.');
         $this->assertEmpty(
             $violations,
-            "Hardcoded user-visible English phrases found in Blade views (must move to lang files):\n".implode("\n", $violations)
+            "Unlocalized English visible text found; move it to lang/ne and lang/en:\n".implode("\n", array_unique($violations))
         );
     }
 
-    /**
-     * @return array<int, string>
-     */
-    private function getBladeFiles(string $dir): array
+    public function test_every_blade_visible_text_allowlist_entry_has_a_reason(): void
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS)
-        );
+        $allowlist = require base_path('tests/Support/blade-visible-text-allowlist.php');
+        $entryCount = array_sum(array_map('count', $allowlist));
 
-        $files = [];
-        /** @var \SplFileInfo $file */
-        foreach ($iterator as $file) {
-            if ($file->isFile() && str_ends_with($file->getFilename(), '.blade.php')) {
-                $files[] = $file->getRealPath();
+        $this->assertGreaterThan(0, $entryCount, 'The allowlist reason test must inspect at least one justified token.');
+
+        foreach ($allowlist as $path => $fragments) {
+            $this->assertIsArray($fragments, "Allowlist entries for {$path} must map exact text to reasons.");
+
+            foreach ($fragments as $fragment => $reason) {
+                $this->assertNotSame('', trim($reason), "Allowlist fragment '{$fragment}' needs a reason.");
+            }
+        }
+    }
+
+    /** @return list<string> */
+    private function visibleTextFragments(string $blade): array
+    {
+        $blade = preg_replace('/\{\{--.*?--\}\}/s', ' ', $blade) ?? $blade;
+        $blade = preg_replace('/<script\b[^>]*>.*?<\/script\s*>/is', ' ', $blade) ?? $blade;
+        $blade = preg_replace('/<style\b[^>]*>.*?<\/style\s*>/is', ' ', $blade) ?? $blade;
+
+        $fragments = [];
+        preg_match_all('/\b(?:placeholder|title|aria-label|alt)\s*=\s*(["\'])(.*?)\1/is', $blade, $attributeMatches);
+        foreach ($attributeMatches[2] ?? [] as $attribute) {
+            if (! preg_match('/\{\{|\{!!|<\?php|\$[A-Za-z_]/', $attribute)) {
+                $fragments[] = trim(html_entity_decode($attribute, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
             }
         }
 
-        return $files;
+        preg_match_all('/<input\b([^>]*)>/is', $blade, $inputMatches);
+        foreach ($inputMatches[1] ?? [] as $attributes) {
+            if (preg_match('/\btype\s*=\s*(["\'])hidden\1/i', $attributes)) {
+                continue;
+            }
+
+            if (preg_match('/\bvalue\s*=\s*(["\'])(.*?)\1/is', $attributes, $valueMatch)
+                && ! preg_match('/\{\{|\{!!|<\?php|\$[A-Za-z_]/', $valueMatch[2])) {
+                $fragments[] = trim(html_entity_decode($valueMatch[2], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            }
+        }
+
+        $compiled = Blade::compileString($blade);
+        $compiled = preg_replace('/<\?php.*?\?>/s', ' ', $compiled) ?? $compiled;
+        preg_match_all('/>([^<>]+)</s', $compiled, $matches);
+
+        return array_values(array_filter(array_merge($fragments, array_map(
+            static fn (string $fragment): string => trim(html_entity_decode($fragment, ENT_QUOTES | ENT_HTML5, 'UTF-8')),
+            $matches[1] ?? [],
+        )), static fn (string $fragment): bool => $fragment !== ''));
     }
 }

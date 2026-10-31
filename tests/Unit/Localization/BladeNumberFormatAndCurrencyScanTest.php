@@ -8,66 +8,78 @@ use Tests\TestCase;
 
 class BladeNumberFormatAndCurrencyScanTest extends TestCase
 {
-    /**
-     * Test that no Blade view contains number_format( or literal 'Rs' before {{.
-     */
-    public function test_no_blade_view_contains_number_format_or_rs_before_curly_braces(): void
+    public function test_application_and_views_have_no_float_money_formatting(): void
     {
-        $viewsPath = resource_path('views');
-        $this->assertDirectoryExists($viewsPath);
+        $allowlist = require base_path('tests/Support/float-money-scan-allowlist.php');
+        $violations = [];
+        $filesScanned = 0;
+        $patterns = [
+            'float cast' => '/\(\s*float\s*\)/i',
+            'floatval' => '/\bfloatval\s*\(/i',
+            'number_format' => '/\bnumber_format\s*\(/i',
+        ];
 
-        $files = $this->getBladeFiles($viewsPath);
-        $this->assertNotEmpty($files, 'Blade views directory must not be empty.');
+        foreach ([app_path(), resource_path('views')] as $root) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS)
+            );
 
-        $numberFormatViolations = [];
-        $rsCurlyViolations = [];
-
-        foreach ($files as $file) {
-            $content = file_get_contents($file);
-            $lines = explode("\n", $content);
-
-            foreach ($lines as $lineIndex => $line) {
-                $lineNumber = $lineIndex + 1;
-                $relPath = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file);
-
-                if (str_contains($line, 'number_format(')) {
-                    $numberFormatViolations[] = "{$relPath}:{$lineNumber} => ".trim($line);
+            foreach ($iterator as $file) {
+                if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.php')) {
+                    continue;
                 }
 
-                if (preg_match('/Rs\.?\s*\{\{/i', $line)) {
-                    $rsCurlyViolations[] = "{$relPath}:{$lineNumber} => ".trim($line);
+                $filesScanned++;
+
+                $relativePath = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file->getRealPath());
+                $lines = file($file->getRealPath(), FILE_IGNORE_NEW_LINES) ?: [];
+
+                foreach ($lines as $index => $line) {
+                    foreach ($patterns as $name => $pattern) {
+                        if (! preg_match($pattern, $line)) {
+                            continue;
+                        }
+
+                        $entry = $allowlist[$relativePath] ?? null;
+                        if ($entry !== null && isset($entry['reason']) && in_array($name, $entry['patterns'] ?? [], true)) {
+                            continue;
+                        }
+
+                        $violations[] = "{$relativePath}:".($index + 1)." [{$name}] ".trim($line);
+                    }
                 }
             }
         }
 
-        $this->assertEmpty(
-            $numberFormatViolations,
-            "Direct number_format() call found in Blade views (must use @npr or @qty):\n".implode("\n", $numberFormatViolations)
-        );
-
-        $this->assertEmpty(
-            $rsCurlyViolations,
-            "Literal 'Rs' before {{ found in Blade views (must use @npr):\n".implode("\n", $rsCurlyViolations)
-        );
+        $this->assertGreaterThan(0, $filesScanned, 'The application and views scan must inspect at least one PHP file.');
+        $this->assertSame([], $violations, "Float money formatting is forbidden in app/ and resources/views/; use decimal strings and Money.\n".implode("\n", $violations));
     }
 
-    /**
-     * @return array<int, string>
-     */
-    private function getBladeFiles(string $dir): array
+    public function test_blade_views_do_not_prefix_currency_interpolations_with_rs(): void
     {
+        $viewsPath = resource_path('views');
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS)
+            new \RecursiveDirectoryIterator($viewsPath, \FilesystemIterator::SKIP_DOTS)
         );
+        $violations = [];
+        $filesScanned = 0;
 
-        $files = [];
-        /** @var \SplFileInfo $file */
         foreach ($iterator as $file) {
-            if ($file->isFile() && str_ends_with($file->getFilename(), '.blade.php')) {
-                $files[] = $file->getRealPath();
+            if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
+                continue;
+            }
+
+            $filesScanned++;
+
+            $relativePath = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file->getRealPath());
+            foreach (file($file->getRealPath(), FILE_IGNORE_NEW_LINES) ?: [] as $index => $line) {
+                if (preg_match('/Rs\.?\s*\{\{/i', $line)) {
+                    $violations[] = "{$relativePath}:".($index + 1).' '.trim($line);
+                }
             }
         }
 
-        return $files;
+        $this->assertGreaterThan(0, $filesScanned, 'The Rs-prefix scan must inspect at least one Blade view.');
+        $this->assertSame([], $violations, "Use @npr for formatted currency.\n".implode("\n", $violations));
     }
 }

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\SaleStatus;
 use App\Exceptions\ImmutableRecordException;
+use App\Support\Money;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -32,7 +33,7 @@ class Sale extends Model
         ];
 
         static::updating(function (self $model) use ($frozenColumns): void {
-            $originalStatus = SaleStatus::tryFrom((string) $model->getOriginal('status'));
+            $originalStatus = SaleStatus::tryFrom((string) $model->getRawOriginal('status'));
             if ($originalStatus === null || ! $originalStatus->isImmutable()) {
                 return;
             }
@@ -120,6 +121,6 @@ class Sale extends Model
 
     public function dueAmount(): string
     {
-        return bcsub((string) $this->grand_total, (string) $this->paid_total, 2);
+        return Money::subtract((string) $this->grand_total, (string) $this->paid_total, 2);
     }
 }

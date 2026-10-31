@@ -29,12 +29,12 @@
                 <div class="col-12 col-md-5">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Search bill no or supplier..." value="{{ request('search') }}">
+                        <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="{{ __('purchases.search_placeholder') }}" value="{{ request('search') }}">
                     </div>
                 </div>
                 <div class="col-12 col-md-3">
                     <select name="supplier_id" class="form-select">
-                        <option value="">All Suppliers</option>
+                        <option value="">{{ __('ui.all_suppliers') }}</option>
                         @foreach($suppliers as $supplier)
                             <option value="{{ $supplier->id }}" {{ (string) request('supplier_id') === (string) $supplier->id ? 'selected' : '' }}>
                                 {{ $supplier->name }}
@@ -44,14 +44,14 @@
                 </div>
                 <div class="col-12 col-md-2">
                     <select name="status" class="form-select">
-                        <option value="">All Statuses</option>
+                        <option value="">{{ __('ui.all_statuses') }}</option>
                         <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>{{ __('purchases.status_draft') }}</option>
                         <option value="posted" {{ request('status') === 'posted' ? 'selected' : '' }}>{{ __('purchases.status_posted') }}</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-secondary flex-grow-1">
-                        <i class="bi bi-funnel me-1"></i>Filter
+                        <i class="bi bi-funnel me-1"></i>{{ __('common.filter') }}
                     </button>
                     @if(request()->hasAny(['search', 'supplier_id', 'status']))
                         <a href="{{ route('purchases.index') }}" class="btn btn-outline-secondary">
@@ -110,21 +110,21 @@
                                 </td>
                                 <td class="text-end pe-3">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ route('purchases.show', $purchase) }}" class="btn btn-outline-info" title="View">
+                                        <a href="{{ route('purchases.show', $purchase) }}" class="btn btn-outline-info" title="{{ __('ui.view') }}">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         @if(! $isPosted)
                                         @can('purchases.manage')
                                         <form method="POST" action="{{ route('purchases.post', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.post_confirmation') }}')">
                                             @csrf
-                                            <button type="submit" class="btn btn-success" title="Post & Receive">
-                                                <i class="bi bi-box-arrow-in-down me-1"></i>Post
+                                            <button type="submit" class="btn btn-success" title="{{ __('purchases.post_purchase') }}">
+                                                <i class="bi bi-box-arrow-in-down me-1"></i>{{ __('purchases.post_short') }}
                                             </button>
                                         </form>
                                         <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.confirm_delete') }}')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                            <button type="submit" class="btn btn-outline-danger" title="{{ __('common.delete') }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -162,14 +162,14 @@
                         </div>
                         <div class="d-flex justify-content-end gap-2 pt-2 border-top">
                             <a href="{{ route('purchases.show', $purchase) }}" class="btn btn-outline-info btn-sm">
-                                <i class="bi bi-eye me-1"></i>View
+                                <i class="bi bi-eye me-1"></i>{{ __('ui.view') }}
                             </a>
                             @if(! $isPosted)
                             @can('purchases.manage')
                             <form method="POST" action="{{ route('purchases.post', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.post_confirmation') }}')">
                                 @csrf
                                 <button type="submit" class="btn btn-success btn-sm">
-                                    <i class="bi bi-box-arrow-in-down me-1"></i>Post
+                                    <i class="bi bi-box-arrow-in-down me-1"></i>{{ __('purchases.post_short') }}
                                 </button>
                             </form>
                             @endcan
@@ -181,7 +181,7 @@
 
                 <div class="p-3 border-top d-flex justify-content-between align-items-center">
                     <span class="text-muted small">
-                        Showing {{ $purchases->firstItem() ?? 0 }} to {{ $purchases->lastItem() ?? 0 }} of {{ $purchases->total() }} orders
+                        {{ __('ui.showing_orders', ['first' => $purchases->firstItem() ?? 0, 'last' => $purchases->lastItem() ?? 0, 'total' => $purchases->total()]) }}
                     </span>
                     <div>
                         {{ $purchases->links() }}

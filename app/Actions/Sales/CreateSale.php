@@ -6,6 +6,7 @@ namespace App\Actions\Sales;
 
 use App\Enums\SaleStatus;
 use App\Models\Sale;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -52,12 +53,12 @@ class CreateSale
                 $tax = (string) ($item['tax'] ?? '0');
 
                 // line_total = (unit_price - discount + tax) * quantity
-                $linePrice = bcadd(bcsub($price, $discount, 4), $tax, 4);
-                $lineTotal = bcmul($linePrice, $qty, 2);
+                $linePrice = Money::add(Money::subtract($price, $discount, 4), $tax, 4);
+                $lineTotal = Money::multiply($linePrice, $qty, 2);
 
-                $subtotal = bcadd($subtotal, bcmul($price, $qty, 2), 2);
-                $discountTotal = bcadd($discountTotal, bcmul($discount, $qty, 2), 2);
-                $taxTotal = bcadd($taxTotal, bcmul($tax, $qty, 2), 2);
+                $subtotal = Money::add($subtotal, Money::multiply($price, $qty, 2), 2);
+                $discountTotal = Money::add($discountTotal, Money::multiply($discount, $qty, 2), 2);
+                $taxTotal = Money::add($taxTotal, Money::multiply($tax, $qty, 2), 2);
 
                 $itemsToCreate[] = [
                     'product_id' => $item['product_id'],
@@ -72,7 +73,7 @@ class CreateSale
                 ];
             }
 
-            $grandTotal = bcadd(bcsub($subtotal, $discountTotal, 2), $taxTotal, 2);
+            $grandTotal = Money::add(Money::subtract($subtotal, $discountTotal, 2), $taxTotal, 2);
 
             $sale = Sale::create([
                 'warehouse_id' => $data['warehouse_id'] ?? null,

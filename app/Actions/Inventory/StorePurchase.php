@@ -7,6 +7,7 @@ namespace App\Actions\Inventory;
 use App\Enums\PurchaseStatus;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
 class StorePurchase
@@ -17,19 +18,19 @@ class StorePurchase
     public function execute(array $validated, ?int $userId = null): Purchase
     {
         return DB::transaction(function () use ($validated, $userId) {
-            $subtotal = 0.00;
-            $discountTotal = 0.00;
+            $subtotal = '0.00';
+            $discountTotal = '0.00';
 
             foreach ($validated['items'] as $itemData) {
-                $qty = (float) $itemData['quantity'];
-                $cost = (float) $itemData['unit_cost'];
-                $discount = (float) ($itemData['discount'] ?? 0);
+                $qty = (string) $itemData['quantity'];
+                $cost = (string) $itemData['unit_cost'];
+                $discount = (string) ($itemData['discount'] ?? '0');
 
-                $subtotal += ($qty * $cost);
-                $discountTotal += $discount;
+                $subtotal = Money::add($subtotal, Money::multiply($qty, $cost, 2), 2);
+                $discountTotal = Money::add($discountTotal, $discount, 2);
             }
 
-            $grandTotal = $subtotal - $discountTotal;
+            $grandTotal = Money::subtract($subtotal, $discountTotal, 2);
 
             $purchase = Purchase::create([
                 'supplier_id' => $validated['supplier_id'],
@@ -39,17 +40,17 @@ class StorePurchase
                 'status' => PurchaseStatus::Draft,
                 'subtotal' => $subtotal,
                 'discount_total' => $discountTotal,
-                'tax_total' => 0.00,
+                'tax_total' => '0.00',
                 'grand_total' => $grandTotal,
                 'notes' => $validated['notes'] ?? null,
                 'created_by' => $userId ?? auth()->id(),
             ]);
 
             foreach ($validated['items'] as $itemData) {
-                $qty = (float) $itemData['quantity'];
-                $cost = (float) $itemData['unit_cost'];
-                $discount = (float) ($itemData['discount'] ?? 0);
-                $lineTotal = ($qty * $cost) - $discount;
+                $qty = (string) $itemData['quantity'];
+                $cost = (string) $itemData['unit_cost'];
+                $discount = (string) ($itemData['discount'] ?? '0');
+                $lineTotal = Money::subtract(Money::multiply($qty, $cost, 2), $discount, 2);
 
                 PurchaseItem::create([
                     'purchase_id' => $purchase->id,

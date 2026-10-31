@@ -18,6 +18,7 @@ use App\Http\Controllers\Reports\ExpenseCategoryController;
 use App\Http\Controllers\Reports\ExpenseController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CustomerController;
+use App\Http\Controllers\Sales\PaymentController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Shop\ShopPickerController;
 use App\Http\Controllers\Shop\ShopSettingsController;
@@ -46,16 +47,16 @@ Route::get('/locale/{locale}', function (Request $request, string $locale) {
 // Guest Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
-    Route::post('/register', [RegisteredUserController::class, 'store']);
+    Route::post('/register', [RegisteredUserController::class, 'store'])->middleware('throttle:register');
 
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('/login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:login');
 
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email')->middleware('throttle:password-reset');
 
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store')->middleware('throttle:password-reset');
 });
 
 // Authenticated User Routes (Shop Switching & Logout)
@@ -74,9 +75,9 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
     Route::put('/settings/shop', [ShopSettingsController::class, 'update'])->name('settings.shop.update');
 
     // Products, Categories, Units
-    Route::resource('products', ProductController::class);
+    Route::resource('products', ProductController::class)->except(['show']);
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
-    Route::resource('units', UnitController::class)->only(['index', 'store', 'update']);
+    Route::resource('units', UnitController::class)->only(['index']);
 
     // Stock & Inventory
     Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
@@ -86,7 +87,7 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
     Route::get('/stock/history/{product}', [StockController::class, 'history'])->name('stock.history');
 
     // Suppliers
-    Route::resource('suppliers', SupplierController::class);
+    Route::resource('suppliers', SupplierController::class)->except(['show']);
 
     // Purchases
     Route::resource('purchases', PurchaseController::class)->except(['edit', 'update']);
@@ -97,14 +98,18 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
     Route::get('/pos/products', [SaleController::class, 'searchProducts'])->name('pos.products');
     Route::get('/pos/customers', [SaleController::class, 'searchCustomers'])->name('pos.customers');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
-    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store')->middleware('throttle:post-sale');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
-    Route::post('/sales/{sale}/post', [SaleController::class, 'post'])->name('sales.post');
+    Route::post('/sales/{sale}/post', [SaleController::class, 'post'])->name('sales.post')->middleware('throttle:post-sale');
     Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel'])->name('sales.cancel');
     Route::get('/sales/{sale}/return', [SaleController::class, 'returnForm'])->name('sales.return');
     Route::post('/sales/{sale}/return', [SaleController::class, 'processReturn'])->name('sales.return.store');
     Route::get('/sales/{sale}/invoice', [SaleController::class, 'invoice'])->name('sales.invoice');
     Route::get('/sales/{sale}/thermal', [SaleController::class, 'thermal'])->name('sales.thermal');
+
+    // Payments (QR verification)
+    Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify')->middleware('throttle:payment');
+    Route::post('/payments/{payment}/fail', [PaymentController::class, 'fail'])->name('payments.fail')->middleware('throttle:payment');
 
     // Customers
     Route::resource('customers', CustomerController::class);
@@ -114,13 +119,13 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
         Route::get('/', [UdharController::class, 'outstanding'])->name('udhar.outstanding');
         Route::get('/ageing', [UdharController::class, 'ageing'])->name('udhar.ageing');
         Route::get('/collect/{customer}', [UdharController::class, 'collectForm'])->name('udhar.collect');
-        Route::post('/collect/{customer}', [UdharController::class, 'collect'])->name('udhar.collect.store');
-        Route::post('/remind/{customer}', [UdharController::class, 'remind'])->name('udhar.remind');
+        Route::post('/collect/{customer}', [UdharController::class, 'collect'])->name('udhar.collect.store')->middleware('throttle:collect');
+        Route::post('/remind/{customer}', [UdharController::class, 'remind'])->name('udhar.remind')->middleware('throttle:remind');
     });
 
     // Expenses
-    Route::resource('expenses', ExpenseController::class);
-    Route::resource('expense-categories', ExpenseCategoryController::class);
+    Route::resource('expenses', ExpenseController::class)->except(['show']);
+    Route::resource('expense-categories', ExpenseCategoryController::class)->except(['show']);
 
     // Cash Sessions
     Route::prefix('cash')->name('cash.')->group(function () {

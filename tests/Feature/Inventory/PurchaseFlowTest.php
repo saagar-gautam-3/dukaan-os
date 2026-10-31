@@ -243,7 +243,10 @@ class PurchaseFlowTest extends TestCase
         $action->execute($purchase);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Purchase is already posted and cannot be re-posted.');
+        $this->expectExceptionMessage(__('purchases.immutable_exception', [
+            'id' => $purchase->id,
+            'status' => __('purchases.status_posted'),
+        ]));
 
         $action->execute($purchase);
     }

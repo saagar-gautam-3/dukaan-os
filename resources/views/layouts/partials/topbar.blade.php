@@ -1,6 +1,6 @@
 <header class="app-topbar">
     <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-outline-secondary d-lg-none" type="button" id="sidebarToggle" aria-label="Toggle Sidebar">
+        <button class="btn btn-outline-secondary d-lg-none" type="button" id="sidebarToggle" aria-label="{{ __('common.toggle_sidebar') }}">
             <i class="bi bi-list fs-5"></i>
         </button>
 
@@ -20,7 +20,7 @@
         <!-- Language Switcher -->
         <div class="btn-group btn-group-sm" role="group">
             <a href="{{ route('locale.switch', 'ne') }}" class="btn {{ app()->getLocale() === 'ne' ? 'btn-primary' : 'btn-outline-secondary' }}" title="नेपाली">नेपाली</a>
-            <a href="{{ route('locale.switch', 'en') }}" class="btn {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-outline-secondary' }}" title="English">EN</a>
+            <a href="{{ route('locale.switch', 'en') }}" class="btn {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-outline-secondary' }}" title="{{ __('ui.language_english') }}">{{ __('ui.language_english') }}</a>
         </div>
 
         <!-- Shop Switcher Link -->

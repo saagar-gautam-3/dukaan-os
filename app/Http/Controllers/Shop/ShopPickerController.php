@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Shop;
 
+use App\Actions\Shops\QueryActiveMemberships;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
-use App\Models\ShopUser;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,12 +16,9 @@ class ShopPickerController extends Controller
     /**
      * Display a list of available shops for the authenticated user.
      */
-    public function index(Request $request): View
+    public function index(Request $request, QueryActiveMemberships $membershipsQuery): View
     {
-        $memberships = $request->user()->activeShopUsers()
-            ->whereHas('shop', fn ($q) => $q->where('is_active', true))
-            ->with(['shop', 'role'])
-            ->get();
+        $memberships = $membershipsQuery->forUser($request->user());
 
         return view('shops.picker', [
             'memberships' => $memberships,
@@ -32,13 +29,9 @@ class ShopPickerController extends Controller
     /**
      * Switch active shop in session.
      */
-    public function switch(Request $request, Shop $shop): RedirectResponse
+    public function switch(Request $request, Shop $shop, QueryActiveMemberships $membershipsQuery): RedirectResponse
     {
-        $membership = ShopUser::query()
-            ->where('shop_id', $shop->id)
-            ->where('user_id', $request->user()->id)
-            ->where('status', 'active')
-            ->first();
+        $membership = $membershipsQuery->find($request->user(), (int) $shop->id);
 
         if ($membership === null || ! $shop->is_active) {
             abort(403, 'Unauthorized shop switch.');

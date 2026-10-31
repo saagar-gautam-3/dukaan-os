@@ -7,7 +7,7 @@ namespace App\Models;
 use App\Enums\CashMovementType;
 use App\Enums\CashSessionStatus;
 use App\Exceptions\ImmutableRecordException;
-use App\Traits\Auditable;
+use App\Support\Money;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CashSession extends Model
 {
-    use Auditable, BelongsToShop, HasFactory;
+    use BelongsToShop, HasFactory;
 
     /**
      * Class C: once closed, the cash session is an immutable financial record.
@@ -26,7 +26,7 @@ class CashSession extends Model
     protected static function booted(): void
     {
         static::updating(function (self $model): void {
-            if ($model->getOriginal('status') === CashSessionStatus::Closed->value) {
+            if ($model->getRawOriginal('status') === CashSessionStatus::Closed->value) {
                 throw new ImmutableRecordException('Closed cash sessions are immutable and cannot be modified.');
             }
         });
@@ -104,9 +104,9 @@ class CashSession extends Model
             }
 
             if ($type->isInflow()) {
-                $expected = bcadd($expected, (string) $m->amount, 2);
+                $expected = Money::add($expected, (string) $m->amount, 2);
             } else {
-                $expected = bcsub($expected, (string) $m->amount, 2);
+                $expected = Money::subtract($expected, (string) $m->amount, 2);
             }
         }
 

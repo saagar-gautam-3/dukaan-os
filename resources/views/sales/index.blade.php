@@ -32,7 +32,7 @@
                 </div>
                 <div class="col-md-3 col-6">
                     <select name="status" class="form-select bg-light border-0">
-                        <option value="">-- {{ __('sales.status') }} (All) --</option>
+                        <option value="">-- {{ __('sales.status') }} ({{ __('common.all') }}) --</option>
                         <option value="posted" {{ request('status') === 'posted' ? 'selected' : '' }}>{{ __('sales.status_posted') }}</option>
                         <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>{{ __('sales.status_draft') }}</option>
                         <option value="cancelled" {{ request('status') === 'cancelled' ? 'selected' : '' }}>{{ __('sales.status_cancelled') }}</option>
@@ -73,7 +73,7 @@
                     <tr>
                         <td>
                             <a href="{{ route('sales.show', $sale) }}" class="fw-bold text-decoration-none">
-                                {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}
+                                {{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}
                             </a>
                         </td>
                         <td>
@@ -99,8 +99,8 @@
                             @npr($sale->paid_total)
                         </td>
                         <td class="text-end">
-                            @php $due = (float) $sale->dueAmount(); @endphp
-                            @if($due > 0)
+                            @php $due = (string) $sale->dueAmount(); @endphp
+                            @if(\App\Support\Money::compare($due, '0', 2) > 0)
                                 <span class="text-danger fw-bold">@npr($due)</span>
                             @else
                                 <span class="text-muted">@npr(0)</span>
@@ -123,11 +123,11 @@
                         </td>
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ route('sales.show', $sale) }}" class="btn btn-outline-secondary" title="View details">
+                                <a href="{{ route('sales.show', $sale) }}" class="btn btn-outline-secondary" title="{{ __('ui.view_details') }}">
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 @if($sale->isPosted())
-                                <a href="{{ route('sales.invoice', $sale) }}" class="btn btn-outline-secondary" target="_blank" title="A4 Invoice">
+                                <a href="{{ route('sales.invoice', $sale) }}" class="btn btn-outline-secondary" target="_blank" title="{{ __('sales.a4_invoice') }}">
                                     <i class="bi bi-printer"></i>
                                 </a>
                                 @endif

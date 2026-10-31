@@ -7,6 +7,7 @@ namespace App\Actions\Sales;
 use App\Models\Payment;
 use App\Models\PaymentAllocation;
 use App\Models\Sale;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -32,7 +33,7 @@ class AllocatePayment
         return DB::transaction(function () use ($payment, $sale, $amount) {
             // Validate unallocated amount on the payment
             $unallocated = $payment->unallocatedAmount();
-            if (bccomp($amount, $unallocated, 2) > 0) {
+            if (Money::compare($amount, $unallocated, 2) > 0) {
                 throw new InvalidArgumentException(
                     "Cannot allocate {$amount}; payment only has {$unallocated} unallocated."
                 );
@@ -40,7 +41,7 @@ class AllocatePayment
 
             // Validate remaining due on the sale
             $saleDue = $sale->dueAmount();
-            if (bccomp($amount, $saleDue, 2) > 0) {
+            if (Money::compare($amount, $saleDue, 2) > 0) {
                 throw new InvalidArgumentException(
                     "Cannot allocate {$amount}; sale only has {$saleDue} due."
                 );
@@ -53,7 +54,7 @@ class AllocatePayment
             ]);
 
             // Update cached paid_total on sale
-            $newPaidTotal = bcadd((string) $sale->paid_total, $amount, 2);
+            $newPaidTotal = Money::add((string) $sale->paid_total, $amount, 2);
             $sale->update(['paid_total' => $newPaidTotal]);
 
             return $allocation;

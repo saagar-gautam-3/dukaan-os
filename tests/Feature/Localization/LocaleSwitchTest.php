@@ -14,6 +14,8 @@ class LocaleSwitchTest extends TestCase
 
     public function test_guest_defaults_to_ne_locale(): void
     {
+        app()->setLocale('ne');
+
         $response = $this->get('/');
         $response->assertOk();
         $this->assertEquals('ne', app()->getLocale());

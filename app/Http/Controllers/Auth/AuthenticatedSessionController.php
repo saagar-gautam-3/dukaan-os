@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Shops\QueryActiveMemberships;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, QueryActiveMemberships $membershipsQuery): RedirectResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'string', 'email'],
@@ -56,11 +57,10 @@ class AuthenticatedSessionController extends Controller
 
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
+        $request->session()->put('permissions_version', (int) ($request->user()->permissions_version ?? 0));
 
         $user = $request->user();
-        $memberships = $user->activeShopUsers()
-            ->whereHas('shop', fn ($q) => $q->where('is_active', true))
-            ->get();
+        $memberships = $membershipsQuery->forLogin($user);
 
         if ($memberships->count() === 1) {
             $request->session()->put('current_shop_id', $memberships->first()->shop_id);

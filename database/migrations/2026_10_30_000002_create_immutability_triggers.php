@@ -294,4 +294,3 @@ return new class extends Migration
         DB::unprepared('DROP TRIGGER IF EXISTS trg_stock_adjustments_prevent_delete');
     }
 };
-

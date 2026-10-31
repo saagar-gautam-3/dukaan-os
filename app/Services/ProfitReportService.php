@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Enums\PaymentStatus;
 use App\Enums\SaleStatus;
+use App\Support\Money;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -93,13 +94,13 @@ class ProfitReportService
         $returnTotal = (string) ($returnAmountData->return_total ?? '0');
 
         // Net sales after returns
-        $netSalesAfterReturns = bcsub($netSales, $returnTotal, 2);
+        $netSalesAfterReturns = Money::subtract($netSales, $returnTotal, 2);
 
         // Net COGS after returns
-        $netCogs = bcsub($cogs, $returnCogs, 2);
+        $netCogs = Money::subtract($cogs, $returnCogs, 2);
 
         // 5. Gross profit = net_sales_after_returns − net_cogs
-        $grossProfit = bcsub($netSalesAfterReturns, $netCogs, 2);
+        $grossProfit = Money::subtract($netSalesAfterReturns, $netCogs, 2);
 
         // 6. Operating expenses in the period
         $expenseData = DB::selectOne(
@@ -113,7 +114,7 @@ class ProfitReportService
         $totalExpenses = (string) ($expenseData->total_expenses ?? '0');
 
         // 7. Net profit
-        $netProfit = bcsub($grossProfit, $totalExpenses, 2);
+        $netProfit = Money::subtract($grossProfit, $totalExpenses, 2);
 
         // 8. Cash received = verified cash/bank/QR payments in period
         //    QR pending/failed do NOT count (rule: only verified)
@@ -138,16 +139,16 @@ class ProfitReportService
         $outstanding = (string) ($outstandingData->outstanding ?? '0');
 
         return [
-            'gross_sales' => number_format((float) $grossSales, 2, '.', ''),
-            'net_sales' => number_format((float) $netSalesAfterReturns, 2, '.', ''),
-            'tax_total' => number_format((float) $taxTotal, 2, '.', ''),
-            'return_total' => number_format((float) $returnTotal, 2, '.', ''),
-            'cogs' => number_format((float) $netCogs, 2, '.', ''),
-            'gross_profit' => number_format((float) $grossProfit, 2, '.', ''),
-            'total_expenses' => number_format((float) $totalExpenses, 2, '.', ''),
-            'net_profit' => number_format((float) $netProfit, 2, '.', ''),
-            'cash_received' => number_format((float) $cashReceived, 2, '.', ''),
-            'outstanding' => number_format((float) $outstanding, 2, '.', ''),
+            'gross_sales' => Money::round($grossSales, 2),
+            'net_sales' => Money::round($netSalesAfterReturns, 2),
+            'tax_total' => Money::round($taxTotal, 2),
+            'return_total' => Money::round($returnTotal, 2),
+            'cogs' => Money::round($netCogs, 2),
+            'gross_profit' => Money::round($grossProfit, 2),
+            'total_expenses' => Money::round($totalExpenses, 2),
+            'net_profit' => Money::round($netProfit, 2),
+            'cash_received' => Money::round($cashReceived, 2),
+            'outstanding' => Money::round($outstanding, 2),
             'sale_count' => $saleCount,
             'period_from' => $from->toIso8601String(),
             'period_to' => $to->toIso8601String(),
@@ -213,7 +214,7 @@ class ProfitReportService
 
         $totalValue = '0.00';
         foreach ($rows as $row) {
-            $totalValue = bcadd($totalValue, (string) $row->value, 2);
+            $totalValue = Money::add($totalValue, (string) $row->value, 2);
         }
 
         return [

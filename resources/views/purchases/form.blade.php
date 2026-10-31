@@ -22,7 +22,7 @@
         <!-- Purchase Header Card -->
         <div class="card shadow-sm border-0 rounded-3 mb-4">
             <div class="card-header bg-white py-3 border-bottom">
-                <h5 class="fw-bold mb-0 text-dark">Order Information</h5>
+                <h5 class="fw-bold mb-0 text-dark">{{ __('ui.order_information') }}</h5>
             </div>
             <div class="card-body p-4">
                 <div class="row g-3">
@@ -74,7 +74,7 @@
 
                     <div class="col-12 col-md-8">
                         <label for="notes" class="form-label fw-semibold">{{ __('purchases.notes') }}</label>
-                        <input type="text" name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror" value="{{ old('notes') }}" placeholder="e.g. Delivered by truck #BA-2-KHA-1234">
+                        <input type="text" name="notes" id="notes" class="form-control @error('notes') is-invalid @enderror" value="{{ old('notes') }}" placeholder="{{ __('purchases.delivery_note_placeholder') }}">
                     </div>
                 </div>
             </div>
@@ -106,7 +106,7 @@
                             <tr class="item-row">
                                 <td class="ps-3">
                                     <select name="items[0][product_id]" class="form-select product-select" required>
-                                        <option value="">{{ __('products.select_category') }} / Product</option>
+                                        <option value="">{{ __('purchases.select_product') }}</option>
                                         @foreach($products as $p)
                                             <option value="{{ $p->id }}" data-cost="{{ $p->cost_price }}" data-symbol="{{ $p->unit?->symbol }}">
                                                 {{ $p->name }} ({{ $p->unit?->symbol }})
@@ -119,18 +119,18 @@
                                 </td>
                                 <td>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light small">Rs.</span>
+                                        <span class="input-group-text bg-light small">{{ __('ui.currency_symbol') }}</span>
                                         <input type="number" step="0.01" min="0" name="items[0][unit_cost]" class="form-control cost-input" value="0.00" required>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light small">Rs.</span>
+                                        <span class="input-group-text bg-light small">{{ __('ui.currency_symbol') }}</span>
                                         <input type="number" step="0.01" min="0" name="items[0][discount]" class="form-control discount-input" value="0.00">
                                     </div>
                                 </td>
                                 <td class="text-end fw-bold line-total-text">
-                                    Rs. 0.00
+                                    {{ __('ui.currency_symbol') }} 0.00
                                 </td>
                                 <td class="text-center pe-3">
                                     <button type="button" class="btn btn-outline-danger btn-sm remove-row-btn" disabled>
@@ -148,15 +148,15 @@
                         <div class="col-12 col-md-5">
                             <div class="d-flex justify-content-between mb-1">
                                 <span class="text-muted">{{ __('purchases.subtotal') }}:</span>
-                                <span class="fw-semibold text-dark" id="summarySubtotal">Rs. 0.00</span>
+                                <span class="fw-semibold text-dark" id="summarySubtotal">{{ __('ui.currency_symbol') }} 0.00</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">{{ __('purchases.discount') }}:</span>
-                                <span class="text-danger" id="summaryDiscount">- Rs. 0.00</span>
+                                <span class="text-danger" id="summaryDiscount">- {{ __('ui.currency_symbol') }} 0.00</span>
                             </div>
                             <div class="d-flex justify-content-between border-top pt-2">
                                 <span class="fw-bold fs-5 text-dark">{{ __('purchases.grand_total') }}:</span>
-                                <span class="fw-bold fs-5 text-success" id="summaryGrandTotal">Rs. 0.00</span>
+                                <span class="fw-bold fs-5 text-success" id="summaryGrandTotal">{{ __('ui.currency_symbol') }} 0.00</span>
                             </div>
                         </div>
                     </div>
@@ -167,7 +167,7 @@
         <div class="d-flex justify-content-end gap-2 mb-4">
             <a href="{{ route('purchases.index') }}" class="btn btn-outline-secondary">{{ __('common.cancel') }}</a>
             <button type="submit" class="btn btn-primary px-4 py-2">
-                <i class="bi bi-check-circle me-1"></i>Save Purchase Draft
+                <i class="bi bi-check-circle me-1"></i>{{ __('purchases.save_purchase_draft') }}
             </button>
         </div>
     </form>
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const disc = parseFloat(row.querySelector('.discount-input').value) || 0;
 
             const lineTotal = Math.max(0, (qty * cost) - disc);
-            row.querySelector('.line-total-text').textContent = 'Rs. ' + lineTotal.toFixed(2);
+            row.querySelector('.line-total-text').textContent = @json(__('ui.currency_symbol')) + ' ' + lineTotal.toFixed(2);
 
             subtotal += (qty * cost);
             discountTotal += disc;
@@ -197,9 +197,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const grandTotal = Math.max(0, subtotal - discountTotal);
 
-        document.getElementById('summarySubtotal').textContent = 'Rs. ' + subtotal.toFixed(2);
-        document.getElementById('summaryDiscount').textContent = '- Rs. ' + discountTotal.toFixed(2);
-        document.getElementById('summaryGrandTotal').textContent = 'Rs. ' + grandTotal.toFixed(2);
+        document.getElementById('summarySubtotal').textContent = @json(__('ui.currency_symbol')) + ' ' + subtotal.toFixed(2);
+        document.getElementById('summaryDiscount').textContent = '- ' + @json(__('ui.currency_symbol')) + ' ' + discountTotal.toFixed(2);
+        document.getElementById('summaryGrandTotal').textContent = @json(__('ui.currency_symbol')) + ' ' + grandTotal.toFixed(2);
     }
 
     function attachRowListeners(row) {
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
         newRow.querySelector('.cost-input').value = '0.00';
         newRow.querySelector('.discount-input').name = `items[${rowIndex}][discount]`;
         newRow.querySelector('.discount-input').value = '0.00';
-        newRow.querySelector('.line-total-text').textContent = 'Rs. 0.00';
+        newRow.querySelector('.line-total-text').textContent = @json(__('ui.currency_symbol')) + ' 0.00';
 
         itemsBody.appendChild(newRow);
         attachRowListeners(newRow);
@@ -261,3 +261,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

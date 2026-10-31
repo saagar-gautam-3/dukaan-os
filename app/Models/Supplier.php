@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Support\Money;
 use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Database\Factories\SupplierFactory;
@@ -55,6 +56,6 @@ class Supplier extends Model
         $debit = $this->ledgerEntries()->sum('debit');
         $credit = $this->ledgerEntries()->sum('credit');
 
-        return bcsub((string) $debit, (string) $credit, 2);
+        return Money::subtract((string) $debit, (string) $credit, 2);
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'title' => 'Udhar Khata',
+    'reference_placeholder' => 'Optional receipt number, transaction reference, or note',
     'subtitle' => 'Customer credit ledgers, collections, and ageing analysis',
     'outstanding' => 'Outstanding Balances',
     'ageing' => 'Ageing Report',

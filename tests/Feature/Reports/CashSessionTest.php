@@ -8,6 +8,7 @@ use App\Actions\Cash\CloseCashSession;
 use App\Actions\Cash\OpenCashSession;
 use App\Actions\Cash\RecordCashMovement;
 use App\Enums\CashMovementType;
+use App\Models\AuditLog;
 use App\Models\CashSession;
 use App\Models\Shop;
 use App\Models\ShopUser;
@@ -121,13 +122,22 @@ final class CashSessionTest extends TestCase
         $session = app(OpenCashSession::class)->handle($this->user->id, ['opening_cash' => '5000.00']);
 
         // Record cash in movement: Rs 2000 (sale)
-        app(RecordCashMovement::class)->handle($this->shop->id, $this->user->id, [
+        $movement = app(RecordCashMovement::class)->handle($this->shop->id, $this->user->id, [
             'type' => CashMovementType::SaleCash->value,
             'amount' => '2000.00',
             'reference_type' => 'payment',
             'reference_id' => 1,
             'notes' => 'Sale cash',
         ]);
+        $movementAudit = AuditLog::query()
+            ->where('auditable_type', $movement->getMorphClass())
+            ->where('auditable_id', $movement->id)
+            ->where('event', 'recorded')
+            ->firstOrFail();
+        $this->assertSame($this->shop->id, $movementAudit->shop_id);
+        $this->assertSame($this->user->id, $movementAudit->user_id);
+        $this->assertNull($movementAudit->old_values);
+        $this->assertSame('2000.00', $movementAudit->new_values['amount']);
 
         // Record cash in movement: Rs 500 (other)
         app(RecordCashMovement::class)->handle($this->shop->id, $this->user->id, [
@@ -158,6 +168,16 @@ final class CashSessionTest extends TestCase
         $this->assertSame('7500.00', (string) $closed->closing_cash, 'Closing must be 7500');
         $this->assertSame('300.00', (string) $closed->difference, 'Difference must be +300 (overage)');
         $this->assertFalse($closed->isOpen(), 'Session must be closed');
+        $closeAudit = AuditLog::query()
+            ->where('auditable_type', $closed->getMorphClass())
+            ->where('auditable_id', $closed->id)
+            ->where('event', 'closed')
+            ->firstOrFail();
+        $this->assertSame($this->shop->id, $closeAudit->shop_id);
+        $this->assertSame($this->user->id, $closeAudit->user_id);
+        $this->assertSame('open', $closeAudit->old_values['status']);
+        $this->assertSame('closed', $closeAudit->new_values['status']);
+        $this->assertSame('300.00', $closeAudit->new_values['difference']);
     }
 
     /**
@@ -242,5 +262,15 @@ final class CashSessionTest extends TestCase
 
         $this->assertNotNull($session);
         $this->assertSame('0.00', (string) $session->opening_cash);
+
+        $audit = AuditLog::query()
+            ->where('auditable_type', $session->getMorphClass())
+            ->where('auditable_id', $session->id)
+            ->where('event', 'opened')
+            ->firstOrFail();
+        $this->assertSame($this->shop->id, $audit->shop_id);
+        $this->assertSame($this->user->id, $audit->user_id);
+        $this->assertNull($audit->old_values);
+        $this->assertSame('0.00', $audit->new_values['opening_cash']);
     }
 }

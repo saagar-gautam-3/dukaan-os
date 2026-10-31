@@ -9,14 +9,14 @@ use App\Support\NepaliPhone;
 use Carbon\CarbonInterface;
 
 if (! function_exists('format_npr')) {
-    function format_npr(float|int|string|null $amount, ?string $locale = null, bool $withSymbol = true): string
+    function format_npr(int|string|null $amount, ?string $locale = null, bool $withSymbol = true): string
     {
         return NepaliNumber::formatNpr($amount, $locale, $withSymbol);
     }
 }
 
 if (! function_exists('to_devanagari')) {
-    function to_devanagari(string|int|float $value): string
+    function to_devanagari(string|int $value): string
     {
         return NepaliNumber::toDevanagari($value);
     }
@@ -51,7 +51,7 @@ if (! function_exists('nepal_fiscal_year')) {
 }
 
 if (! function_exists('format_quantity')) {
-    function format_quantity(float|int|string|null $quantity, bool|int $isFractional = false, ?string $locale = null): string
+    function format_quantity(int|string|null $quantity, bool|int $isFractional = false, ?string $locale = null): string
     {
         return NepaliNumber::formatQuantity($quantity, $isFractional, $locale);
     }

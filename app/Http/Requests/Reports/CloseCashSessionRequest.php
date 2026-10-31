@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Reports;
 
+use App\Models\CashSession;
 use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,7 +14,9 @@ class CloseCashSessionRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true;
+        $cashSession = $this->route('cashSession');
+
+        return $cashSession instanceof CashSession && ($this->user()?->can('close', $cashSession) ?? false);
     }
 
     public function rules(): array

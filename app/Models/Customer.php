@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\SaleStatus;
+use App\Support\Money;
 use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -64,7 +65,7 @@ class Customer extends Model
         $debit = $this->ledgerEntries()->sum('debit');
         $credit = $this->ledgerEntries()->sum('credit');
 
-        return bcsub((string) $debit, (string) $credit, 2);
+        return Money::subtract((string) $debit, (string) $credit, 2);
     }
 
     /**
@@ -73,7 +74,7 @@ class Customer extends Model
     public function getBalanceAttribute(): string
     {
         if (array_key_exists('total_debit', $this->attributes) || array_key_exists('total_credit', $this->attributes)) {
-            return bcsub((string) ($this->attributes['total_debit'] ?? '0'), (string) ($this->attributes['total_credit'] ?? '0'), 2);
+            return Money::subtract((string) ($this->attributes['total_debit'] ?? '0'), (string) ($this->attributes['total_credit'] ?? '0'), 2);
         }
 
         return $this->ledgerBalance();
@@ -106,7 +107,7 @@ class Customer extends Model
             ->where('status', 'verified')
             ->sum('amount');
 
-        return bcsub((string) $totalSales, (string) $totalPaid, 2);
+        return Money::subtract((string) $totalSales, (string) $totalPaid, 2);
     }
 
     /**
@@ -115,13 +116,13 @@ class Customer extends Model
      */
     public function creditLimitHeadroom(): ?string
     {
-        if (! $this->credit_limit || bccomp((string) $this->credit_limit, '0', 2) <= 0) {
+        if (! $this->credit_limit || Money::compare((string) $this->credit_limit, '0', 2) <= 0) {
             return null;
         }
 
         $balance = $this->ledgerBalance();
 
-        return bcsub((string) $this->credit_limit, $balance, 2);
+        return Money::subtract((string) $this->credit_limit, $balance, 2);
     }
 
     /**
@@ -129,12 +130,12 @@ class Customer extends Model
      */
     public function wouldExceedCreditLimit(string $additionalCredit): bool
     {
-        if (! $this->credit_limit || bccomp((string) $this->credit_limit, '0', 2) <= 0) {
+        if (! $this->credit_limit || Money::compare((string) $this->credit_limit, '0', 2) <= 0) {
             return false;
         }
 
-        $newBalance = bcadd($this->ledgerBalance(), $additionalCredit, 2);
+        $newBalance = Money::add($this->ledgerBalance(), $additionalCredit, 2);
 
-        return bccomp($newBalance, (string) $this->credit_limit, 2) > 0;
+        return Money::compare($newBalance, (string) $this->credit_limit, 2) > 0;
     }
 }

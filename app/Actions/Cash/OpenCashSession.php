@@ -8,6 +8,8 @@ use App\Enums\CashMovementType;
 use App\Enums\CashSessionStatus;
 use App\Models\CashMovement;
 use App\Models\CashSession;
+use App\Support\AuditTrail;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -27,7 +29,7 @@ class OpenCashSession
         $branchId = ! empty($data['branch_id']) ? (int) $data['branch_id'] : null;
         $openingCash = (string) ($data['opening_cash'] ?? '0.00');
 
-        if (bccomp($openingCash, '0', 2) < 0) {
+        if (Money::compare($openingCash, '0', 2) < 0) {
             throw new InvalidArgumentException(__('cash.invalid_opening_amount'));
         }
 
@@ -64,6 +66,13 @@ class OpenCashSession
                 'reference_id' => $session->id,
                 'notes' => 'Opening Cash',
                 'created_by' => $userId,
+            ]);
+
+            AuditTrail::record($session, $userId, 'opened', null, [
+                'status' => $session->status->value,
+                'opening_cash' => $session->opening_cash,
+                'branch_id' => $session->branch_id,
+                'opened_at' => $session->opened_at?->toISOString(),
             ]);
 
             return $session;

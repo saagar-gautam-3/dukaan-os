@@ -22,4 +22,12 @@ return [
     'updated_success' => 'Supplier updated successfully.',
     'deleted_success' => 'Supplier deleted successfully.',
     'no_suppliers_found' => 'No suppliers found.',
+    'name_placeholder' => 'e.g. Distributor or company name',
+    'contact_placeholder' => 'e.g. Contact person name',
+    'phone_placeholder' => 'e.g. 9841234567',
+    'email_placeholder' => 'supplier@example.com',
+    'pan_placeholder' => '9-digit PAN number',
+    'address_placeholder' => 'e.g. Market area, Kathmandu',
+    'confirm_delete' => 'Delete supplier :name?',
+    'supplier' => 'Supplier',
 ];

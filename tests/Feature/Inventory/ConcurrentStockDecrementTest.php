@@ -14,7 +14,9 @@ use App\Models\Unit;
 use App\Models\Warehouse;
 use App\Tenancy\TenantContext;
 use Symfony\Component\Process\Process;
-use Tests\TestCase;class ConcurrentStockDecrementTest extends TestCase
+use Tests\TestCase;
+
+class ConcurrentStockDecrementTest extends TestCase
 {
     protected ?Shop $testShop = null;
 
@@ -59,8 +61,8 @@ use Tests\TestCase;class ConcurrentStockDecrementTest extends TestCase
         app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $warehouse,
-            quantity: 5.000,
-            unitCost: 20.00,
+            quantity: '5.000',
+            unitCost: '20.00',
             notes: 'Test initial stock'
         );
 

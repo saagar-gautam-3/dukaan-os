@@ -30,13 +30,13 @@
         <div class="card border-0 shadow-sm mb-4">
             <div class="card-header bg-white border-bottom p-3">
                 <h5 class="mb-0 fw-bold">{{ __('sales.return_items') }}</h5>
-                <small class="text-muted">Enter return quantity for items to be returned. Unchanged items with 0 quantity will be skipped.</small>
+                <small class="text-muted">{{ __('ui.return_instructions') }}</small>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Item</th>
+                            <th>{{ __('sales.item_col') }}</th>
                             <th class="text-center">{{ __('sales.sold_qty') }}</th>
                             <th class="text-center">{{ __('sales.already_returned') }}</th>
                             <th class="text-end">{{ __('sales.unit_price_col') }}</th>
@@ -46,13 +46,13 @@
                     <tbody>
                         @foreach($sale->items as $idx => $item)
                         @php
-                            $alreadyReturned = (float) $item->saleReturnItems()->sum('quantity');
-                            $maxReturnable = (float) $item->quantity - $alreadyReturned;
+                            $alreadyReturned = (string) $item->saleReturnItems()->sum('quantity');
+                            $maxReturnable = \App\Support\Money::subtract((string) $item->quantity, $alreadyReturned, 3);
                         @endphp
                         <tr>
                             <td>
                                 <div class="fw-semibold">{{ $item->product->name }}</div>
-                                <small class="text-muted">SKU: {{ $item->product->sku }}</small>
+                                <small class="text-muted">{{ __('ui.sku_label') }} {{ $item->product->sku }}</small>
                                 <input type="hidden" name="items[{{ $idx }}][sale_item_id]" value="{{ $item->id }}">
                             </td>
                             <td class="text-center">@qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}</td>
@@ -83,7 +83,7 @@
             <div class="card-body p-3">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">{{ __('sales.return_reason') }}</label>
-                    <textarea name="reason" class="form-control" rows="3" placeholder="Defective product, customer change of mind, expired, etc."></textarea>
+                    <textarea name="reason" class="form-control" rows="3" placeholder="{{ __('sales.return_reason_placeholder') }}"></textarea>
                 </div>
 
                 <div class="d-flex justify-content-end gap-2">

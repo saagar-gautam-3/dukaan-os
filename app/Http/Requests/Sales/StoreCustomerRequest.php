@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Sales;
 
+use App\Models\Customer;
 use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,7 +14,7 @@ class StoreCustomerRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('create', Customer::class) ?? false;
     }
 
     public function rules(): array

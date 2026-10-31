@@ -12,7 +12,7 @@
             </a>
             <div>
                 <div class="d-flex align-items-center gap-2">
-                    <h1 class="h3 fw-bold mb-0">{{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</h1>
+                    <h1 class="h3 fw-bold mb-0">{{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}</h1>
                     @if($sale->isPosted())
                         <span class="badge bg-success-subtle text-success border border-success-subtle">{{ __('sales.status_posted') }}</span>
                     @elseif($sale->isDraft())
@@ -74,7 +74,7 @@
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th>Item</th>
+                                <th>{{ __('sales.item_col') }}</th>
                                 <th class="text-center">{{ __('sales.qty') }}</th>
                                 <th class="text-end">{{ __('sales.price') }}</th>
                                 @can('reports.view')
@@ -89,7 +89,7 @@
                             <tr>
                                 <td>
                                     <div class="fw-semibold">{{ $item->product->name }}</div>
-                                    <small class="text-muted">SKU: {{ $item->product->sku }}</small>
+                                    <small class="text-muted">{{ __('ui.sku_label') }} {{ $item->product->sku }}</small>
                                 </td>
                                 <td class="text-center fw-semibold">
                                     @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}
@@ -200,13 +200,13 @@
                         <span>{{ __('sales.subtotal') }}:</span>
                         <span>@npr($sale->subtotal)</span>
                     </div>
-                    @if((float) $sale->discount_total > 0)
+                    @if(\App\Support\Money::compare((string) $sale->discount_total, '0', 2) > 0)
                     <div class="d-flex justify-content-between mb-2 text-danger">
                         <span>{{ __('sales.discount') }}:</span>
                         <span>-@npr($sale->discount_total)</span>
                     </div>
                     @endif
-                    @if((float) $sale->tax_total > 0)
+                    @if(\App\Support\Money::compare((string) $sale->tax_total, '0', 2) > 0)
                     <div class="d-flex justify-content-between mb-2 text-muted">
                         <span>{{ __('sales.tax') }}:</span>
                         <span>+@npr($sale->tax_total)</span>
@@ -222,7 +222,7 @@
                             <span>{{ __('sales.paid') }}:</span>
                             <span>@npr($sale->paid_total)</span>
                         </div>
-                        <div class="d-flex justify-content-between fw-bold {{ (float) $sale->dueAmount() > 0 ? 'text-danger' : 'text-muted' }}">
+                        <div class="d-flex justify-content-between fw-bold {{ \App\Support\Money::compare((string) $sale->dueAmount(), '0', 2) > 0 ? 'text-danger' : 'text-muted' }}">
                             <span>{{ __('sales.due') }}:</span>
                             <span>@npr($sale->dueAmount())</span>
                         </div>
@@ -282,7 +282,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ __('sales.amount_paid') }}</label>
                         <div class="input-group">
-                            <span class="input-group-text">Rs.</span>
+                            <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                             <input type="number" name="payment_amount" step="0.01" min="0" class="form-control" value="{{ $sale->grand_total }}">
                         </div>
                         <small class="text-muted">{{ __('sales.total_payable') }} @npr($sale->grand_total)</small>

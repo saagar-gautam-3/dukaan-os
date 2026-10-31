@@ -8,6 +8,7 @@ use App\Enums\LedgerEntryType;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Shop;
+use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,9 +23,12 @@ final class CustomerLedgerEntryFactory extends Factory
      */
     public function definition(): array
     {
+        $shop = Shop::factory()->create();
+        $customer = TenantContext::runAs($shop, fn () => Customer::factory()->create(['shop_id' => $shop->id]));
+
         return [
-            'shop_id' => Shop::factory(),
-            'customer_id' => Customer::factory(),
+            'shop_id' => $shop->id,
+            'customer_id' => $customer->id,
             'entry_type' => LedgerEntryType::ManualDebit->value,
             'reference_type' => null,
             'reference_id' => null,

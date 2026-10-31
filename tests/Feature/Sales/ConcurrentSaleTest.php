@@ -8,7 +8,6 @@ use App\Actions\Inventory\ReceiveStock;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Sale;
-use App\Models\SaleItem;
 use App\Models\Shop;
 use App\Models\ShopUser;
 use App\Models\StockBalance;
@@ -78,8 +77,8 @@ class ConcurrentSaleTest extends TestCase
         app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $warehouse,
-            quantity: 5.000,
-            unitCost: 100.00,
+            quantity: '5.000',
+            unitCost: '100.00',
             notes: 'Concurrency test initial stock'
         );
 

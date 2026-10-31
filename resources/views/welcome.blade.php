@@ -11,15 +11,15 @@
         <h1 class="display-5 fw-bold mb-2" style="color: #1a3a5c;">
             <i class="bi bi-shop me-2"></i>Dukaan OS
         </h1>
-        <p class="text-muted mb-4">Multi-tenant SaaS for Nepali shops &mdash; Laravel {{ app()->version() }}</p>
+        <p class="text-muted mb-4">{{ __('ui.welcome_description') }}</p>
         @if (Route::has('login'))
             <div class="d-flex gap-3 justify-content-center">
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="btn btn-primary">Dashboard</a>
+                    <a href="{{ url('/dashboard') }}" class="btn btn-primary">{{ __('ui.dashboard') }}</a>
                 @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-primary">Log in</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-primary">{{ __('ui.login') }}</a>
                     @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn btn-primary">Register</a>
+                        <a href="{{ route('register') }}" class="btn btn-primary">{{ __('ui.register') }}</a>
                     @endif
                 @endauth
             </div>

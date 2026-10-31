@@ -7,7 +7,7 @@
     <div class="card-body p-4 p-md-5">
         <h4 class="card-title fw-bold text-center mb-3">{{ __('auth.forgot_password_title') }}</h4>
         <p class="text-muted text-center small mb-4">
-            Forgot your password? No problem. Enter your email and we'll send you a password reset link.
+            {{ __('ui.forgot_password_help') }}
         </p>
 
         <form method="POST" action="{{ route('password.email') }}">
@@ -33,7 +33,7 @@
     </div>
     <div class="card-footer bg-white border-0 text-center pb-4 pt-0">
         <a href="{{ route('login') }}" class="text-decoration-none small">
-            <i class="bi bi-arrow-left me-1"></i>{{ __('common.back') }} to {{ __('auth.login_button') }}
+            <i class="bi bi-arrow-left me-1"></i>{{ __('ui.back_to_login', ['login' => __('auth.login_button')]) }}
         </a>
     </div>
 </div>

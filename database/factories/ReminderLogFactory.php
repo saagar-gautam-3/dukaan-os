@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Models\Customer;
 use App\Models\ReminderLog;
 use App\Models\Shop;
+use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,9 +22,12 @@ final class ReminderLogFactory extends Factory
      */
     public function definition(): array
     {
+        $shop = Shop::factory()->create();
+        $customer = TenantContext::runAs($shop, fn () => Customer::factory()->create(['shop_id' => $shop->id]));
+
         return [
-            'shop_id' => Shop::factory(),
-            'customer_id' => Customer::factory(),
+            'shop_id' => $shop->id,
+            'customer_id' => $customer->id,
             'channel' => 'stub',
             'phone_masked' => '98XXXXXX10',
             'message_preview' => 'Test reminder preview',

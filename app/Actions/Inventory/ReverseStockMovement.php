@@ -7,6 +7,7 @@ namespace App\Actions\Inventory;
 use App\Enums\MovementType;
 use App\Models\StockBalance;
 use App\Models\StockMovement;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -38,10 +39,10 @@ class ReverseStockMovement
 
             // Reverse the quantity: if original was +10, reverse is -10; if original was -5, reverse is +5
             $originalQty = (string) $originalMovement->quantity;
-            $reversalQty = bcmul($originalQty, '-1', 3);
+            $reversalQty = Money::multiply($originalQty, '-1', 3);
 
-            $newBalance = bcadd((string) $balance->quantity, $reversalQty, 3);
-            if (! $allowNegativeStock && bccomp($newBalance, '0', 3) < 0) {
+            $newBalance = Money::add((string) $balance->quantity, $reversalQty, 3);
+            if (! $allowNegativeStock && Money::compare($newBalance, '0', 3) < 0) {
                 throw new InvalidArgumentException('Reversal would result in negative stock, which is not permitted.');
             }
 
