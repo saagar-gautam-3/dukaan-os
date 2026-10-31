@@ -18,8 +18,13 @@ class CashMovementFactory extends Factory
 
     public function definition(): array
     {
-        $shop = Shop::factory()->create();
-        $session = TenantContext::runAs($shop, fn () => CashSession::factory()->create(['shop_id' => $shop->id]));
+        if (TenantContext::has()) {
+            $shop = TenantContext::shop();
+            $session = CashSession::factory()->create(['shop_id' => $shop->id]);
+        } else {
+            $shop = Shop::factory()->create();
+            $session = TenantContext::runAs($shop, fn () => CashSession::factory()->create(['shop_id' => $shop->id]));
+        }
 
         return [
             'shop_id' => $shop->id,

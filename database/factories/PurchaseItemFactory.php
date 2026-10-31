@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
 use App\Models\Shop;
+use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,10 +25,14 @@ class PurchaseItemFactory extends Factory
      */
     public function definition(): array
     {
+        $shop = Shop::factory()->create();
+        $purchase = TenantContext::runAs($shop, fn () => Purchase::factory()->create(['shop_id' => $shop->id]));
+        $product = TenantContext::runAs($shop, fn () => Product::factory()->create(['shop_id' => $shop->id]));
+
         return [
-            'shop_id' => Shop::factory(),
-            'purchase_id' => Purchase::factory(),
-            'product_id' => Product::factory(),
+            'shop_id' => $shop->id,
+            'purchase_id' => $purchase->id,
+            'product_id' => $product->id,
             'quantity' => 10.000,
             'unit_cost' => 100.00,
             'discount' => 0.00,
