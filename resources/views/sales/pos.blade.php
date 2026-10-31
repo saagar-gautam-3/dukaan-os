@@ -151,6 +151,11 @@
                             </div>
                         </div>
                     </form>
+                    <div id="posNetworkError" class="alert alert-danger mt-2 d-none" role="alert" aria-live="assertive">
+                        <div>{{ __('ui.sale_network_failed') }}</div>
+                        <small>{{ __('ui.sale_retry_help') }}</small>
+                        <button type="button" id="retrySaleBtn" class="btn btn-sm btn-outline-danger mt-2">{{ __('ui.retry_sale') }}</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -193,6 +198,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const formItemsContainer = document.getElementById('formItemsContainer');
     const saveDraftBtn = document.getElementById('saveDraftBtn');
     const postSaleBtn = document.getElementById('postSaleBtn');
+    const retrySaleBtn = document.getElementById('retrySaleBtn');
+    const posNetworkError = document.getElementById('posNetworkError');
 
     let cart = []; // { product_id, name, unit, price, quantity, max_stock }
     let searchDebounce = null;
@@ -585,11 +592,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Submit logic
-    function submitOrder(postImmediately) {
+    let pendingPostImmediately = true;
+
+    async function submitOrder(postImmediately) {
         if (cart.length === 0) {
-            alert('Please add at least one item to the cart.');
+            alert(@json(__('sales.cart_empty_alert')));
             return;
         }
+
+        pendingPostImmediately = postImmediately;
+        posNetworkError.classList.add('d-none');
 
         formCustomerId.value = selectedCustomerId.value;
         formPaymentMethod.value = paymentMethodSelect.value;
@@ -605,11 +617,34 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
         });
 
-        posSaleForm.submit();
+        formIdempotencyKey.value = getOrCreateIdempotencyKey();
+        const buttons = [postSaleBtn, saveDraftBtn, retrySaleBtn];
+        buttons.forEach(button => { button.disabled = true; });
+
+        try {
+            const response = await fetch(posSaleForm.action, {
+                method: 'POST',
+                body: new FormData(posSaleForm),
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
+            });
+            const result = await response.json();
+            if (!response.ok || !result.redirect) {
+                throw new Error(result.message || @json(__('ui.sale_network_failed')));
+            }
+
+            clearIdempotencyStorage();
+            window.location.assign(result.redirect);
+        } catch (error) {
+            posNetworkError.classList.remove('d-none');
+        } finally {
+            buttons.forEach(button => { button.disabled = false; });
+        }
     }
 
     postSaleBtn.addEventListener('click', () => submitOrder(true));
     saveDraftBtn.addEventListener('click', () => submitOrder(false));
+    retrySaleBtn.addEventListener('click', () => submitOrder(pendingPostImmediately));
 });
 </script>
 @endpush

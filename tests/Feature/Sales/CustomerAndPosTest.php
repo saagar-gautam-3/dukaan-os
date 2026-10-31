@@ -9,6 +9,9 @@ use App\Actions\Sales\CreateSale;
 use App\Actions\Sales\PostSale;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\CustomerLedgerEntry;
+use App\Models\Payment;
+use App\Models\PaymentAllocation;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\Shop;
@@ -208,6 +211,44 @@ class CustomerAndPosTest extends TestCase
         $this->assertEquals('100.00', $sale->paid_total);
     }
 
+    public function test_pos_duplicate_submission_with_same_idempotency_key_creates_one_sale_and_ledger_set(): void
+    {
+        $product = Product::factory()->create([
+            'shop_id' => $this->shop->id,
+            'category_id' => $this->category->id,
+            'unit_id' => $this->unit->id,
+            'name' => 'Rice',
+            'selling_price' => '50.00',
+            'track_stock' => false,
+        ]);
+        $customer = Customer::factory()->create(['shop_id' => $this->shop->id]);
+        $payload = [
+            'warehouse_id' => $this->warehouse->id,
+            'customer_id' => $customer->id,
+            'idempotency_key' => 'same-pos-request-key-001',
+            'post_immediately' => '1',
+            'payment_method' => 'cash',
+            'payment_amount' => '50.00',
+            'items' => [[
+                'product_id' => $product->id,
+                'quantity' => '1.000',
+                'unit_price' => '50.00',
+            ]],
+        ];
+
+        foreach ([1, 2] as $submission) {
+            $response = $this->actingAs($this->cashier)
+                ->withSession(['current_shop_id' => $this->shop->id])
+                ->postJson('/sales', $payload);
+            $response->assertOk()->assertJsonStructure(['sale_id', 'redirect']);
+        }
+
+        $this->assertSame(1, Sale::count());
+        $this->assertSame(1, Payment::count());
+        $this->assertSame(1, PaymentAllocation::count());
+        $this->assertSame(2, CustomerLedgerEntry::count());
+    }
+
     public function test_invoice_and_thermal_views_render(): void
     {
         $product = Product::factory()->create([
@@ -243,6 +284,8 @@ class CustomerAndPosTest extends TestCase
         $resA4->assertStatus(200);
         $resA4->assertSee($posted->invoice_no);
         $resA4->assertSee('Juice');
+        $resA4->assertSee('धन्यवाद');
+        $resA4->assertSee('/build/assets/print-');
 
         // Thermal 80mm view
         $resThermal = $this->actingAs($this->cashier)
@@ -252,6 +295,9 @@ class CustomerAndPosTest extends TestCase
         $resThermal->assertStatus(200);
         $resThermal->assertSee($posted->invoice_no);
         $resThermal->assertSee('80mm');
+        $resThermal->assertSee('धन्यवाद');
+        $resThermal->assertSee('/build/assets/print-');
+        $resThermal->assertDontSee('fonts.googleapis.com');
     }
 
     public function test_customer_crud_flow(): void

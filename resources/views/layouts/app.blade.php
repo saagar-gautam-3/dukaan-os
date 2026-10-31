@@ -7,6 +7,13 @@
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
 <body>
+    <div id="network-status" class="alert alert-warning rounded-0 mb-0 d-none" role="status"
+         data-offline="{{ __('ui.offline_message') }}"
+         data-online="{{ __('ui.online_message') }}"
+         data-slow="{{ __('ui.slow_network_message') }}"></div>
+    <script>
+        window.appMessages = { submitting: @json(__('ui.submitting')) };
+    </script>
     <div class="app-layout">
         @include('layouts.partials.sidebar')
 
