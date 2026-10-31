@@ -49,6 +49,9 @@ final class BladeHardcodedEnglishStringsTest extends TestCase
     public function test_every_blade_visible_text_allowlist_entry_has_a_reason(): void
     {
         $allowlist = require base_path('tests/Support/blade-visible-text-allowlist.php');
+        $entryCount = array_sum(array_map('count', $allowlist));
+
+        $this->assertGreaterThan(0, $entryCount, 'The allowlist reason test must inspect at least one justified token.');
 
         foreach ($allowlist as $path => $fragments) {
             $this->assertIsArray($fragments, "Allowlist entries for {$path} must map exact text to reasons.");
@@ -71,6 +74,18 @@ final class BladeHardcodedEnglishStringsTest extends TestCase
         foreach ($attributeMatches[2] ?? [] as $attribute) {
             if (! preg_match('/\{\{|\{!!|<\?php|\$[A-Za-z_]/', $attribute)) {
                 $fragments[] = trim(html_entity_decode($attribute, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+            }
+        }
+
+        preg_match_all('/<input\b([^>]*)>/is', $blade, $inputMatches);
+        foreach ($inputMatches[1] ?? [] as $attributes) {
+            if (preg_match('/\btype\s*=\s*(["\'])hidden\1/i', $attributes)) {
+                continue;
+            }
+
+            if (preg_match('/\bvalue\s*=\s*(["\'])(.*?)\1/is', $attributes, $valueMatch)
+                && ! preg_match('/\{\{|\{!!|<\?php|\$[A-Za-z_]/', $valueMatch[2])) {
+                $fragments[] = trim(html_entity_decode($valueMatch[2], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
             }
         }
 
