@@ -16,6 +16,8 @@ use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Services\DocumentSequenceService;
+use App\Support\AuditTrail;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -66,16 +68,16 @@ class ReturnSale
 
                 // Validate return quantity doesn't exceed original
                 $alreadyReturned = $originalItem->saleReturnItems()->sum('quantity');
-                $maxReturnable = bcsub((string) $originalItem->quantity, (string) $alreadyReturned, 3);
+                $maxReturnable = Money::subtract((string) $originalItem->quantity, (string) $alreadyReturned, 3);
 
-                if (bccomp($returnQty, $maxReturnable, 3) > 0) {
+                if (Money::compare($returnQty, $maxReturnable, 3) > 0) {
                     throw InvalidReturnException::exceedsQuantity($returnQty, $maxReturnable, $saleItemId);
                 }
 
                 $unitCost = (string) $originalItem->unit_cost; // COGS snapshot from original sale
-                $refundAmount = bcmul((string) $originalItem->unit_price, $returnQty, 2);
+                $refundAmount = Money::multiply((string) $originalItem->unit_price, $returnQty, 2);
 
-                $returnTotal = bcadd($returnTotal, $refundAmount, 2);
+                $returnTotal = Money::add($returnTotal, $refundAmount, 2);
 
                 $itemsToCreate[] = [
                     'sale_item_id' => $saleItemId,
@@ -94,7 +96,7 @@ class ReturnSale
                         ->first();
 
                     if ($balance) {
-                        $balance->quantity = bcadd((string) $balance->quantity, $returnQty, 3);
+                        $balance->quantity = Money::add((string) $balance->quantity, $returnQty, 3);
                         $balance->save();
                     }
 
@@ -136,7 +138,7 @@ class ReturnSale
             $saleReturn->items()->createMany($itemsToCreate);
 
             // Write ledger credit for the return amount if sale has a customer
-            if ($sale->customer_id !== null && bccomp($returnTotal, '0', 2) > 0) {
+            if ($sale->customer_id !== null && Money::compare($returnTotal, '0', 2) > 0) {
                 $customer = $sale->customer;
                 if ($customer) {
                     $this->addLedgerEntry->handle($customer, [
@@ -150,7 +152,21 @@ class ReturnSale
                 }
             }
 
-            return $saleReturn->load('items.saleItem');
+            $saleReturn->load('items.saleItem');
+            AuditTrail::record($saleReturn, $processedById, 'returned', [
+                'sale_id' => $sale->id,
+                'sale_status' => $sale->status->value,
+            ], [
+                'return_no' => $saleReturn->return_no,
+                'status' => $saleReturn->status->value,
+                'total' => $saleReturn->total,
+                'reason' => $saleReturn->reason,
+                'items' => $saleReturn->items->map(fn ($item): array => $item->only([
+                    'sale_item_id', 'quantity', 'unit_cost', 'refund_amount',
+                ]))->all(),
+            ]);
+
+            return $saleReturn;
         });
     }
 

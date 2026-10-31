@@ -92,8 +92,8 @@
                         <tbody>
                             @foreach($products as $product)
                             @php
-                                $stock = (float) $product->stockBalances->sum('quantity');
-                                $isLowStock = (float) $product->min_stock_alert > 0 && $stock <= (float) $product->min_stock_alert;
+                                $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
+                                $isLowStock = \App\Support\Money::compare((string) $product->min_stock_alert, '0', 3) > 0 && \App\Support\Money::compare($stock, (string) $product->min_stock_alert, 3) <= 0;
                             @endphp
                             <tr>
                                 <td class="ps-3">
@@ -110,7 +110,7 @@
                                 <td class="text-end text-muted">@npr($product->cost_price)</td>
                                 <td class="text-end fw-bold text-success">@npr($product->selling_price)</td>
                                 <td class="text-center">
-                                    <span class="badge {{ $stock <= 0 ? 'bg-danger' : ($isLowStock ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
+                                    <span class="badge {{ \App\Support\Money::compare($stock, '0', 3) <= 0 ? 'bg-danger' : ($isLowStock ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
                                         @qty($stock, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
                                     </span>
                                 </td>
@@ -148,8 +148,8 @@
                 <div class="d-md-none divide-y">
                     @foreach($products as $product)
                     @php
-                        $stock = (float) $product->stockBalances->sum('quantity');
-                        $isLowStock = (float) $product->min_stock_alert > 0 && $stock <= (float) $product->min_stock_alert;
+                        $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
+                        $isLowStock = \App\Support\Money::compare((string) $product->min_stock_alert, '0', 3) > 0 && \App\Support\Money::compare($stock, (string) $product->min_stock_alert, 3) <= 0;
                     @endphp
                     <div class="p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-start mb-1">
@@ -157,7 +157,7 @@
                                 <h6 class="fw-bold mb-0 text-dark">{{ $product->name }}</h6>
                                 <small class="text-muted"><code>{{ $product->sku ?: 'No SKU' }}</code> &bull; {{ $product->category?->name ?? 'General' }}</small>
                             </div>
-                            <span class="badge {{ $stock <= 0 ? 'bg-danger' : ($isLowStock ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
+                            <span class="badge {{ \App\Support\Money::compare($stock, '0', 3) <= 0 ? 'bg-danger' : ($isLowStock ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
                                 @qty($stock, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
                             </span>
                         </div>

@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Exceptions\ImmutableRecordException;
+use App\Support\Money;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -93,6 +94,6 @@ class Payment extends Model
     {
         $allocated = $this->allocations()->sum('amount');
 
-        return bcsub((string) $this->amount, (string) $allocated, 2);
+        return Money::subtract((string) $this->amount, (string) $allocated, 2);
     }
 }

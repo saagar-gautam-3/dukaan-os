@@ -82,7 +82,7 @@
                             @foreach($movements as $movement)
                             @php
                                 $isInflow = $movement->movement_type->isInflow();
-                                $qty = (float) $movement->quantity;
+                                $qty = (string) $movement->quantity;
                             @endphp
                             <tr>
                                 <td class="ps-3 text-muted small">
@@ -120,7 +120,7 @@
                     @foreach($movements as $movement)
                     @php
                         $isInflow = $movement->movement_type->isInflow();
-                        $qty = (float) $movement->quantity;
+                        $qty = (string) $movement->quantity;
                     @endphp
                     <div class="p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-center mb-1">

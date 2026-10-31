@@ -77,8 +77,8 @@ class ConcurrentSaleTest extends TestCase
         app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $warehouse,
-            quantity: 5.000,
-            unitCost: 100.00,
+            quantity: '5.000',
+            unitCost: '100.00',
             notes: 'Concurrency test initial stock'
         );
 

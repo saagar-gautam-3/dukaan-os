@@ -27,7 +27,7 @@ class NepaliLocalizationTest extends TestCase
         $this->assertEquals('1,00,000.00', NepaliNumber::formatLakhCrore(100000));
         $this->assertEquals('25,50,000.00', NepaliNumber::formatLakhCrore(2550000));
         $this->assertEquals('1,00,00,000.00', NepaliNumber::formatLakhCrore(10000000));
-        $this->assertEquals('-1,50,000.50', NepaliNumber::formatLakhCrore(-150000.5));
+        $this->assertEquals('-1,50,000.50', NepaliNumber::formatLakhCrore('-150000.50'));
 
         // Decimal strings without float casting
         $this->assertEquals('1,00,000.50', NepaliNumber::formatLakhCrore('100000.50'));
@@ -43,12 +43,12 @@ class NepaliLocalizationTest extends TestCase
         $this->assertEquals('10', NepaliNumber::formatQuantity('10.000', false, 'en'));
 
         // Fractional unit (true) => 3 decimals
-        $this->assertEquals('10.500', NepaliNumber::formatQuantity(10.5, true, 'en'));
+        $this->assertEquals('10.500', NepaliNumber::formatQuantity('10.5', true, 'en'));
         $this->assertEquals('10.125', NepaliNumber::formatQuantity('10.125', true, 'en'));
 
         // Devanagari digits in 'ne'
         $this->assertEquals('१०', NepaliNumber::formatQuantity(10, false, 'ne'));
-        $this->assertEquals('१०.५००', NepaliNumber::formatQuantity(10.5, true, 'ne'));
+        $this->assertEquals('१०.५००', NepaliNumber::formatQuantity('10.5', true, 'ne'));
     }
 
     public function test_devanagari_and_ascii_digit_conversion(): void

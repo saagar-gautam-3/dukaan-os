@@ -21,6 +21,7 @@ use App\Models\Customer;
 use App\Models\IdempotencyKey;
 use App\Models\Sale;
 use App\Models\Warehouse;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -261,7 +262,7 @@ class SaleController extends Controller
 
         try {
             $data = $request->validated();
-            $filteredItems = array_values(array_filter($data['items'], fn ($i) => (float) ($i['quantity'] ?? 0) > 0));
+            $filteredItems = array_values(array_filter($data['items'], fn ($i) => Money::compare((string) ($i['quantity'] ?? '0'), '0', 3) > 0));
 
             if (empty($filteredItems)) {
                 return back()->withInput()->with('error', 'Please enter a return quantity greater than 0 for at least one item.');

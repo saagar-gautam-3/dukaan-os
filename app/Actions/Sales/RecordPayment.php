@@ -13,6 +13,8 @@ use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Sale;
 use App\Services\DocumentSequenceService;
+use App\Support\AuditTrail;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -43,7 +45,7 @@ class RecordPayment
         $shop = TenantContext::shop();
         $amount = (string) $data['amount'];
 
-        if (bccomp($amount, '0', 2) <= 0) {
+        if (Money::compare($amount, '0', 2) <= 0) {
             throw new InvalidArgumentException('Payment amount must be greater than zero.');
         }
 
@@ -111,6 +113,18 @@ class RecordPayment
                     'notes' => "Cash payment {$payment->payment_no}",
                 ]);
             }
+
+            AuditTrail::record($payment, $userId, 'recorded', null, [
+                'payment_no' => $payment->payment_no,
+                'amount' => $payment->amount,
+                'method' => $payment->method->value,
+                'status' => $payment->status->value,
+                'customer_id' => $payment->customer_id,
+                'allocations' => $payment->allocations->map(fn ($allocation): array => [
+                    'sale_id' => $allocation->sale_id,
+                    'amount' => $allocation->amount,
+                ])->all(),
+            ]);
 
             return $payment->refresh()->load('allocations');
         });

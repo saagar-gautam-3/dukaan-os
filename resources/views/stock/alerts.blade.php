@@ -55,9 +55,9 @@
                         <tbody>
                             @foreach($products as $product)
                             @php
-                                $stock = (float) $product->stockBalances->sum('quantity');
-                                $minAlert = (float) $product->min_stock_alert;
-                                $isOut = $stock <= 0;
+                                $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
+                                $minAlert = (string) $product->min_stock_alert;
+                                $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                             @endphp
                             <tr>
                                 <td class="ps-3">
@@ -101,9 +101,9 @@
                 <div class="d-md-none divide-y">
                     @foreach($products as $product)
                     @php
-                        $stock = (float) $product->stockBalances->sum('quantity');
-                        $minAlert = (float) $product->min_stock_alert;
-                        $isOut = $stock <= 0;
+                        $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
+                        $minAlert = (string) $product->min_stock_alert;
+                                $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                     @endphp
                     <div class="p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-start mb-2">

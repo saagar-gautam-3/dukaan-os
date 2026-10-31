@@ -21,6 +21,8 @@ use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
 use App\Services\DocumentSequenceService;
+use App\Support\AuditTrail;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -77,6 +79,12 @@ class PostSale
 
             // --- Step 1: Lock products and snapshot unit_cost from stock_balances (moving weighted avg) ---
             $items = $sale->items()->with('product')->get();
+            $oldItemsSnapshot = $items->map(fn ($item): array => $item->only([
+                'product_id', 'quantity', 'unit_price', 'unit_cost', 'discount', 'tax', 'line_total',
+            ]))->all();
+            $oldSaleSnapshot = $sale->only([
+                'status', 'invoice_no', 'subtotal', 'discount_total', 'tax_total', 'grand_total', 'paid_total',
+            ]);
 
             if ($items->isEmpty()) {
                 throw new InvalidArgumentException('Cannot post a sale with no items.');
@@ -102,7 +110,7 @@ class PostSale
 
                     $currentQty = $balance ? (string) $balance->quantity : '0.000';
 
-                    if (bccomp($currentQty, (string) $item->quantity, 3) < 0) {
+                    if (Money::compare($currentQty, (string) $item->quantity, 3) < 0) {
                         $allowNeg = (bool) ($shop->settings['allow_negative_stock'] ?? false);
                         if (! $allowNeg) {
                             throw InsufficientStockException::forProduct(
@@ -120,18 +128,18 @@ class PostSale
                 }
 
                 // Recompute line_total
-                $linePrice = bcadd(bcsub((string) $item->unit_price, (string) $item->discount, 4), (string) $item->tax, 4);
-                $lineTotal = bcmul($linePrice, (string) $item->quantity, 2);
+                $linePrice = Money::add(Money::subtract((string) $item->unit_price, (string) $item->discount, 4), (string) $item->tax, 4);
+                $lineTotal = Money::multiply($linePrice, (string) $item->quantity, 2);
                 $item->line_total = $lineTotal;
 
-                $subtotal = bcadd($subtotal, bcmul((string) $item->unit_price, (string) $item->quantity, 2), 2);
-                $discountTotal = bcadd($discountTotal, bcmul((string) $item->discount, (string) $item->quantity, 2), 2);
-                $taxTotal = bcadd($taxTotal, bcmul((string) $item->tax, (string) $item->quantity, 2), 2);
+                $subtotal = Money::add($subtotal, Money::multiply((string) $item->unit_price, (string) $item->quantity, 2), 2);
+                $discountTotal = Money::add($discountTotal, Money::multiply((string) $item->discount, (string) $item->quantity, 2), 2);
+                $taxTotal = Money::add($taxTotal, Money::multiply((string) $item->tax, (string) $item->quantity, 2), 2);
 
                 $item->save();
             }
 
-            $grandTotal = bcadd(bcsub($subtotal, $discountTotal, 2), $taxTotal, 2);
+            $grandTotal = Money::add(Money::subtract($subtotal, $discountTotal, 2), $taxTotal, 2);
 
             // --- Step 2: Generate invoice number (row-locked, gap-safe) ---
             $invoiceNo = $this->generateInvoiceNumber($shop->id);
@@ -148,7 +156,7 @@ class PostSale
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                $newQty = bcsub((string) $balance->quantity, (string) $item->quantity, 3);
+                $newQty = Money::subtract((string) $balance->quantity, (string) $item->quantity, 3);
                 $balance->quantity = $newQty;
                 $balance->save();
 
@@ -158,7 +166,7 @@ class PostSale
                     'warehouse_id' => $warehouseId,
                     'product_id' => $item->product_id,
                     'movement_type' => MovementType::Sale->value,
-                    'quantity' => bcmul((string) $item->quantity, '-1', 3), // negative = outbound
+                    'quantity' => Money::multiply((string) $item->quantity, '-1', 3), // negative = outbound
                     'unit_cost' => $item->unit_cost,
                     'reference_type' => 'sale',
                     'reference_id' => $sale->id,
@@ -169,7 +177,7 @@ class PostSale
 
             // --- Step 4: Record payment if provided ---
             $paidTotal = '0.00';
-            if (! empty($options['payment_amount']) && bccomp((string) $options['payment_amount'], '0', 2) > 0) {
+            if (! empty($options['payment_amount']) && Money::compare((string) $options['payment_amount'], '0', 2) > 0) {
                 $paidTotal = $this->recordAndAllocatePayment(
                     $sale,
                     $shop->id,
@@ -194,8 +202,8 @@ class PostSale
 
             // --- Step 5b: Write customer ledger entry for the credit/due portion ---
             // The due portion = grand_total - what was paid right now
-            $duePortion = bcsub($grandTotal, $paidTotal, 2);
-            if ($sale->customer_id !== null && bccomp($grandTotal, '0', 2) > 0) {
+            $duePortion = Money::subtract($grandTotal, $paidTotal, 2);
+            if ($sale->customer_id !== null && Money::compare($grandTotal, '0', 2) > 0) {
                 $customer = Customer::find($sale->customer_id);
                 if ($customer) {
                     // Debit: customer owes the full grand_total
@@ -209,7 +217,7 @@ class PostSale
                     ]);
 
                     // Credit: amount paid at point-of-sale
-                    if (bccomp($paidTotal, '0', 2) > 0) {
+                    if (Money::compare($paidTotal, '0', 2) > 0) {
                         $this->addLedgerEntry->handle($customer, [
                             'entry_type' => LedgerEntryType::PaymentCredit,
                             'credit' => $paidTotal,
@@ -234,7 +242,26 @@ class PostSale
                 ]);
             }
 
-            return $sale->refresh()->load(['items.product', 'paymentAllocations']);
+            $postedSale = $sale->refresh()->load(['items.product', 'paymentAllocations.payment']);
+            AuditTrail::record($postedSale, $postedById, 'posted', [
+                'sale' => $oldSaleSnapshot,
+                'items' => $oldItemsSnapshot,
+            ], [
+                'sale' => $postedSale->only([
+                    'status', 'invoice_no', 'subtotal', 'discount_total', 'tax_total', 'grand_total', 'paid_total',
+                ]),
+                'items' => $postedSale->items->map(fn ($item): array => $item->only([
+                    'product_id', 'quantity', 'unit_price', 'unit_cost', 'discount', 'tax', 'line_total',
+                ]))->all(),
+                'payments' => $postedSale->paymentAllocations->map(fn ($allocation): array => [
+                    'payment_no' => $allocation->payment?->payment_no,
+                    'amount' => $allocation->amount,
+                    'method' => $allocation->payment?->method?->value,
+                    'status' => $allocation->payment?->status?->value,
+                ])->all(),
+            ]);
+
+            return $postedSale;
         });
     }
 
@@ -262,7 +289,7 @@ class PostSale
         $maxPayable = $grandTotal;
 
         // Cap payment at grand_total (no overpayment via sale; use separate Payment for advance)
-        if (bccomp($payAmount, $maxPayable, 2) > 0) {
+        if (Money::compare($payAmount, $maxPayable, 2) > 0) {
             $payAmount = $maxPayable;
         }
 
@@ -287,7 +314,7 @@ class PostSale
         ]);
 
         // Update sale's paid_total cache
-        $sale->paid_total = bcadd((string) $sale->paid_total, $payAmount, 2);
+        $sale->paid_total = Money::add((string) $sale->paid_total, $payAmount, 2);
 
         // Record cash movement if cash was received
         if ($method === PaymentMethod::Cash) {

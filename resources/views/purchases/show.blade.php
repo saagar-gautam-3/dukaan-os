@@ -177,7 +177,7 @@
                             <span class="text-muted">{{ __('purchases.subtotal') }}:</span>
                             <span class="fw-semibold text-dark">@npr($purchase->subtotal)</span>
                         </div>
-                        @if((float) $purchase->discount_total > 0)
+                        @if(\App\Support\Money::compare((string) $purchase->discount_total, '0', 2) > 0)
                         <div class="d-flex justify-content-between mb-1">
                             <span class="text-muted">{{ __('purchases.discount') }}:</span>
                             <span class="text-danger">- @npr($purchase->discount_total)</span>

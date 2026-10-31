@@ -62,12 +62,12 @@
             </div>
         </div>
         <div class="col-sm-6 col-lg-4">
-            @php $diff = (float) $detail['difference']; @endphp
-            <div class="card border-0 shadow-sm text-center p-3 {{ $diff < 0 ? 'border-danger' : 'border-success' }}">
+            @php $diff = (string) $detail['difference']; @endphp
+            <div class="card border-0 shadow-sm text-center p-3 {{ \App\Support\Money::compare($diff, '0', 2) < 0 ? 'border-danger' : 'border-success' }}">
                 <div class="text-muted small">{{ __('cash.difference') }}</div>
-                <div class="h4 fw-bold {{ $diff < 0 ? 'text-danger' : 'text-success' }} mt-1">
-                    @npr(abs($diff))
-                    <small class="fs-6">({{ $diff < 0 ? __('cash.shortage') : __('cash.overage') }})</small>
+                <div class="h4 fw-bold {{ \App\Support\Money::compare($diff, '0', 2) < 0 ? 'text-danger' : 'text-success' }} mt-1">
+                    @npr(\App\Support\Money::compare($diff, '0', 2) < 0 ? \App\Support\Money::subtract('0', $diff, 2) : $diff)
+                    <small class="fs-6">({{ \App\Support\Money::compare($diff, '0', 2) < 0 ? __('cash.shortage') : __('cash.overage') }})</small>
                 </div>
             </div>
         </div>

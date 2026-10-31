@@ -99,8 +99,8 @@
                             @npr($sale->paid_total)
                         </td>
                         <td class="text-end">
-                            @php $due = (float) $sale->dueAmount(); @endphp
-                            @if($due > 0)
+                            @php $due = (string) $sale->dueAmount(); @endphp
+                            @if(\App\Support\Money::compare($due, '0', 2) > 0)
                                 <span class="text-danger fw-bold">@npr($due)</span>
                             @else
                                 <span class="text-muted">@npr(0)</span>

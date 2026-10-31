@@ -12,6 +12,7 @@ use App\Models\StockBalance;
 use App\Models\StockMovement;
 use App\Models\Unit;
 use App\Models\Warehouse;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Console\Command;
 use Symfony\Component\Process\Process;
@@ -160,7 +161,7 @@ class TestConcurrencyCommand extends Command
             sort($exitCodes);
 
             $passed = ($exitCodes === [0, 2])
-                && ((float) $balanceAfter === 0.0)
+                && (Money::compare((string) $balanceAfter, '0.000', 3) === 0)
                 && ($outMovementsCount === 1);
 
             if ($passed) {

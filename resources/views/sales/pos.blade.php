@@ -197,6 +197,32 @@ document.addEventListener('DOMContentLoaded', function () {
     let cart = []; // { product_id, name, unit, price, quantity, max_stock }
     let searchDebounce = null;
 
+    function scaledInteger(value, scale) {
+        const raw = String(value ?? '0').trim();
+        if (!/^[+-]?\d+(?:\.\d*)?$/.test(raw)) return 0n;
+        const negative = raw.startsWith('-');
+        const unsigned = raw.replace(/^[+-]/, '');
+        const [whole, fraction = ''] = unsigned.split('.');
+        const scaled = BigInt(whole + fraction.slice(0, scale).padEnd(scale, '0'));
+        return negative ? -scaled : scaled;
+    }
+
+    function scaledString(value, scale) {
+        const negative = value < 0n;
+        const digits = (negative ? -value : value).toString().padStart(scale + 1, '0');
+        const result = scale ? `${digits.slice(0, -scale)}.${digits.slice(-scale)}` : digits;
+        return `${negative ? '-' : ''}${result}`;
+    }
+
+    function itemTotalCents(item) {
+        const product = scaledInteger(item.price, 2) * scaledInteger(item.quantity, 3);
+        return (product + (product >= 0n ? 500n : -500n)) / 1000n;
+    }
+
+    function cartTotalCents() {
+        return cart.reduce((total, item) => total + itemTotalCents(item), 0n);
+    }
+
     function getCartSignature() {
         const sorted = [...cart].sort((a, b) => a.product_id - b.product_id);
         const items = sorted.map(i => `${i.product_id}:${i.quantity}:${i.price}`).join('|');
@@ -305,9 +331,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         products.forEach(p => {
-            const stock = parseFloat(p.stock) || 0;
-            const price = parseFloat(p.price) || 0;
-            const inStock = !p.track_stock || stock > 0;
+            const stock = String(p.stock || '0.000');
+            const price = String(p.price || '0.00');
+            const inStock = !p.track_stock || scaledInteger(stock, 3) > 0n;
 
             const card = document.createElement('div');
             card.className = 'col-sm-6 col-md-4 col-6';
@@ -325,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${p.name_ne}</div>` : ''}
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="fw-bold text-primary">Rs. ${price.toFixed(2)}</span>
+                        <span class="fw-bold text-primary">Rs. ${price}</span>
                         <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
                             <i class="bi bi-plus-lg"></i>
                         </button>
@@ -387,24 +413,20 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const limit = parseFloat(currentCustomer.credit_limit) || 0;
-        if (limit <= 0) {
+        const limitCents = scaledInteger(currentCustomer.credit_limit, 2);
+        if (limitCents <= 0n) {
             creditLimitWarningBadge.classList.add('d-none');
             return;
         }
 
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.quantity;
-        });
-
-        const paid = parseFloat(amountPaidInput.value) || 0;
-        const due = Math.max(0, total - paid);
-        const currentBalance = parseFloat(currentCustomer.balance) || 0;
+        const total = cartTotalCents();
+        const paid = scaledInteger(amountPaidInput.value, 2);
+        const due = total > paid ? total - paid : 0n;
+        const currentBalance = scaledInteger(currentCustomer.balance, 2);
         const projectedBalance = currentBalance + due;
 
-        if (projectedBalance > limit) {
-            creditLimitWarningText.textContent = `Warning: Customer credit limit is NPR ${limit.toFixed(2)}. Projected balance NPR ${projectedBalance.toFixed(2)} will exceed credit limit!`;
+        if (projectedBalance > limitCents) {
+            creditLimitWarningText.textContent = `Warning: Customer credit limit is NPR ${scaledString(limitCents, 2)}. Projected balance NPR ${scaledString(projectedBalance, 2)} will exceed credit limit!`;
             creditLimitWarningBadge.classList.remove('d-none');
         } else {
             creditLimitWarningBadge.classList.add('d-none');
@@ -441,16 +463,16 @@ document.addEventListener('DOMContentLoaded', function () {
     function addToCart(p) {
         const existing = cart.find(item => item.product_id === p.id);
         if (existing) {
-            existing.quantity = Math.round((existing.quantity + 1) * 1000) / 1000;
+            existing.quantity = scaledString(scaledInteger(existing.quantity, 3) + 1000n, 3);
         } else {
             cart.push({
                 product_id: p.id,
                 name: p.name,
                 unit: p.unit || '',
-                price: parseFloat(p.price) || 0,
-                quantity: 1,
+                price: String(p.price || '0.00'),
+                quantity: '1.000',
                 track_stock: p.track_stock,
-                max_stock: parseFloat(p.stock) || 0,
+                max_stock: String(p.stock || '0.000'),
             });
         }
         renderCart();
@@ -472,7 +494,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         cart.forEach((item, index) => {
             const row = document.createElement('tr');
-            const lineTotal = item.price * item.quantity;
+            const lineTotal = itemTotalCents(item);
 
             row.innerHTML = `
                 <td class="py-2">
@@ -481,12 +503,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td class="py-2">
                     <div class="input-group input-group-sm">
                         <button class="btn btn-outline-secondary px-2 btn-qty-minus" type="button">-</button>
-                        <input type="number" step="1" min="0.001" class="form-control text-center p-0 item-qty-input" value="${item.quantity}">
+                        <input type="number" step="0.001" min="0.001" class="form-control text-center p-0 item-qty-input" value="${item.quantity}">
                         <button class="btn btn-outline-secondary px-2 btn-qty-plus" type="button">+</button>
                     </div>
                 </td>
-                <td class="text-end py-2 small">Rs. ${item.price.toFixed(2)}</td>
-                <td class="text-end py-2 fw-bold text-dark small">Rs. ${lineTotal.toFixed(2)}</td>
+                <td class="text-end py-2 small">Rs. ${item.price}</td>
+                <td class="text-end py-2 fw-bold text-dark small">Rs. ${scaledString(lineTotal, 2)}</td>
                 <td class="text-end py-2">
                     <button class="btn btn-sm btn-link text-danger p-0 btn-remove-item" type="button">
                         <i class="bi bi-x-circle-fill"></i>
@@ -496,8 +518,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Qty +/- listeners
             row.querySelector('.btn-qty-minus').addEventListener('click', () => {
-                if (item.quantity > 1) {
-                    item.quantity -= 1;
+                if (scaledInteger(item.quantity, 3) > 1000n) {
+                    item.quantity = scaledString(scaledInteger(item.quantity, 3) - 1000n, 3);
                 } else {
                     cart.splice(index, 1);
                 }
@@ -505,14 +527,14 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             row.querySelector('.btn-qty-plus').addEventListener('click', () => {
-                item.quantity += 1;
+                item.quantity = scaledString(scaledInteger(item.quantity, 3) + 1000n, 3);
                 renderCart();
             });
 
             row.querySelector('.item-qty-input').addEventListener('change', function () {
-                const val = parseFloat(this.value);
-                if (val > 0) {
-                    item.quantity = val;
+                const val = scaledInteger(this.value, 3);
+                if (val > 0n) {
+                    item.quantity = scaledString(val, 3);
                 } else {
                     cart.splice(index, 1);
                 }
@@ -536,17 +558,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function updateTotals() {
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.quantity;
-        });
+        const total = cartTotalCents();
 
-        subtotalDisplay.textContent = 'Rs. ' + total.toFixed(2);
-        grandTotalDisplay.textContent = 'Rs. ' + total.toFixed(2);
+        subtotalDisplay.textContent = 'Rs. ' + scaledString(total, 2);
+        grandTotalDisplay.textContent = 'Rs. ' + scaledString(total, 2);
 
         // Auto-fill paid amount with grand total if not manually edited or method is cash
         if (!amountPaidInput.dataset.manual) {
-            amountPaidInput.value = total > 0 ? total.toFixed(2) : '';
+            amountPaidInput.value = total > 0n ? scaledString(total, 2) : '';
         }
 
         calcChange();
@@ -558,14 +577,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function calcChange() {
-        let total = 0;
-        cart.forEach(item => {
-            total += item.price * item.quantity;
-        });
-
-        const paid = parseFloat(amountPaidInput.value) || 0;
-        const change = paid > total ? paid - total : 0;
-        changeDisplay.textContent = 'Rs. ' + change.toFixed(2);
+        const total = cartTotalCents();
+        const paid = scaledInteger(amountPaidInput.value, 2);
+        const change = paid > total ? paid - total : 0n;
+        changeDisplay.textContent = 'Rs. ' + scaledString(change, 2);
         checkCreditLimit();
     }
 
@@ -586,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function () {
             formItemsContainer.innerHTML += `
                 <input type="hidden" name="items[${idx}][product_id]" value="${item.product_id}">
                 <input type="hidden" name="items[${idx}][quantity]" value="${item.quantity}">
-                <input type="hidden" name="items[${idx}][unit_price]" value="${item.price.toFixed(2)}">
+                <input type="hidden" name="items[${idx}][unit_price]" value="${item.price}">
             `;
         });
 

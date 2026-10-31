@@ -53,14 +53,14 @@
                     <h5 class="mb-0 fw-bold">{{ __('udhar.balance') }}</h5>
                 </div>
                 <div class="card-body p-3">
-                    <div class="p-3 {{ bccomp($balance, '0', 2) > 0 ? 'bg-danger-subtle' : 'bg-success-subtle' }} rounded text-center mb-3">
+                    <div class="p-3 {{ \App\Support\Money::compare($balance, '0', 2) > 0 ? 'bg-danger-subtle' : 'bg-success-subtle' }} rounded text-center mb-3">
                         <small class="text-muted text-uppercase fw-semibold d-block mb-1">{{ __('udhar.total_outstanding') }}</small>
-                        <div class="h3 fw-bold {{ bccomp($balance, '0', 2) > 0 ? 'text-danger' : 'text-success' }} mb-0">
+                        <div class="h3 fw-bold {{ \App\Support\Money::compare($balance, '0', 2) > 0 ? 'text-danger' : 'text-success' }} mb-0">
                             NPR @npr($balance)
                         </div>
                     </div>
 
-                    @if((float) $customer->credit_limit > 0)
+                    @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
                     <div class="border rounded p-3 mb-2">
                         <div class="d-flex justify-content-between mb-1">
                             <small class="text-muted">{{ __('udhar.credit_limit') }}:</small>
@@ -68,11 +68,11 @@
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <small class="text-muted">{{ __('udhar.credit_headroom') }}:</small>
-                            <span class="fw-semibold {{ bccomp($headroom, '0', 2) < 0 ? 'text-danger' : 'text-success' }}">
+                            <span class="fw-semibold {{ \App\Support\Money::compare($headroom, '0', 2) < 0 ? 'text-danger' : 'text-success' }}">
                                 NPR @npr($headroom)
                             </span>
                         </div>
-                        @if(bccomp($headroom, '0', 2) <= 0)
+                        @if(\App\Support\Money::compare($headroom, '0', 2) <= 0)
                             <div class="badge bg-danger w-100 py-2">
                                 <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ __('udhar.credit_limit_exceeded_notice') }}
                             </div>
@@ -239,14 +239,14 @@
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    @if(bccomp((string) $entry->debit, '0', 2) > 0)
+                                    @if(\App\Support\Money::compare((string) $entry->debit, '0', 2) > 0)
                                         <span class="text-danger fw-bold">NPR @npr($entry->debit)</span>
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
-                                    @if(bccomp((string) $entry->credit, '0', 2) > 0)
+                                    @if(\App\Support\Money::compare((string) $entry->credit, '0', 2) > 0)
                                         <span class="text-success fw-bold">NPR @npr($entry->credit)</span>
                                     @else
                                         <span class="text-muted small">-</span>
@@ -309,7 +309,7 @@
                                 <td class="text-end text-success">NPR @npr($sale->paid_total)</td>
                                 <td class="text-end">
                                     @php $due = $sale->dueAmount(); @endphp
-                                    @if(bccomp((string) $due, '0', 2) > 0)
+                                    @if(\App\Support\Money::compare((string) $due, '0', 2) > 0)
                                         <span class="text-danger fw-bold">NPR @npr($due)</span>
                                     @else
                                         <span class="text-muted">NPR 0.00</span>

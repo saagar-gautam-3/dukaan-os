@@ -115,7 +115,7 @@
                             <a href="{{ route('customers.show', $customer) }}" class="fw-bold text-decoration-none">
                                 {{ $customer->name }}
                             </a>
-                            @if((float) $customer->credit_limit > 0 && bccomp((string) $customer->balance, (string) $customer->credit_limit, 2) >= 0)
+                            @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0 && \App\Support\Money::compare((string) $customer->balance, (string) $customer->credit_limit, 2) >= 0)
                                 <span class="badge bg-danger ms-1" title="{{ __('udhar.credit_limit_exceeded_notice') }}">
                                     <i class="bi bi-exclamation-triangle"></i> {{ __('udhar.credit_limit') }}
                                 </span>
@@ -129,7 +129,7 @@
                             @endif
                         </td>
                         <td class="text-end">
-                            @if((float) $customer->credit_limit > 0)
+                            @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
                                 NPR @npr($customer->credit_limit)
                             @else
                                 <span class="text-muted small">-</span>

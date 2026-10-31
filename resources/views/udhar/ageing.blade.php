@@ -56,35 +56,35 @@
                             <small class="text-muted">{{ $customer->phone ?: '-' }}</small>
                         </td>
                         <td class="text-end">
-                            @if(bccomp((string) $customer->ageing_buckets['current'], '0', 2) > 0)
+                            @if(\App\Support\Money::compare((string) $customer->ageing_buckets['current'], '0', 2) > 0)
                                 NPR @npr($customer->ageing_buckets['current'])
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
-                            @if(bccomp((string) $customer->ageing_buckets['days_30'], '0', 2) > 0)
+                            @if(\App\Support\Money::compare((string) $customer->ageing_buckets['days_30'], '0', 2) > 0)
                                 <span class="text-warning fw-semibold">NPR @npr($customer->ageing_buckets['days_30'])</span>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
-                            @if(bccomp((string) $customer->ageing_buckets['days_60'], '0', 2) > 0)
+                            @if(\App\Support\Money::compare((string) $customer->ageing_buckets['days_60'], '0', 2) > 0)
                                 <span class="text-primary fw-semibold">NPR @npr($customer->ageing_buckets['days_60'])</span>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
-                            @if(bccomp((string) $customer->ageing_buckets['days_90'], '0', 2) > 0)
+                            @if(\App\Support\Money::compare((string) $customer->ageing_buckets['days_90'], '0', 2) > 0)
                                 <span class="text-danger fw-semibold">NPR @npr($customer->ageing_buckets['days_90'])</span>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
-                            @if(bccomp((string) $customer->ageing_buckets['over_90'], '0', 2) > 0)
+                            @if(\App\Support\Money::compare((string) $customer->ageing_buckets['over_90'], '0', 2) > 0)
                                 <span class="badge bg-danger">NPR @npr($customer->ageing_buckets['over_90'])</span>
                             @else
                                 <span class="text-muted small">-</span>

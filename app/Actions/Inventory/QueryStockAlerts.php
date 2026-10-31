@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Inventory;
 
 use App\Models\Product;
+use App\Support\Money;
 use Illuminate\Support\Collection;
 
 class QueryStockAlerts
@@ -19,9 +20,12 @@ class QueryStockAlerts
             ->where('low_stock_threshold', '>', 0)
             ->get()
             ->filter(function (Product $product) {
-                $totalStock = (float) $product->stockBalances->sum('quantity');
+                $totalStock = $product->stockBalances->reduce(
+                    fn (string $sum, $balance): string => Money::add($sum, (string) $balance->quantity, 3),
+                    '0.000'
+                );
 
-                return $totalStock <= (float) $product->low_stock_threshold;
+                return Money::compare($totalStock, (string) $product->low_stock_threshold, 3) <= 0;
             });
     }
 }

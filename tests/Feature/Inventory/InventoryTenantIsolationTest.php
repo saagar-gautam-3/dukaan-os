@@ -203,7 +203,7 @@ class InventoryTenantIsolationTest extends TestCase
             'shop_id' => $shopA->id,
             'warehouse_id' => $warehouseB->id,
             'product_id' => $productB->id,
-            'quantity' => 10.000,
+            'quantity' => '10.000',
             'created_at' => now(),
             'updated_at' => now(),
         ]);

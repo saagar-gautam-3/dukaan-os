@@ -148,13 +148,13 @@
                 <td class="text-left">{{ __('sales.subtotal') }}:</td>
                 <td class="text-right">@npr($sale->subtotal)</td>
             </tr>
-            @if((float) $sale->discount_total > 0)
+            @if(\App\Support\Money::compare((string) $sale->discount_total, '0', 2) > 0)
             <tr>
                 <td class="text-left">{{ __('sales.discount') }}:</td>
                 <td class="text-right">-@npr($sale->discount_total)</td>
             </tr>
             @endif
-            @if((float) $sale->tax_total > 0)
+            @if(\App\Support\Money::compare((string) $sale->tax_total, '0', 2) > 0)
             <tr>
                 <td class="text-left">{{ __('sales.tax') }}:</td>
                 <td class="text-right">+@npr($sale->tax_total)</td>
@@ -168,7 +168,7 @@
                 <td class="text-left">{{ __('sales.paid') }}:</td>
                 <td class="text-right">@npr($sale->paid_total)</td>
             </tr>
-            @php $due = (float) $sale->dueAmount(); @endphp
+            @php $due = (string) $sale->dueAmount(); @endphp
             @if($due > 0)
             <tr class="fw-bold">
                 <td class="text-left">{{ __('sales.due') }}:</td>

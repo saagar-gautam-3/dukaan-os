@@ -6,6 +6,8 @@ namespace App\Actions\Cash;
 
 use App\Enums\CashSessionStatus;
 use App\Models\CashSession;
+use App\Support\AuditTrail;
+use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -24,7 +26,7 @@ class CloseCashSession
         }
 
         $closingCash = (string) ($data['closing_cash'] ?? '0.00');
-        if (bccomp($closingCash, '0', 2) < 0) {
+        if (Money::compare($closingCash, '0', 2) < 0) {
             throw new InvalidArgumentException(__('cash.invalid_closing_amount'));
         }
 
@@ -36,8 +38,10 @@ class CloseCashSession
                 throw new InvalidArgumentException(__('cash.session_already_closed'));
             }
 
+            $oldValues = $session->only(['status', 'closing_cash', 'expected_cash', 'difference', 'closed_by', 'closed_at']);
+
             $expectedCash = $session->computeExpectedCash();
-            $difference = bcsub($closingCash, $expectedCash, 2);
+            $difference = Money::subtract($closingCash, $expectedCash, 2);
 
             $session->update([
                 'status' => CashSessionStatus::Closed->value,
@@ -48,6 +52,10 @@ class CloseCashSession
                 'closed_at' => now(),
                 'notes' => $data['notes'] ?? $session->notes,
             ]);
+
+            AuditTrail::record($session, $userId, 'closed', $oldValues, $session->only([
+                'status', 'closing_cash', 'expected_cash', 'difference', 'closed_by', 'closed_at',
+            ]));
 
             return $session->fresh();
         });

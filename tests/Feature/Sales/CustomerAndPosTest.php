@@ -112,8 +112,8 @@ class CustomerAndPosTest extends TestCase
         app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $this->warehouse,
-            quantity: 40.0,
-            unitCost: 18.0,
+            quantity: '40.0',
+            unitCost: '18.0',
             notes: 'Initial stock'
         );
 
@@ -178,8 +178,8 @@ class CustomerAndPosTest extends TestCase
         app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $this->warehouse,
-            quantity: 20.0,
-            unitCost: 35.0,
+            quantity: '20.0',
+            unitCost: '35.0',
             notes: 'Stock'
         );
 

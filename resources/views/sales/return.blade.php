@@ -46,8 +46,8 @@
                     <tbody>
                         @foreach($sale->items as $idx => $item)
                         @php
-                            $alreadyReturned = (float) $item->saleReturnItems()->sum('quantity');
-                            $maxReturnable = (float) $item->quantity - $alreadyReturned;
+                            $alreadyReturned = (string) $item->saleReturnItems()->sum('quantity');
+                            $maxReturnable = \App\Support\Money::subtract((string) $item->quantity, $alreadyReturned, 3);
                         @endphp
                         <tr>
                             <td>

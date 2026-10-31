@@ -200,13 +200,13 @@
                         <span>{{ __('sales.subtotal') }}:</span>
                         <span>@npr($sale->subtotal)</span>
                     </div>
-                    @if((float) $sale->discount_total > 0)
+                    @if(\App\Support\Money::compare((string) $sale->discount_total, '0', 2) > 0)
                     <div class="d-flex justify-content-between mb-2 text-danger">
                         <span>{{ __('sales.discount') }}:</span>
                         <span>-@npr($sale->discount_total)</span>
                     </div>
                     @endif
-                    @if((float) $sale->tax_total > 0)
+                    @if(\App\Support\Money::compare((string) $sale->tax_total, '0', 2) > 0)
                     <div class="d-flex justify-content-between mb-2 text-muted">
                         <span>{{ __('sales.tax') }}:</span>
                         <span>+@npr($sale->tax_total)</span>
@@ -222,7 +222,7 @@
                             <span>{{ __('sales.paid') }}:</span>
                             <span>@npr($sale->paid_total)</span>
                         </div>
-                        <div class="d-flex justify-content-between fw-bold {{ (float) $sale->dueAmount() > 0 ? 'text-danger' : 'text-muted' }}">
+                        <div class="d-flex justify-content-between fw-bold {{ \App\Support\Money::compare((string) $sale->dueAmount(), '0', 2) > 0 ? 'text-danger' : 'text-muted' }}">
                             <span>{{ __('sales.due') }}:</span>
                             <span>@npr($sale->dueAmount())</span>
                         </div>

@@ -68,6 +68,17 @@ class PaymentTest extends TestCase
 
         $this->assertNotNull($payment->payment_no);
         $this->assertSame(PaymentStatus::Verified, $payment->status);
+
+        $entry = AuditLog::query()
+            ->where('auditable_type', $payment->getMorphClass())
+            ->where('auditable_id', $payment->id)
+            ->where('event', 'recorded')
+            ->firstOrFail();
+        $this->assertSame($this->shop->id, $entry->shop_id);
+        $this->assertSame($this->user->id, $entry->user_id);
+        $this->assertNull($entry->old_values);
+        $this->assertSame('100.00', $entry->new_values['amount']);
+        $this->assertSame(PaymentMethod::Cash->value, $entry->new_values['method']);
     }
 
     public function test_duplicate_idempotency_key_returns_same_payment(): void

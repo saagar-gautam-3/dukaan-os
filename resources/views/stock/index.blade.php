@@ -93,10 +93,10 @@
                         <tbody>
                             @foreach($balances as $balance)
                             @php
-                                $qty = (float) $balance->quantity;
-                                $minAlert = (float) ($balance->product->min_stock_alert ?? 0);
-                                $isLow = $minAlert > 0 && $qty <= $minAlert;
-                                $isOut = $qty <= 0;
+                                $qty = (string) $balance->quantity;
+                                $minAlert = (string) ($balance->product->min_stock_alert ?? '0');
+                                $isLow = \App\Support\Money::compare($minAlert, '0', 3) > 0 && \App\Support\Money::compare($qty, $minAlert, 3) <= 0;
+                                $isOut = \App\Support\Money::compare($qty, '0', 3) <= 0;
                             @endphp
                             <tr>
                                 <td class="ps-3">
@@ -108,7 +108,7 @@
                                 </td>
                                 <td class="text-end text-muted">@npr($balance->product->cost_price)</td>
                                 <td class="text-end text-muted">
-                                    {{ $minAlert > 0 ? format_quantity($minAlert, $balance->product->unit?->is_fractional).' '.$balance->product->unit?->symbol : '—' }}
+                                    {{ \App\Support\Money::compare($minAlert, '0', 3) > 0 ? format_quantity($minAlert, $balance->product->unit?->is_fractional).' '.$balance->product->unit?->symbol : '—' }}
                                 </td>
                                 <td class="text-center">
                                     <span class="fs-6 fw-bold {{ $isOut ? 'text-danger' : ($isLow ? 'text-warning' : 'text-success') }}">
@@ -139,10 +139,10 @@
                 <div class="d-md-none divide-y">
                     @foreach($balances as $balance)
                     @php
-                        $qty = (float) $balance->quantity;
-                        $minAlert = (float) ($balance->product->min_stock_alert ?? 0);
-                        $isLow = $minAlert > 0 && $qty <= $minAlert;
-                        $isOut = $qty <= 0;
+                        $qty = (string) $balance->quantity;
+                        $minAlert = (string) ($balance->product->min_stock_alert ?? '0');
+                        $isLow = \App\Support\Money::compare($minAlert, '0', 3) > 0 && \App\Support\Money::compare($qty, $minAlert, 3) <= 0;
+                        $isOut = \App\Support\Money::compare($qty, '0', 3) <= 0;
                     @endphp
                     <div class="p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-start mb-1">
@@ -155,7 +155,7 @@
                             </span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                            <small class="text-muted">{{ __('inventory.threshold_label') }} {{ $minAlert > 0 ? format_quantity($minAlert, $balance->product->unit?->is_fractional) : __('inventory.threshold_none') }}</small>
+                            <small class="text-muted">{{ __('inventory.threshold_label') }} {{ \App\Support\Money::compare($minAlert, '0', 3) > 0 ? format_quantity($minAlert, $balance->product->unit?->is_fractional) : __('inventory.threshold_none') }}</small>
                             <a href="{{ route('stock.history', $balance->product) }}" class="btn btn-outline-info btn-sm py-0">
                                 <i class="bi bi-clock-history me-1"></i>{{ __('inventory.history_btn') }}
                             </a>

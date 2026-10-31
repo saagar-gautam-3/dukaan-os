@@ -42,7 +42,7 @@ class DecrementStockWorkerCommand extends Command
         $shopId = (int) $this->argument('shop_id');
         $productId = (int) $this->argument('product_id');
         $warehouseId = (int) $this->argument('warehouse_id');
-        $quantity = (float) $this->argument('quantity');
+        $quantity = (string) $this->argument('quantity');
         $delayMs = (int) $this->option('delay-ms');
 
         if ($delayMs > 0) {

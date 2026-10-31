@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Enums\CashMovementType;
 use App\Enums\CashSessionStatus;
 use App\Models\CashSession;
+use App\Support\Money;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -35,9 +36,9 @@ class CashReportService
                 continue;
             }
             if ($type->isInflow()) {
-                $cashIn = bcadd($cashIn, (string) $m->amount, 2);
+                $cashIn = Money::add($cashIn, (string) $m->amount, 2);
             } else {
-                $cashOut = bcadd($cashOut, (string) $m->amount, 2);
+                $cashOut = Money::add($cashOut, (string) $m->amount, 2);
             }
         }
 
@@ -118,7 +119,7 @@ class CashReportService
         $bankIn = (string) ($bankPayments->total ?? '0');
         $qrIn = (string) ($qrPayments->total ?? '0');
         $cashOut = (string) ($cashExpenses->total ?? '0');
-        $totalReceived = bcadd(bcadd($cashIn, $bankIn, 2), $qrIn, 2);
+        $totalReceived = Money::add(Money::add($cashIn, $bankIn, 2), $qrIn, 2);
 
         return [
             'cash' => $cashIn,
@@ -126,7 +127,7 @@ class CashReportService
             'qr_verified' => $qrIn,
             'total_received' => $totalReceived,
             'cash_expenses' => $cashOut,
-            'net_cash' => bcsub($cashIn, $cashOut, 2),
+            'net_cash' => Money::subtract($cashIn, $cashOut, 2),
         ];
     }
 

@@ -136,7 +136,7 @@
                             @endif
                         </td>
                         <td class="text-center fw-semibold">
-                            {{ (float) $item->quantity }} {{ $item->product->unit?->symbol }}
+                            @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}
                         </td>
                         <td class="text-end">
                             @npr($item->unit_price)
@@ -183,13 +183,13 @@
                             <td class="text-muted">{{ __('sales.subtotal') }}:</td>
                             <td class="fw-semibold">@npr($sale->subtotal)</td>
                         </tr>
-                        @if((float) $sale->discount_total > 0)
+                        @if(\App\Support\Money::compare((string) $sale->discount_total, '0', 2) > 0)
                         <tr>
                             <td class="text-danger">{{ __('sales.discount') }}:</td>
                             <td class="text-danger">-@npr($sale->discount_total)</td>
                         </tr>
                         @endif
-                        @if((float) $sale->tax_total > 0)
+                        @if(\App\Support\Money::compare((string) $sale->tax_total, '0', 2) > 0)
                         <tr>
                             <td class="text-muted">{{ __('sales.tax') }}:</td>
                             <td class="fw-semibold">+@npr($sale->tax_total)</td>
@@ -203,7 +203,7 @@
                             <td class="text-success fw-semibold">{{ __('sales.paid') }}:</td>
                             <td class="text-success fw-semibold">@npr($sale->paid_total)</td>
                         </tr>
-                        @php $due = (float) $sale->dueAmount(); @endphp
+                        @php $due = (string) $sale->dueAmount(); @endphp
                         @if($due > 0)
                         <tr class="border-top">
                             <td class="fw-bold text-danger">{{ __('sales.due') }}:</td>

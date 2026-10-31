@@ -56,7 +56,7 @@
                     <div class="mb-3">
                         <small class="text-muted d-block">{{ __('udhar.credit_limit') }}</small>
                         <span class="fw-semibold">
-                            @if((float) $customer->credit_limit > 0)
+                            @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
                                 NPR @npr($customer->credit_limit)
                             @else
                                 <span class="text-muted">-</span>

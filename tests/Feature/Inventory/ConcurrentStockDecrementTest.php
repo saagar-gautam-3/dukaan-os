@@ -61,8 +61,8 @@ class ConcurrentStockDecrementTest extends TestCase
         app(ReceiveStock::class)->execute(
             product: $product,
             warehouse: $warehouse,
-            quantity: 5.000,
-            unitCost: 20.00,
+            quantity: '5.000',
+            unitCost: '20.00',
             notes: 'Test initial stock'
         );
 

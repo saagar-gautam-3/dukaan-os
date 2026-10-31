@@ -7,6 +7,7 @@ namespace App\Actions\Dashboard;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Product;
 use App\Services\ProfitReportService;
+use App\Support\Money;
 use App\Tenancy\TenantContext;
 
 class GetDashboardStats
@@ -44,7 +45,11 @@ class GetDashboardStats
             ->where('is_active', true)
             ->where('low_stock_threshold', '>', 0)
             ->get()
-            ->filter(fn (Product $p) => (float) $p->stockBalances->sum('quantity') <= (float) $p->low_stock_threshold)
+            ->filter(fn (Product $p) => Money::compare(
+                $p->stockBalances->reduce(fn (string $sum, $balance): string => Money::add($sum, (string) $balance->quantity, 3), '0.000'),
+                (string) $p->low_stock_threshold,
+                3
+            ) <= 0)
             ->count();
 
         $totalProducts = Product::where('shop_id', $shop->id)->count();
