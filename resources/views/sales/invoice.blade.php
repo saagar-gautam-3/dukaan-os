@@ -81,9 +81,9 @@
             </div>
             <div class="col-5 text-end">
                 <h4 class="text-uppercase fw-bold text-secondary mb-1">{{ __('sales.invoice') }}</h4>
-                <div class="fw-bold fs-6 text-dark">{{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</div>
+                    <div class="fw-bold fs-6 text-dark">{{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}</div>
                 <div class="text-muted small">{{ __('sales.date') }}: {{ $sale->created_at->format('Y-m-d') }}</div>
-                <div class="text-muted small">{{ __('sales.sold_by') }}: {{ $sale->postedBy?->name ?? 'Staff' }}</div>
+                <div class="text-muted small">{{ __('sales.sold_by') }}: {{ $sale->postedBy?->name ?? __('ui.staff') }}</div>
             </div>
         </div>
 

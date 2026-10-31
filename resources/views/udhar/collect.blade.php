@@ -14,7 +14,7 @@
                 <h1 class="h3 fw-bold mb-0">
                     <i class="bi bi-cash-stack text-success me-2"></i>{{ __('udhar.collect_payment') }}
                 </h1>
-                <small class="text-muted">{{ $customer->name }} ({{ $customer->phone ?: 'No phone' }})</small>
+                <small class="text-muted">{{ $customer->name }} ({{ $customer->phone ?: __('ui.no_phone') }})</small>
             </div>
         </div>
         <div>

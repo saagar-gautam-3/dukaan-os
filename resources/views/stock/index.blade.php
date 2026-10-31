@@ -101,7 +101,7 @@
                             <tr>
                                 <td class="ps-3">
                                     <div class="fw-semibold text-dark">{{ $balance->product->name }}</div>
-                                    <small class="text-muted"><code>{{ $balance->product->sku ?: 'No SKU' }}</code> &bull; {{ $balance->product->category?->name ?? 'General' }}</small>
+                                    <small class="text-muted"><code>{{ $balance->product->sku ?: __('ui.no_sku') }}</code> &bull; {{ $balance->product->category?->name ?? __('ui.general') }}</small>
                                 </td>
                                 <td>
                                     <i class="bi bi-building me-1 text-secondary"></i>{{ $balance->warehouse->name }}

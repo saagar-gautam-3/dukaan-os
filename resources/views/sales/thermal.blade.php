@@ -104,7 +104,7 @@
 
         <!-- Meta -->
         <div>
-            <div><strong>{{ __('sales.invoice') }}:</strong> {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</div>
+            <div><strong>{{ __('sales.invoice') }}:</strong> {{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}</div>
             <div><strong>{{ __('sales.date') }}:</strong> {{ $sale->created_at->format('Y-m-d H:i') }}</div>
             <div><strong>{{ __('sales.customer') }}:</strong> {{ $sale->customer?->name ?? __('sales.walk_in') }}</div>
             @if($sale->customer?->phone)

@@ -104,7 +104,7 @@
                                 </td>
                                 <td><code>{{ $product->sku ?: '—' }}</code></td>
                                 <td>
-                                    <span class="badge bg-light text-dark border">{{ $product->category?->name ?? 'Uncategorized' }}</span>
+                                    <span class="badge bg-light text-dark border">{{ $product->category?->name ?? __('ui.uncategorized') }}</span>
                                 </td>
                                 <td>{{ $product->unit?->name }} ({{ $product->unit?->symbol }})</td>
                                 <td class="text-end text-muted">@npr($product->cost_price)</td>
@@ -155,7 +155,7 @@
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <div>
                                 <h6 class="fw-bold mb-0 text-dark">{{ $product->name }}</h6>
-                                <small class="text-muted"><code>{{ $product->sku ?: 'No SKU' }}</code> &bull; {{ $product->category?->name ?? 'General' }}</small>
+                                <small class="text-muted"><code>{{ $product->sku ?: __('ui.no_sku') }}</code> &bull; {{ $product->category?->name ?? __('ui.general') }}</small>
                             </div>
                             <span class="badge {{ \App\Support\Money::compare($stock, '0', 3) <= 0 ? 'bg-danger' : ($isLowStock ? 'bg-warning text-dark' : 'bg-success') }} px-2 py-1">
                                 @qty($stock, $product->unit?->is_fractional) {{ $product->unit?->symbol }}

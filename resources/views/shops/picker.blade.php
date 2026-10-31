@@ -63,7 +63,7 @@
                                                     {{ $membership->shop->business_type }}
                                                 </span>
                                                 <span class="text-muted">
-                                                    <i class="bi bi-person-badge me-1"></i>{{ $membership->role?->name ?? 'Staff' }}
+                                                    <i class="bi bi-person-badge me-1"></i>{{ $membership->role?->name ?? __('ui.staff') }}
                                                 </span>
                                             </p>
                                         </div>

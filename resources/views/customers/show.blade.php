@@ -165,7 +165,7 @@
                             <tr>
                                 <td>
                                     <a href="{{ route('sales.show', $sale) }}" class="fw-bold text-decoration-none">
-                                        {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}
+                                        {{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}
                                     </a>
                                 </td>
                                 <td>
@@ -301,7 +301,7 @@
                             <tr>
                                 <td>
                                     <a href="{{ route('sales.show', $sale) }}" class="fw-bold text-decoration-none">
-                                        {{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}
+                                        {{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}
                                     </a>
                                 </td>
                                 <td>{{ $sale->created_at->format('Y-m-d') }}</td>

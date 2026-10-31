@@ -129,4 +129,5 @@ return [
     'a4_invoice' => 'A4 invoice',
     'return_reason_placeholder' => 'Describe the reason for the return',
     'immutable_exception' => 'Sale #:id is :status and cannot be cancelled. Record is immutable; create a return instead.',
+    'draft_invoice' => 'Draft #:id',
 ];

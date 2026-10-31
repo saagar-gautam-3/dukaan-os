@@ -12,7 +12,7 @@
             </a>
             <div>
                 <div class="d-flex align-items-center gap-2">
-                    <h1 class="h3 fw-bold mb-0">{{ $sale->invoice_no ?? ('Draft #' . $sale->id) }}</h1>
+                    <h1 class="h3 fw-bold mb-0">{{ $sale->invoice_no ?? __('sales.draft_invoice', ['id' => $sale->id]) }}</h1>
                     @if($sale->isPosted())
                         <span class="badge bg-success-subtle text-success border border-success-subtle">{{ __('sales.status_posted') }}</span>
                     @elseif($sale->isDraft())

@@ -16,7 +16,7 @@
             </div>
             <p class="text-muted mb-0 small">
                 {{ __('purchases.purchase_date') }}: <span class="fw-medium text-dark">{{ $purchase->purchase_date?->format('Y-m-d') }}</span> &bull;
-                {{ __('purchases.created_by') }}: <span class="fw-medium text-dark">{{ $purchase->createdBy?->name ?? 'System' }}</span>
+                {{ __('purchases.created_by') }}: <span class="fw-medium text-dark">{{ $purchase->createdBy?->name ?? __('ui.system') }}</span>
                 @if($purchase->posted_at)
                     &bull; {{ __('purchases.posted_at') }}: <span class="fw-medium text-dark">{{ $purchase->posted_at->format('Y-m-d H:i') }}</span>
                 @endif
@@ -100,7 +100,7 @@
                 </div>
                 <div class="card-body">
                     <h5 class="fw-bold text-dark mb-1">{{ $purchase->warehouse->name }}</h5>
-                    <div class="text-muted small mb-2">{{ __('purchases.warehouse_code') }}: <code>{{ $purchase->warehouse->code ?: 'N/A' }}</code></div>
+                    <div class="text-muted small mb-2">{{ __('purchases.warehouse_code') }}: <code>{{ $purchase->warehouse->code ?: __('ui.not_available') }}</code></div>
                     @if($purchase->notes)
                         <div class="p-2 bg-light rounded small text-muted">
                             <strong>{{ __('purchases.notes') }}:</strong> {{ $purchase->notes }}

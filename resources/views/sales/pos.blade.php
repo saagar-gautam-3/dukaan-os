@@ -165,6 +165,8 @@
 @push('scripts')
 <script>
     const currencySymbol = @json(__('ui.currency_symbol'));
+    const noSkuText = @json(__('ui.no_sku'));
+    const noPhoneText = @json(__('ui.no_phone'));
     const itemCountText = @json(__('ui.items_count', ['count' => ':count']));
     const creditLimitWarningTemplate = @json(__('ui.credit_limit_warning'));
 document.addEventListener('DOMContentLoaded', function () {
@@ -352,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="card h-100 border text-start p-2 shadow-sm product-item-card ${!inStock ? 'opacity-50' : 'cursor-pointer'}" 
                      style="transition: transform 0.15s, box-shadow 0.15s;">
                     <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;">${p.sku || 'No SKU'}</span>
+                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;">${p.sku || noSkuText}</span>
                         <small class="badge ${stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">
                             ${p.track_stock ? stock + ' ' + (p.unit || '') : 'Non-stock'}
                         </small>
@@ -401,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             const a = document.createElement('a');
                             a.href = '#';
                             a.className = 'list-group-item list-group-item-action small py-2';
-                            a.innerHTML = `<strong>${c.name}</strong> <span class="text-muted">(${c.phone || 'No phone'})</span>`;
+                            a.innerHTML = `<strong>${c.name}</strong> <span class="text-muted">(${c.phone || noPhoneText})</span>`;
                             a.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 selectCustomer(c);

@@ -129,4 +129,5 @@ return [
     'a4_invoice' => 'A4 बिल',
     'return_reason_placeholder' => 'फिर्ताको कारण लेख्नुहोस्',
     'immutable_exception' => 'बिक्री #:id रद्द गर्न मिल्दैन। पोस्ट भएको बिक्री सच्याउन फिर्ता प्रक्रिया अपनाउनुहोस्।',
+    'draft_invoice' => 'मस्यौदा #:id',
 ];
