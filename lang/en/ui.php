@@ -57,6 +57,7 @@ return [
     'due' => 'Due',
     'status' => 'Status',
     'action' => 'Action',
+    'payment_cash' => 'Cash',
     'purchase_number' => 'Purchase #',
     'pan_label' => 'PAN:',
     'all_sales' => 'All',

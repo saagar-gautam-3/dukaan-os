@@ -27,7 +27,7 @@
     @if($errors->any())
     <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>{{ __('common.unexpected_error') }}</strong>
+        <strong>{{ __('common.error_generic') }}</strong>
         <ul class="mb-0 mt-2">
             @foreach($errors->all() as $err)
                 <li>{{ $err }}</li>
@@ -57,7 +57,7 @@
                         <small class="text-muted d-block">{{ __('udhar.credit_limit') }}</small>
                         <span class="fw-semibold">
                             @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
-                                NPR @npr($customer->credit_limit)
+                                {{ __('ui.currency_symbol') }} @npr($customer->credit_limit)
                             @else
                                 <span class="text-muted">-</span>
                             @endif
@@ -67,7 +67,7 @@
                     <div class="p-3 bg-light rounded text-center">
                         <small class="text-muted text-uppercase fw-semibold d-block mb-1">{{ __('udhar.balance') }}</small>
                         <div class="h3 fw-bold text-danger mb-0">
-                            NPR @npr($balance)
+                            {{ __('ui.currency_symbol') }} @npr($balance)
                         </div>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
                                     {{ __('udhar.collection_amount') }} <span class="text-danger">*</span>
                                 </label>
                                 <div class="input-group">
-                                    <span class="input-group-text fw-bold">NPR</span>
+                                    <span class="input-group-text fw-bold">{{ __('ui.currency_symbol') }}</span>
                                     <input type="number"
                                            name="amount"
                                            id="amountInput"
@@ -107,11 +107,11 @@
                                     {{ __('udhar.payment_method') }} <span class="text-danger">*</span>
                                 </label>
                                 <select name="payment_method" id="paymentMethodSelect" class="form-select form-select-lg" required>
-                                    <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>Cash</option>
-                                    <option value="qr" {{ old('payment_method') === 'qr' ? 'selected' : '' }}>QR / Fonepay</option>
-                                    <option value="bank_transfer" {{ old('payment_method') === 'bank_transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                                    <option value="cheque" {{ old('payment_method') === 'cheque' ? 'selected' : '' }}>Cheque</option>
-                                    <option value="other" {{ old('payment_method') === 'other' ? 'selected' : '' }}>Other</option>
+                                    <option value="cash" {{ old('payment_method') === 'cash' ? 'selected' : '' }}>{{ __('ui.payment_cash') }}</option>
+                                    <option value="qr" {{ old('payment_method') === 'qr' ? 'selected' : '' }}>{{ __('ui.qr_fonepay') }}</option>
+                                    <option value="bank_transfer" {{ old('payment_method') === 'bank_transfer' ? 'selected' : '' }}>{{ __('ui.bank_transfer') }}</option>
+                                    <option value="cheque" {{ old('payment_method') === 'cheque' ? 'selected' : '' }}>{{ __('ui.cheque') }}</option>
+                                    <option value="other" {{ old('payment_method') === 'other' ? 'selected' : '' }}>{{ __('ui.other') }}</option>
                                 </select>
                             </div>
                             <div class="col-12">
@@ -120,7 +120,7 @@
                                        name="notes"
                                        id="notesInput"
                                        class="form-control"
-                                       placeholder="Optional transaction reference, receipt number, or note..."
+                                       placeholder="{{ __('udhar.reference_placeholder') }}"
                                        value="{{ old('notes') }}">
                             </div>
                         </div>
@@ -143,7 +143,7 @@
                         <div class="card-body p-4 text-center text-muted">
                             <i class="bi bi-info-circle fs-3 text-info d-block mb-2"></i>
                             <p class="mb-1">{{ __('udhar.no_open_invoices') }}</p>
-                            <small>{{ __('udhar.advance_amount') }} will be recorded as advance credit to the customer ledger.</small>
+                            <small>{{ __('udhar.advance_amount') }} {{ __('ui.advance_credit_note') }}</small>
                         </div>
                     @else
                         <div class="table-responsive">
@@ -178,11 +178,11 @@
                                                 <span class="text-muted small">-</span>
                                             @endif
                                         </td>
-                                        <td class="text-end">NPR @npr($sale->grand_total)</td>
-                                        <td class="text-end fw-semibold text-danger">NPR @npr($due)</td>
+                                        <td class="text-end">{{ __('ui.currency_symbol') }} @npr($sale->grand_total)</td>
+                                        <td class="text-end fw-semibold text-danger">{{ __('ui.currency_symbol') }} @npr($due)</td>
                                         <td class="text-end">
                                             <div class="input-group input-group-sm">
-                                                <span class="input-group-text">NPR</span>
+                                                <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                                                 <input type="number"
                                                        name="allocations[{{ $index }}][amount]"
                                                        class="form-control text-end allocation-input"
@@ -204,11 +204,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="text-muted">{{ __('udhar.advance_amount') }}:</span>
-                                <span class="fw-bold fs-6 ms-2 text-info" id="advanceDisplay">NPR 0.00</span>
+                                <span class="fw-bold fs-6 ms-2 text-info" id="advanceDisplay">{{ __('ui.currency_symbol') }} 0.00</span>
                             </div>
                             <div>
                                 <span class="text-muted">{{ __('common.total') }}:</span>
-                                <span class="fw-bold fs-6 ms-2 text-dark" id="totalAllocatedDisplay">NPR 0.00</span>
+                                <span class="fw-bold fs-6 ms-2 text-dark" id="totalAllocatedDisplay">{{ __('ui.currency_symbol') }} 0.00</span>
                             </div>
                         </div>
                     </div>
@@ -229,6 +229,7 @@
 </div>
 
 <script>
+const currencySymbol = @json(__('ui.currency_symbol'));
 document.addEventListener('DOMContentLoaded', function () {
     const amountInput = document.getElementById('amountInput');
     const autoAllocateBtn = document.getElementById('autoAllocateBtn');
@@ -248,10 +249,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const advance = Math.max(0, totalAmount - sumAllocated);
 
         if (advanceDisplay) {
-            advanceDisplay.textContent = 'NPR ' + advance.toFixed(2);
+            advanceDisplay.textContent = currencySymbol + ' ' + advance.toFixed(2);
         }
         if (totalAllocatedDisplay) {
-            totalAllocatedDisplay.textContent = 'NPR ' + sumAllocated.toFixed(2);
+            totalAllocatedDisplay.textContent = currencySymbol + ' ' + sumAllocated.toFixed(2);
         }
     }
 

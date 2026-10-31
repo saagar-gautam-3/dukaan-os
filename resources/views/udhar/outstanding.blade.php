@@ -31,7 +31,7 @@
                         {{ __('udhar.total_outstanding') }}
                     </div>
                     <div class="h3 fw-bold text-danger mb-0">
-                        NPR @npr($totalOutstanding)
+                        {{ __('ui.currency_symbol') }} @npr($totalOutstanding)
                     </div>
                 </div>
             </div>
@@ -130,14 +130,14 @@
                         </td>
                         <td class="text-end">
                             @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
-                                NPR @npr($customer->credit_limit)
+                                {{ __('ui.currency_symbol') }} @npr($customer->credit_limit)
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
                             <span class="fw-bold fs-6 text-danger">
-                                NPR @npr($customer->balance)
+                                {{ __('ui.currency_symbol') }} @npr($customer->balance)
                             </span>
                         </td>
                         <td class="text-end">

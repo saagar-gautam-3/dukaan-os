@@ -57,6 +57,7 @@ return [
     'due' => 'बाँकी',
     'status' => 'अवस्था',
     'action' => 'कार्य',
+    'payment_cash' => 'नगद',
     'purchase_number' => 'खरिद नं.',
     'pan_label' => 'प्यान:',
     'all_sales' => 'सबै',
