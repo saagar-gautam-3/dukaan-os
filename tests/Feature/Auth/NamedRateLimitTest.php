@@ -69,4 +69,23 @@ class NamedRateLimitTest extends TestCase
             $secondRequest->call($method, $url)->assertStatus(429, "Limiter {$name} did not reject the second request.");
         }
     }
+
+    public function test_login_rate_limit_429_shows_a_friendly_translated_message(): void
+    {
+        $ip = '198.51.100.88';
+
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $this->withServerVariables(['REMOTE_ADDR' => $ip])->post('/login', [
+                'email' => 'missing@example.test',
+                'password' => 'invalid-password',
+            ]);
+        }
+
+        $response = $this->withServerVariables(['REMOTE_ADDR' => $ip])->post('/login', [
+            'email' => 'missing@example.test',
+            'password' => 'invalid-password',
+        ]);
+
+        $response->assertStatus(429)->assertSee(__('auth.rate_limited'));
+    }
 }

@@ -30,7 +30,6 @@ return [
     'english' => 'English',
     'nepali' => 'नेपाली',
     'error' => 'Error',
-    'unexpected_error' => 'An unexpected error occurred. Please try again.',
     'created_success' => 'Created successfully.',
     'updated_success' => 'Updated successfully.',
     'deleted_success' => 'Deleted successfully.',
@@ -53,4 +52,6 @@ return [
     'clear' => 'Clear',
     'showing_of' => 'Showing :first to :last of :total :resource',
     'retry' => 'Retry',
+    'close' => 'Close',
+    'toggle_sidebar' => 'Toggle sidebar',
 ];

@@ -37,7 +37,7 @@
                 <label for="phone" class="form-label">{{ __('auth.phone') }}</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                    <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="98XXXXXXXX">
+                    <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="{{ __('ui.phone_example') }}">
                 </div>
                 @error('phone')
                     <div class="invalid-feedback d-block mt-1">{{ $message }}</div>
@@ -51,7 +51,7 @@
                 <label for="shop_name" class="form-label">{{ __('auth.shop_name') }}</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-shop"></i></span>
-                    <input type="text" class="form-control @error('shop_name') is-invalid @enderror" id="shop_name" name="shop_name" value="{{ old('shop_name') }}" required placeholder="e.g. Annapurna Kirana Store">
+                    <input type="text" class="form-control @error('shop_name') is-invalid @enderror" id="shop_name" name="shop_name" value="{{ old('shop_name') }}" required placeholder="{{ __('ui.shop_name_example') }}">
                 </div>
                 @error('shop_name')
                     <div class="invalid-feedback d-block mt-1">{{ $message }}</div>

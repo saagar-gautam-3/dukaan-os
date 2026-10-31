@@ -51,7 +51,7 @@ return [
     'other' => 'Other',
     'advance_credit_note' => 'Any extra amount will be recorded as advance credit to the customer ledger.',
     'welcome_description' => 'Business management for Nepali shops',
-    'offline_message' => 'You are offline. Changes that need the server will wait until you reconnect.',
+    'offline_message' => 'You are offline. Reconnect to use server features.',
     'online_message' => 'Connection restored.',
     'slow_network_message' => 'The connection is slow. Please wait before retrying.',
     'loading' => 'Loading…',
@@ -79,4 +79,6 @@ return [
     'dashboard' => 'Dashboard',
     'login' => 'Log in',
     'register' => 'Register',
+    'phone_example' => '98XXXXXXXX',
+    'shop_name_example' => 'e.g. Annapurna General Store',
 ];

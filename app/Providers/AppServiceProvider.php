@@ -64,7 +64,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(CashSession::class, CashSessionPolicy::class);
 
         RateLimiter::for('register', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
-        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
+            ->by($request->ip())
+            ->response(fn (Request $request, array $headers) => response()->view(
+                'errors.rate-limited',
+                ['message' => __('auth.rate_limited')],
+                429,
+                $headers,
+            )));
         RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
         RateLimiter::for('post-sale', fn (Request $request) => Limit::perMinute(30)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('payment', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));

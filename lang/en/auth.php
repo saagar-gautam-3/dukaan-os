@@ -6,6 +6,8 @@ return [
     'failed' => 'These credentials do not match our records.',
     'password' => 'The provided password is incorrect.',
     'throttle' => 'Too many login attempts. Please try again in :seconds seconds.',
+    'rate_limited' => 'Too many login attempts. Please wait before trying again.',
+    'rate_limited_title' => 'Please try again later',
     'login_title' => 'Log in to your account',
     'register_title' => 'Create a new shop account',
     'forgot_password_title' => 'Reset your password',
