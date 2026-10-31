@@ -12,6 +12,7 @@ class BladeNumberFormatAndCurrencyScanTest extends TestCase
     {
         $allowlist = require base_path('tests/Support/float-money-scan-allowlist.php');
         $violations = [];
+        $filesScanned = 0;
         $patterns = [
             'float cast' => '/\(\s*float\s*\)/i',
             'floatval' => '/\bfloatval\s*\(/i',
@@ -27,6 +28,8 @@ class BladeNumberFormatAndCurrencyScanTest extends TestCase
                 if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.php')) {
                     continue;
                 }
+
+                $filesScanned++;
 
                 $relativePath = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file->getRealPath());
                 $lines = file($file->getRealPath(), FILE_IGNORE_NEW_LINES) ?: [];
@@ -48,6 +51,7 @@ class BladeNumberFormatAndCurrencyScanTest extends TestCase
             }
         }
 
+        $this->assertGreaterThan(0, $filesScanned, 'The application and views scan must inspect at least one PHP file.');
         $this->assertSame([], $violations, "Float money formatting is forbidden in app/ and resources/views/; use decimal strings and Money.\n".implode("\n", $violations));
     }
 
@@ -58,11 +62,14 @@ class BladeNumberFormatAndCurrencyScanTest extends TestCase
             new \RecursiveDirectoryIterator($viewsPath, \FilesystemIterator::SKIP_DOTS)
         );
         $violations = [];
+        $filesScanned = 0;
 
         foreach ($iterator as $file) {
             if (! $file->isFile() || ! str_ends_with($file->getFilename(), '.blade.php')) {
                 continue;
             }
+
+            $filesScanned++;
 
             $relativePath = str_replace(base_path().DIRECTORY_SEPARATOR, '', $file->getRealPath());
             foreach (file($file->getRealPath(), FILE_IGNORE_NEW_LINES) ?: [] as $index => $line) {
@@ -72,6 +79,7 @@ class BladeNumberFormatAndCurrencyScanTest extends TestCase
             }
         }
 
+        $this->assertGreaterThan(0, $filesScanned, 'The Rs-prefix scan must inspect at least one Blade view.');
         $this->assertSame([], $violations, "Use @npr for formatted currency.\n".implode("\n", $violations));
     }
 }

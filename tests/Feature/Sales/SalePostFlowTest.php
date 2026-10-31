@@ -160,6 +160,11 @@ class SalePostFlowTest extends TestCase
         // 3. Product 2 stock is still exactly 1.000
         $stock2 = StockBalance::where('product_id', $productLowStock->id)->value('quantity');
         $this->assertEquals('1.000', $stock2);
+
+        $this->assertDatabaseMissing('audit_logs', [
+            'auditable_type' => $draft->getMorphClass(),
+            'auditable_id' => $draft->id,
+        ]);
     }
 
     public function test_postsale_is_idempotent_with_same_idempotency_key(): void
