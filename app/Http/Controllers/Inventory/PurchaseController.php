@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Inventory;
 
 use App\Actions\Inventory\DeletePurchase;
 use App\Actions\Inventory\PostPurchase;
+use App\Actions\Inventory\QueryPurchaseDetails;
 use App\Actions\Inventory\QueryPurchaseFormData;
 use App\Actions\Inventory\QueryPurchases;
 use App\Actions\Inventory\StorePurchase;
@@ -64,11 +65,11 @@ class PurchaseController extends Controller
     /**
      * Display the specified purchase. Read-only for posted purchases.
      */
-    public function show(Purchase $purchase): View
+    public function show(Purchase $purchase, QueryPurchaseDetails $queryPurchaseDetails): View
     {
         $this->authorize('view', $purchase);
 
-        $purchase->load(['supplier', 'warehouse', 'createdBy', 'items.product.unit']);
+        $queryPurchaseDetails->handle($purchase);
 
         return view('purchases.show', compact('purchase'));
     }

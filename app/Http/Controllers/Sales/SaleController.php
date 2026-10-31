@@ -8,6 +8,7 @@ use App\Actions\Sales\CancelSale;
 use App\Actions\Sales\CreateSale;
 use App\Actions\Sales\FindIdempotentSale;
 use App\Actions\Sales\PostSale;
+use App\Actions\Sales\QuerySaleDetails;
 use App\Actions\Sales\QuerySales;
 use App\Actions\Sales\ResolvePosWarehouse;
 use App\Actions\Sales\ReturnSale;
@@ -41,6 +42,7 @@ class SaleController extends Controller
         private readonly SearchPosCustomers $searchPosCustomers,
         private readonly ResolvePosWarehouse $resolvePosWarehouse,
         private readonly FindIdempotentSale $findIdempotentSale,
+        private readonly QuerySaleDetails $querySaleDetails,
     ) {}
 
     /**
@@ -103,7 +105,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        $sale->load(['items.product.unit', 'customer', 'paymentAllocations.payment', 'returns.items']);
+        $this->querySaleDetails->show($sale);
 
         return view('sales.show', compact('sale'));
     }
@@ -242,7 +244,7 @@ class SaleController extends Controller
     {
         $this->authorize('return', $sale);
 
-        $sale->load(['items.product.unit']);
+        $this->querySaleDetails->returnForm($sale);
 
         return view('sales.return', compact('sale'));
     }
@@ -282,7 +284,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        $sale->load(['items.product.unit', 'customer', 'shop']);
+        $this->querySaleDetails->invoice($sale);
 
         return view('sales.invoice', compact('sale'));
     }
@@ -294,7 +296,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        $sale->load(['items.product.unit', 'customer', 'shop']);
+        $this->querySaleDetails->invoice($sale);
 
         return view('sales.thermal', compact('sale'));
     }
