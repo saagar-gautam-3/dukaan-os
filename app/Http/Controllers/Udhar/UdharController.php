@@ -118,7 +118,7 @@ final class UdharController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -142,7 +142,7 @@ final class UdharController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->with('error', __('common.unexpected_error'));
+            return back()->with('error', __('common.error_generic'));
         }
     }
 }

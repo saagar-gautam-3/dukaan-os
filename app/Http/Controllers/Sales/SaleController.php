@@ -179,10 +179,10 @@ class SaleController extends Controller
             report($e);
 
             if ($request->wantsJson() || $request->ajax()) {
-                return response()->json(['message' => __('common.unexpected_error')], 500);
+                return response()->json(['message' => __('common.error_generic')], 500);
             }
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -212,7 +212,7 @@ class SaleController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -233,7 +233,7 @@ class SaleController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->with('error', __('common.unexpected_error'));
+            return back()->with('error', __('common.error_generic'));
         }
     }
 
@@ -273,7 +273,7 @@ class SaleController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 

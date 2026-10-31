@@ -73,7 +73,7 @@ class CustomerController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -96,7 +96,7 @@ class CustomerController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->withInput()->with('error', __('common.unexpected_error'));
+            return back()->withInput()->with('error', __('common.error_generic'));
         }
     }
 
@@ -112,7 +112,7 @@ class CustomerController extends Controller
         } catch (Throwable $e) {
             report($e);
 
-            return back()->with('error', __('common.unexpected_error'));
+            return back()->with('error', __('common.error_generic'));
         }
     }
 }
