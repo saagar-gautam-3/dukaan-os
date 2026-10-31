@@ -16,12 +16,12 @@ class QueryStockAlerts
     {
         return Product::with(['unit', 'category', 'stockBalances'])
             ->where('is_active', true)
-            ->where('min_stock_alert', '>', 0)
+            ->where('low_stock_threshold', '>', 0)
             ->get()
             ->filter(function (Product $product) {
                 $totalStock = (float) $product->stockBalances->sum('quantity');
 
-                return $totalStock <= (float) $product->min_stock_alert;
+                return $totalStock <= (float) $product->low_stock_threshold;
             });
     }
 }

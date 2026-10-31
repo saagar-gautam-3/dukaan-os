@@ -33,6 +33,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions_version' => 'integer',
         ];
     }
 
@@ -52,6 +53,11 @@ class User extends Authenticatable
     public function activeShopUsers(): HasMany
     {
         return $this->hasMany(ShopUser::class)->where('status', 'active');
+    }
+
+    public function bumpPermissionsVersion(): void
+    {
+        $this->increment('permissions_version');
     }
 
     public function hasPermissionInCurrentShop(string $permission): bool

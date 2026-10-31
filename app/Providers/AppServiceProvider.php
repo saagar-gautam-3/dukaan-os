@@ -22,10 +22,13 @@ use App\Policies\SalePolicy;
 use App\Policies\StockPolicy;
 use App\Policies\SupplierLedgerEntryPolicy;
 use App\Tenancy\TenantContext;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -59,6 +62,14 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(ExpenseCategory::class, ExpenseCategoryPolicy::class);
         Gate::policy(Expense::class, ExpensePolicy::class);
         Gate::policy(CashSession::class, CashSessionPolicy::class);
+
+        RateLimiter::for('register', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+        RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+        RateLimiter::for('password-reset', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
+        RateLimiter::for('post-sale', fn (Request $request) => Limit::perMinute(30)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('payment', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('collect', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('remind', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
 
         Queue::before(function (): void {
             TenantContext::reset();

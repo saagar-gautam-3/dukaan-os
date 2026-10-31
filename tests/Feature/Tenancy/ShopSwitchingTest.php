@@ -129,18 +129,18 @@ class ShopSwitchingTest extends TestCase
 
         $response1->assertStatus(200);
 
-        // Staff is removed: membership row deleted
+        // Staff is removed: membership row deleted and all of the user's sessions become stale.
         $membership->delete();
+        $this->assertSame(1, (int) $user->fresh()->permissions_version);
 
-        // On the very next request, access is immediately blocked with 403
-        $response2 = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
+        $response2 = $this->actingAs($user->fresh())
+            ->withSession(['current_shop_id' => $shop->id, 'permissions_version' => 0])
             ->get('/dashboard');
 
-        $response2->assertStatus(403);
+        $response2->assertRedirect(route('login'));
     }
 
-    public function test_role_change_immediately_updates_permission_access(): void
+    public function test_role_change_invalidates_existing_user_session(): void
     {
         $user = User::factory()->create();
         $shop = Shop::factory()->create();
@@ -166,15 +166,39 @@ class ShopSwitchingTest extends TestCase
 
         $response1->assertStatus(403);
 
-        // Promote user to Shop Owner (has shops.manage permission)
+        // Promotion invalidates the existing session so it cannot retain stale permissions.
         $membership->update(['role_id' => $ownerRole->id]);
 
-        // Immediately has access on next request
-        $response2 = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
+        $this->assertSame(1, (int) $user->fresh()->permissions_version);
+
+        $response2 = $this->actingAs($user->fresh())
+            ->withSession(['current_shop_id' => $shop->id, 'permissions_version' => 0])
             ->get('/settings/shop');
 
-        $response2->assertStatus(200);
-        $response2->assertSee($shop->name);
+        $response2->assertRedirect(route('login'));
+    }
+
+    public function test_membership_deactivation_invalidates_existing_user_session(): void
+    {
+        $user = User::factory()->create();
+        $shop = Shop::factory()->create();
+        $membership = ShopUser::factory()->create([
+            'shop_id' => $shop->id,
+            'user_id' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($user)
+            ->withSession(['current_shop_id' => $shop->id])
+            ->get('/dashboard')
+            ->assertOk();
+
+        $membership->update(['status' => 'inactive']);
+        $this->assertSame(1, (int) $user->fresh()->permissions_version);
+
+        $this->actingAs($user->fresh())
+            ->withSession(['current_shop_id' => $shop->id, 'permissions_version' => 0])
+            ->get('/dashboard')
+            ->assertRedirect(route('login'));
     }
 }

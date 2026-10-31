@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Sales;
 
+use App\Models\Sale;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ReturnSaleRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $sale = $this->route('sale');
+
+        return $sale instanceof Sale && ($this->user()?->can('return', $sale) ?? false);
     }
 
     public function rules(): array

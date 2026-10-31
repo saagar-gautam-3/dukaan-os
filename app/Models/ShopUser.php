@@ -14,6 +14,19 @@ class ShopUser extends Pivot
     /** @use HasFactory<ShopUserFactory> */
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::updated(function (self $membership): void {
+            if ($membership->wasChanged(['role_id', 'status'])) {
+                $membership->user?->bumpPermissionsVersion();
+            }
+        });
+
+        static::deleted(function (self $membership): void {
+            $membership->user?->bumpPermissionsVersion();
+        });
+    }
+
     protected $table = 'shop_user';
 
     public $incrementing = true;

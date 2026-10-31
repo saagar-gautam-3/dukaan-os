@@ -17,49 +17,8 @@
     </div>
 
     <div class="row g-4">
-        <!-- Add Unit Form -->
-        <div class="col-12 col-md-4">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-header bg-white py-3 border-bottom">
-                    <h5 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-plus-circle me-1 text-primary"></i>{{ __('products.add_unit') }}
-                    </h5>
-                </div>
-                <div class="card-body p-3">
-                    <form method="POST" action="{{ route('units.store') }}">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="name" class="form-label fw-semibold">{{ __('products.unit_name') }} <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="e.g. Kilogram" value="{{ old('name') }}" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="symbol" class="form-label fw-semibold">{{ __('products.unit_symbol') }} <span class="text-danger">*</span></label>
-                            <input type="text" name="symbol" id="symbol" class="form-control @error('symbol') is-invalid @enderror" placeholder="e.g. kg" value="{{ old('symbol') }}" required>
-                            @error('symbol')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3 form-check">
-                            <input type="hidden" name="is_fractional" value="0">
-                            <input type="checkbox" name="is_fractional" id="is_fractional" class="form-check-input" value="1" {{ old('is_fractional', '1') == '1' ? 'checked' : '' }}>
-                            <label for="is_fractional" class="form-check-label">{{ __('products.is_fractional') }}</label>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-check-circle me-1"></i>{{ __('common.save') }}
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
         <!-- Units List -->
-        <div class="col-12 col-md-8">
+        <div class="col-12">
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-header bg-white py-3 border-bottom">
                     <h5 class="fw-bold mb-0 text-dark">{{ __('products.units') }} ({{ $units->count() }})</h5>

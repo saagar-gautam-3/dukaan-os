@@ -56,6 +56,7 @@ class AuthenticatedSessionController extends Controller
 
         RateLimiter::clear($throttleKey);
         $request->session()->regenerate();
+        $request->session()->put('permissions_version', (int) ($request->user()->permissions_version ?? 0));
 
         $user = $request->user();
         $memberships = $user->activeShopUsers()

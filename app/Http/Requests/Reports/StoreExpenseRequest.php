@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Reports;
 
+use App\Models\Expense;
 use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -13,7 +14,7 @@ class StoreExpenseRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return true; // Authorization handled in controller via policy
+        return $this->user()?->can('create', Expense::class) ?? false;
     }
 
     public function rules(): array

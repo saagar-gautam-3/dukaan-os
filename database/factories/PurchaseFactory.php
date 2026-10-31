@@ -10,6 +10,7 @@ use App\Models\Shop;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -28,8 +29,16 @@ class PurchaseFactory extends Factory
     {
         return [
             'shop_id' => Shop::factory(),
-            'warehouse_id' => Warehouse::factory(),
-            'supplier_id' => Supplier::factory(),
+            'warehouse_id' => function (array $attributes): int {
+                $shop = Shop::findOrFail($attributes['shop_id']);
+
+                return TenantContext::runAs($shop, fn () => Warehouse::factory()->create(['shop_id' => $shop->id])->id);
+            },
+            'supplier_id' => function (array $attributes): int {
+                $shop = Shop::findOrFail($attributes['shop_id']);
+
+                return TenantContext::runAs($shop, fn () => Supplier::factory()->create(['shop_id' => $shop->id])->id);
+            },
             'purchase_no' => fake()->unique()->lexify('PO-??????'),
             'status' => PurchaseStatus::Draft,
             'subtotal' => 1000.00,

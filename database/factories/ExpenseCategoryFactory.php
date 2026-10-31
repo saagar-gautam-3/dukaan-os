@@ -16,7 +16,7 @@ class ExpenseCategoryFactory extends Factory
     {
         return [
             'shop_id' => Shop::factory(),
-            'name' => fake()->randomElement(['Rent', 'Electricity', 'Tea & Refreshments', 'Transportation', 'Salary', 'Stationery', 'Cleaning', 'Internet']),
+            'name' => fake()->unique()->words(2, true),
         ];
     }
 }
