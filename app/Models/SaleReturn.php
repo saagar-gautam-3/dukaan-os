@@ -24,7 +24,7 @@ class SaleReturn extends Model
     protected static function booted(): void
     {
         static::updating(function (self $model): void {
-            $original = ReturnStatus::tryFrom((string) $model->getOriginal('status'));
+            $original = ReturnStatus::tryFrom((string) $model->getRawOriginal('status'));
             if ($original !== null && $original !== ReturnStatus::Pending) {
                 throw new ImmutableRecordException('Completed or cancelled sale returns are immutable and cannot be modified.');
             }

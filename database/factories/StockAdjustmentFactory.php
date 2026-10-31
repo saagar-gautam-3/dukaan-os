@@ -9,6 +9,7 @@ use App\Models\Shop;
 use App\Models\StockAdjustment;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -25,9 +26,12 @@ class StockAdjustmentFactory extends Factory
      */
     public function definition(): array
     {
+        $shop = Shop::factory()->create();
+        $warehouse = TenantContext::runAs($shop, fn () => Warehouse::factory()->create(['shop_id' => $shop->id]));
+
         return [
-            'shop_id' => Shop::factory(),
-            'warehouse_id' => Warehouse::factory(),
+            'shop_id' => $shop->id,
+            'warehouse_id' => $warehouse->id,
             'adjustment_no' => fake()->unique()->lexify('ADJ-??????'),
             'reason' => 'Inventory Audit Discrepancy',
             'status' => AdjustmentStatus::Draft,

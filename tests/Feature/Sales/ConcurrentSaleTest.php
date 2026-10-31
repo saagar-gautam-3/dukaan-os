@@ -8,7 +8,6 @@ use App\Actions\Inventory\ReceiveStock;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Sale;
-use App\Models\SaleItem;
 use App\Models\Shop;
 use App\Models\ShopUser;
 use App\Models\StockBalance;

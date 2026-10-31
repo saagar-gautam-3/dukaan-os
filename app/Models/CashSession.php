@@ -26,7 +26,7 @@ class CashSession extends Model
     protected static function booted(): void
     {
         static::updating(function (self $model): void {
-            if ($model->getOriginal('status') === CashSessionStatus::Closed->value) {
+            if ($model->getRawOriginal('status') === CashSessionStatus::Closed->value) {
                 throw new ImmutableRecordException('Closed cash sessions are immutable and cannot be modified.');
             }
         });

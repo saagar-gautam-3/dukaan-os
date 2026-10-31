@@ -33,7 +33,7 @@ class Payment extends Model
                 }
             }
 
-            $originalStatus = PaymentStatus::tryFrom((string) $model->getOriginal('status'));
+            $originalStatus = PaymentStatus::tryFrom((string) $model->getRawOriginal('status'));
             $newStatus = $model->status;
             if (
                 $originalStatus !== null &&

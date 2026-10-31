@@ -14,7 +14,9 @@ use App\Models\Unit;
 use App\Models\Warehouse;
 use App\Tenancy\TenantContext;
 use Symfony\Component\Process\Process;
-use Tests\TestCase;class ConcurrentStockDecrementTest extends TestCase
+use Tests\TestCase;
+
+class ConcurrentStockDecrementTest extends TestCase
 {
     protected ?Shop $testShop = null;
 

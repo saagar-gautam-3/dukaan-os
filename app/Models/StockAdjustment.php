@@ -26,7 +26,7 @@ class StockAdjustment extends Model
     protected static function booted(): void
     {
         static::updating(function (self $model): void {
-            $originalStatus = AdjustmentStatus::tryFrom((string) $model->getOriginal('status'));
+            $originalStatus = AdjustmentStatus::tryFrom((string) $model->getRawOriginal('status'));
             if ($originalStatus !== null && $originalStatus !== AdjustmentStatus::Draft) {
                 throw new ImmutableRecordException('Posted stock adjustments are immutable and cannot be modified.');
             }

@@ -32,7 +32,7 @@ class Sale extends Model
         ];
 
         static::updating(function (self $model) use ($frozenColumns): void {
-            $originalStatus = SaleStatus::tryFrom((string) $model->getOriginal('status'));
+            $originalStatus = SaleStatus::tryFrom((string) $model->getRawOriginal('status'));
             if ($originalStatus === null || ! $originalStatus->isImmutable()) {
                 return;
             }

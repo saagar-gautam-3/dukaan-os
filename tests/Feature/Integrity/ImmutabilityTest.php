@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Integrity;
 
-use App\Actions\Inventory\ReceiveStock;
 use App\Enums\AdjustmentStatus;
-use App\Enums\CashMovementType;
 use App\Enums\CashSessionStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\ReturnStatus;
@@ -22,11 +20,14 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\SaleReturn;
 use App\Models\SaleReturnItem;
+use App\Models\Shop;
 use App\Models\StockAdjustment;
 use App\Models\StockAdjustmentItem;
 use App\Models\StockMovement;
 use App\Models\SupplierLedgerEntry;
 use App\Tenancy\TenantContext;
+use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
@@ -39,7 +40,7 @@ use Tests\TestCase;
  */
 class ImmutabilityTest extends TestCase
 {
-    use \Illuminate\Foundation\Testing\RefreshDatabase;
+    use RefreshDatabase;
 
     // ──────────────────────────────────────────────────────────────────────────
     // Class A — append-only: customer_ledger_entries
@@ -65,7 +66,7 @@ class ImmutabilityTest extends TestCase
     {
         $entry = CustomerLedgerEntry::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('customer_ledger_entries')->where('id', $entry->id)->update(['notes' => 'tampered']);
     }
 
@@ -73,7 +74,7 @@ class ImmutabilityTest extends TestCase
     {
         $entry = CustomerLedgerEntry::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('customer_ledger_entries')->where('id', $entry->id)->delete();
     }
 
@@ -93,7 +94,7 @@ class ImmutabilityTest extends TestCase
     {
         $entry = SupplierLedgerEntry::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('supplier_ledger_entries')->where('id', $entry->id)->update(['notes' => 'tampered']);
     }
 
@@ -121,7 +122,7 @@ class ImmutabilityTest extends TestCase
     {
         $movement = StockMovement::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('stock_movements')->where('id', $movement->id)->update(['notes' => 'tampered']);
     }
 
@@ -129,7 +130,7 @@ class ImmutabilityTest extends TestCase
     {
         $movement = StockMovement::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('stock_movements')->where('id', $movement->id)->delete();
     }
 
@@ -142,15 +143,15 @@ class ImmutabilityTest extends TestCase
         $log = AuditLog::factory()->create();
 
         $this->expectException(ImmutableRecordException::class);
-        $log->update(['action' => 'tampered']);
+        $log->update(['event' => 'tampered']);
     }
 
     public function test_audit_logs_db_update_blocked_by_trigger(): void
     {
         $log = AuditLog::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
-        DB::table('audit_logs')->where('id', $log->id)->update(['action' => 'tampered']);
+        $this->expectException(QueryException::class);
+        DB::table('audit_logs')->where('id', $log->id)->update(['event' => 'tampered']);
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -169,7 +170,7 @@ class ImmutabilityTest extends TestCase
     {
         $movement = CashMovement::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('cash_movements')->where('id', $movement->id)->update(['notes' => 'tampered']);
     }
 
@@ -189,7 +190,7 @@ class ImmutabilityTest extends TestCase
     {
         $alloc = PaymentAllocation::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('payment_allocations')->where('id', $alloc->id)->update(['amount' => '999.00']);
     }
 
@@ -209,7 +210,7 @@ class ImmutabilityTest extends TestCase
     {
         $item = SaleReturnItem::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('sale_return_items')->where('id', $item->id)->delete();
     }
 
@@ -229,7 +230,7 @@ class ImmutabilityTest extends TestCase
     {
         $item = StockAdjustmentItem::factory()->create();
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('stock_adjustment_items')->where('id', $item->id)->update(['quantity' => '999.000']);
     }
 
@@ -257,7 +258,7 @@ class ImmutabilityTest extends TestCase
     {
         $sale = Sale::factory()->create(['status' => SaleStatus::Posted]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('sales')->where('id', $sale->id)->update(['grand_total' => '999.00']);
     }
 
@@ -286,26 +287,33 @@ class ImmutabilityTest extends TestCase
 
     public function test_posted_sale_item_update_throws_immutable_exception(): void
     {
-        $sale = Sale::factory()->create(['status' => SaleStatus::Posted]);
-        $item = SaleItem::factory()->create(['sale_id' => $sale->id]);
+        $item = SaleItem::factory()->create();
+        $sale = Sale::withoutGlobalScopes()->findOrFail($item->sale_id);
+        TenantContext::runAs(Shop::find($sale->shop_id), function () use ($sale) {
+            $sale->update(['status' => SaleStatus::Posted, 'posted_at' => now()]);
+        });
 
         $this->expectException(ImmutableRecordException::class);
-        $item->update(['quantity' => '99.000']);
+        TenantContext::runAs(Shop::find($item->shop_id), function () use ($item) {
+            $item->fresh()->update(['quantity' => '99.000']);
+        });
     }
 
     public function test_sale_items_db_update_blocked_by_trigger_when_sale_posted(): void
     {
-        $sale = Sale::factory()->create(['status' => SaleStatus::Posted]);
-        $item = SaleItem::factory()->create(['sale_id' => $sale->id]);
+        $item = SaleItem::factory()->create();
+        $sale = Sale::withoutGlobalScopes()->findOrFail($item->sale_id);
+        TenantContext::runAs(Shop::find($sale->shop_id), function () use ($sale) {
+            $sale->update(['status' => SaleStatus::Posted, 'posted_at' => now()]);
+        });
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('sale_items')->where('id', $item->id)->update(['quantity' => '99.000']);
     }
 
     public function test_draft_sale_item_can_be_updated(): void
     {
-        $sale = Sale::factory()->create(['status' => SaleStatus::Draft]);
-        $item = SaleItem::factory()->create(['sale_id' => $sale->id]);
+        $item = SaleItem::factory()->create();
 
         $item->update(['quantity' => '2.000']);
 
@@ -336,7 +344,7 @@ class ImmutabilityTest extends TestCase
     {
         $payment = Payment::factory()->create(['status' => PaymentStatus::Pending]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('payments')->where('id', $payment->id)->update(['amount' => '999.00']);
     }
 
@@ -344,7 +352,7 @@ class ImmutabilityTest extends TestCase
     {
         $payment = Payment::factory()->create(['status' => PaymentStatus::Pending]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('payments')->where('id', $payment->id)->delete();
     }
 
@@ -381,7 +389,7 @@ class ImmutabilityTest extends TestCase
     {
         $session = CashSession::factory()->create(['status' => CashSessionStatus::Closed]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('cash_sessions')->where('id', $session->id)->update(['notes' => 'tampered']);
     }
 
@@ -410,7 +418,7 @@ class ImmutabilityTest extends TestCase
     {
         $adjustment = StockAdjustment::factory()->create(['status' => AdjustmentStatus::Posted]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::table('stock_adjustments')->where('id', $adjustment->id)->update(['reason' => 'tampered']);
     }
 
@@ -443,4 +451,3 @@ class ImmutabilityTest extends TestCase
         $saleReturn->delete();
     }
 }
-

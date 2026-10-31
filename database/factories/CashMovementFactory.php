@@ -9,6 +9,7 @@ use App\Models\CashMovement;
 use App\Models\CashSession;
 use App\Models\Shop;
 use App\Models\User;
+use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CashMovementFactory extends Factory
@@ -17,9 +18,12 @@ class CashMovementFactory extends Factory
 
     public function definition(): array
     {
+        $shop = Shop::factory()->create();
+        $session = TenantContext::runAs($shop, fn () => CashSession::factory()->create(['shop_id' => $shop->id]));
+
         return [
-            'shop_id' => Shop::factory(),
-            'cash_session_id' => CashSession::factory(),
+            'shop_id' => $shop->id,
+            'cash_session_id' => $session->id,
             'type' => fake()->randomElement(CashMovementType::cases()),
             'amount' => '500.00',
             'reference_type' => null,
