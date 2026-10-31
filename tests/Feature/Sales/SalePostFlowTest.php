@@ -473,7 +473,10 @@ class SalePostFlowTest extends TestCase
         ]);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('cannot be cancelled');
+        $this->expectExceptionMessage(__('sales.immutable_exception', [
+            'id' => $posted->id,
+            'status' => __('sales.status_posted'),
+        ]));
 
         $cancelSale->handle($posted, $this->user->id);
     }
