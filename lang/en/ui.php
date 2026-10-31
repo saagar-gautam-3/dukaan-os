@@ -58,6 +58,8 @@ return [
     'status' => 'Status',
     'action' => 'Action',
     'payment_cash' => 'Cash',
+    'nepal_timezone_label' => 'Asia/Kathmandu (Nepal time, UTC+5:45)',
+    'utc_timezone_label' => 'Coordinated Universal Time (UTC)',
     'purchase_number' => 'Purchase #',
     'pan_label' => 'PAN:',
     'all_sales' => 'All',

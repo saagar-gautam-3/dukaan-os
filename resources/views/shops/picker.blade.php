@@ -19,14 +19,14 @@
                     <!-- Language Switcher -->
                     <div class="btn-group btn-group-sm mt-1" role="group">
                         <a href="{{ route('locale.switch', 'ne') }}" class="btn {{ app()->getLocale() === 'ne' ? 'btn-primary' : 'btn-outline-secondary' }}">नेपाली</a>
-                        <a href="{{ route('locale.switch', 'en') }}" class="btn {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-outline-secondary' }}">English</a>
+                        <a href="{{ route('locale.switch', 'en') }}" class="btn {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-outline-secondary' }}">{{ __('ui.language_english') }}</a>
                     </div>
                 </div>
 
                 @if (session('status'))
                     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                         {{ session('status') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('common.close') }}"></button>
                     </div>
                 @endif
 
@@ -36,7 +36,7 @@
                             <i class="bi bi-shop-window display-4 text-muted"></i>
                         </div>
                         <h5>{{ __('shops.no_shops') }}</h5>
-                        <p class="text-muted small mb-4">You do not have any active shop memberships yet.</p>
+                        <p class="text-muted small mb-4">{{ __('ui.no_active_memberships') }}</p>
                         <div>
                             <a href="{{ route('register') }}" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-1"></i>{{ __('shops.register_new') }}

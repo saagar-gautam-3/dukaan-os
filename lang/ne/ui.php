@@ -58,6 +58,8 @@ return [
     'status' => 'अवस्था',
     'action' => 'कार्य',
     'payment_cash' => 'नगद',
+    'nepal_timezone_label' => 'नेपाल समय (UTC+५:४५)',
+    'utc_timezone_label' => 'समन्वित विश्व समय (UTC)',
     'purchase_number' => 'खरिद नं.',
     'pan_label' => 'प्यान:',
     'all_sales' => 'सबै',
