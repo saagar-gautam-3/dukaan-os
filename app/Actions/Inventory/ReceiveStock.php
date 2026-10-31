@@ -52,24 +52,25 @@ class ReceiveStock
             $notes,
             $userId
         ) {
-            // Lock or create the StockBalance row
+            // Race-safe: insert a zero row if missing (ignored on unique conflict),
+            // then lock it. This avoids two concurrent receives both inserting.
+            DB::table('stock_balances')->insertOrIgnore([
+                'shop_id' => $warehouse->shop_id,
+                'warehouse_id' => $warehouse->id,
+                'product_id' => $product->id,
+                'quantity' => '0.000',
+                'average_cost' => '0.00',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Lock the StockBalance row
             /** @var StockBalance $balance */
             $balance = StockBalance::query()
                 ->where('warehouse_id', $warehouse->id)
                 ->where('product_id', $product->id)
                 ->lockForUpdate()
-                ->first();
-
-            if ($balance === null) {
-                $balance = new StockBalance;
-                $balance->warehouse_id = $warehouse->id;
-                $balance->product_id = $product->id;
-                $balance->quantity = '0.000';
-                $balance->save();
-
-                // Re-lock
-                $balance = StockBalance::where('id', $balance->id)->lockForUpdate()->first();
-            }
+                ->firstOrFail();
 
             // Calculate moving weighted average cost if this is a purchase receive
             $newCost = (string) $product->cost_price;
