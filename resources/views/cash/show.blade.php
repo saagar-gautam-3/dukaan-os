@@ -133,7 +133,7 @@
                     <textarea name="notes" class="form-control" rows="2"></textarea>
                 </div>
                 <button type="submit" class="btn btn-warning"
-                        onclick="return confirm('{{ __('common.confirm') }} close session?')">
+                        onclick="return confirm(@js(__('cash.confirm_close_session')))">
                     <i class="bi bi-lock me-1"></i> {{ __('cash.close_session') }}
                 </button>
             </form>

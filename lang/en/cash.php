@@ -24,6 +24,7 @@ return [
     'cash_out' => 'Cash Out',
     'open_session' => 'Open Session',
     'close_session' => 'Close Session',
+    'confirm_close_session' => 'Close this cash session?',
     'sessions_history' => 'Sessions History',
     'session_detail' => 'Session Detail',
     'opened_by' => 'Opened By',

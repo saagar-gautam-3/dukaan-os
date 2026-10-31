@@ -24,6 +24,7 @@ return [
     'cash_out' => 'नगद खर्च',
     'open_session' => 'सत्र खोल्नुहोस्',
     'close_session' => 'सत्र बन्द गर्नुहोस्',
+    'confirm_close_session' => 'यो नगद सत्र बन्द गर्ने हो?',
     'sessions_history' => 'सत्र इतिहास',
     'session_detail' => 'सत्र विवरण',
     'opened_by' => 'खोलेको',
