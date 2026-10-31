@@ -122,7 +122,7 @@
                 <div class="mb-3">
                     <label class="form-label fw-semibold">{{ __('cash.closing_cash') }} <span class="text-danger">*</span></label>
                     <div class="input-group">
-                        <span class="input-group-text">Rs</span>
+                        <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
                         <input type="number" name="closing_cash" step="0.01" min="0"
                                class="form-control" value="{{ $detail['expected_cash'] }}" required>
                     </div>
