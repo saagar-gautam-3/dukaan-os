@@ -23,6 +23,12 @@
                     </div>
                 </div>
 
+                @if ($isPlatformAdmin)
+                    <div class="text-center mb-3">
+                        <a class="btn btn-outline-primary" href="{{ route('platform.shops.index') }}">{{ __('common.platform_shops') }}</a>
+                    </div>
+                @endif
+
                 @if (session('status'))
                     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                         {{ session('status') }}

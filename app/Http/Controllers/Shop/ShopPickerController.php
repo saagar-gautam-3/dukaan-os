@@ -16,13 +16,18 @@ class ShopPickerController extends Controller
     /**
      * Display a list of available shops for the authenticated user.
      */
-    public function index(Request $request, QueryActiveMemberships $membershipsQuery): View
+    public function index(Request $request, QueryActiveMemberships $membershipsQuery): View|RedirectResponse
     {
         $memberships = $membershipsQuery->forUser($request->user());
+
+        if ($request->user()->is_platform_admin && $memberships->isEmpty()) {
+            return redirect()->route('platform.shops.index');
+        }
 
         return view('shops.picker', [
             'memberships' => $memberships,
             'currentShopId' => $request->session()->get('current_shop_id'),
+            'isPlatformAdmin' => $request->user()->is_platform_admin,
         ]);
     }
 

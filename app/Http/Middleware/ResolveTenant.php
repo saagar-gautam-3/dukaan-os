@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Actions\Shops\QueryActiveMemberships;
 use App\Tenancy\TenantContext;
 use App\Tenancy\TenantResolver;
 use Closure;
@@ -30,6 +31,11 @@ class ResolveTenant
         $shop = $this->resolver->resolve($request);
 
         if ($shop === null || ! TenantContext::has()) {
+            $user = $request->user();
+            if ($user?->is_platform_admin && app(QueryActiveMemberships::class)->forLogin($user)->isEmpty()) {
+                return redirect()->route('platform.shops.index');
+            }
+
             $onMissing = config('tenancy.on_missing_context', 'abort_403');
 
             if ($onMissing === 'redirect' && Route::has('shops.picker') && ! $request->expectsJson()) {

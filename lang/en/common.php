@@ -19,6 +19,7 @@ return [
         'settings' => 'Shop Settings',
     ],
     'switch_shop' => 'Switch Shop',
+    'platform_shops' => 'Platform shops',
     'logout' => 'Log Out',
     'current_shop' => 'Current Shop',
     'role' => 'Role',

@@ -19,6 +19,7 @@ return [
         'settings' => 'पसल सेटिङ्स',
     ],
     'switch_shop' => 'पसल बदल्नुहोस्',
+    'platform_shops' => 'प्लेटफर्मका पसलहरू',
     'logout' => 'लगआउट',
     'current_shop' => 'चालू पसल',
     'role' => 'भूमिका',

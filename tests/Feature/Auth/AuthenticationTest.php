@@ -78,6 +78,80 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('shops.picker'));
     }
 
+    public function test_platform_admin_without_shops_lands_on_platform_shops_after_login(): void
+    {
+        $admin = User::factory()->create([
+            'email' => 'platform-empty@example.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+            'is_platform_admin' => true,
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $admin->email,
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect(route('platform.shops.index'));
+        $this->get('/dashboard')->assertRedirect(route('platform.shops.index'));
+        $this->get('/shops/picker')->assertRedirect(route('platform.shops.index'));
+    }
+
+    public function test_platform_admin_with_shop_keeps_picker_flow_and_sees_platform_link(): void
+    {
+        $admin = User::factory()->create([
+            'email' => 'platform-shop@example.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+            'is_platform_admin' => true,
+        ]);
+        $shop = Shop::factory()->create();
+        ShopUser::factory()->create([
+            'shop_id' => $shop->id,
+            'user_id' => $admin->id,
+            'status' => 'active',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $admin->email,
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->get('/shops/picker')
+            ->assertOk()
+            ->assertSee(route('platform.shops.index'))
+            ->assertSee(__('common.platform_shops'));
+        $this->get('/dashboard')
+            ->assertOk()
+            ->assertSee(route('platform.shops.index'))
+            ->assertSee(__('common.platform_shops'));
+    }
+
+    public function test_normal_shop_owner_login_keeps_tenant_dashboard_flow(): void
+    {
+        $owner = User::factory()->create([
+            'email' => 'normal-owner@example.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+            'is_platform_admin' => false,
+        ]);
+        $shop = Shop::factory()->create();
+        ShopUser::factory()->create([
+            'shop_id' => $shop->id,
+            'user_id' => $owner->id,
+            'status' => 'active',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $owner->email,
+            'password' => 'password123',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $this->get('/platform/shops')->assertForbidden();
+    }
+
     public function test_users_cannot_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create([
