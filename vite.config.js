@@ -17,6 +17,7 @@ export default defineConfig({
                 'resources/scss/app.scss',
                 'resources/scss/print.scss',
                 'resources/js/app.js',
+                'resources/js/money.js',
             ],
             refresh: true,
         }),

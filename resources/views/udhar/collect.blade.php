@@ -228,7 +228,8 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+import { parseMoney, formatMoney } from '{{ Vite::asset('resources/js/money.js') }}';
 const currencySymbol = @json(__('ui.currency_symbol'));
 document.addEventListener('DOMContentLoaded', function () {
     const amountInput = document.getElementById('amountInput');
@@ -238,33 +239,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const totalAllocatedDisplay = document.getElementById('totalAllocatedDisplay');
 
     function calculateAllocations() {
-        const totalAmount = parseFloat(amountInput.value) || 0;
-        let sumAllocated = 0;
+        const totalAmount = parseMoney(amountInput ? amountInput.value : '0');
+        let sumAllocated = 0n;
 
         allocationInputs.forEach(input => {
-            const val = parseFloat(input.value) || 0;
-            sumAllocated += val;
+            sumAllocated += parseMoney(input.value);
         });
 
-        const advance = Math.max(0, totalAmount - sumAllocated);
+        const advance = totalAmount > sumAllocated ? totalAmount - sumAllocated : 0n;
 
         if (advanceDisplay) {
-            advanceDisplay.textContent = currencySymbol + ' ' + advance.toFixed(2);
+            advanceDisplay.textContent = currencySymbol + ' ' + formatMoney(advance);
         }
         if (totalAllocatedDisplay) {
-            totalAllocatedDisplay.textContent = currencySymbol + ' ' + sumAllocated.toFixed(2);
+            totalAllocatedDisplay.textContent = currencySymbol + ' ' + formatMoney(sumAllocated);
         }
     }
 
     function autoAllocate() {
-        let remaining = parseFloat(amountInput.value) || 0;
+        let remaining = parseMoney(amountInput ? amountInput.value : '0');
 
         allocationInputs.forEach(input => {
             const row = input.closest('.invoice-row');
             if (!row) return;
-            const due = parseFloat(row.getAttribute('data-due')) || 0;
-            const alloc = Math.min(remaining, due);
-            input.value = alloc.toFixed(2);
+            const due = parseMoney(row.getAttribute('data-due'));
+            const alloc = remaining < due ? remaining : due;
+            input.value = formatMoney(alloc);
             remaining -= alloc;
         });
 
@@ -285,8 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
         input.addEventListener('input', calculateAllocations);
     });
 
-    // Run auto-allocate on initial page load if amount has a value
-    if (amountInput && parseFloat(amountInput.value) > 0) {
+    if (amountInput && parseMoney(amountInput.value) > 0n) {
         autoAllocate();
     } else {
         calculateAllocations();

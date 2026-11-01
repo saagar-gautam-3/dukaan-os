@@ -450,6 +450,49 @@ final class UdharLedgerTest extends TestCase
         $this->assertSame('-100.00', $customer->ledgerBalance());
     }
 
+    public function test_collection_preserves_exact_decimal_sums(): void
+    {
+        $customer = Customer::factory()->create(['shop_id' => $this->shop->id]);
+        $product = $this->createStockedProduct(sellingPrice: '0.10', qty: '10.0');
+
+        $sale = app(CreateSale::class)->handle([
+            'shop_id' => $this->shop->id,
+            'warehouse_id' => $this->warehouse->id,
+            'customer_id' => $customer->id,
+            'payment_method' => PaymentMethod::Cash->value,
+            'paid_total' => '0.00',
+            'items' => [['product_id' => $product->id, 'quantity' => 3, 'unit_price' => '0.10']],
+        ], $this->user->id);
+        app(PostSale::class)->handle($sale, $this->user->id, ['payment_amount' => '0.00']);
+
+        // 0.10 + 0.20 exact decimal sum
+        $result = app(CollectPayment::class)->handle(
+            customer: $customer,
+            userId: $this->user->id,
+            data: ['amount' => '0.30', 'method' => 'cash'],
+        );
+        $this->assertSame('0.30', $result['allocated'][$sale->id]);
+
+        $customer2 = Customer::factory()->create(['shop_id' => $this->shop->id]);
+        $product2 = $this->createStockedProduct(sellingPrice: '1000.05', qty: '2.0');
+        $sale2 = app(CreateSale::class)->handle([
+            'shop_id' => $this->shop->id,
+            'warehouse_id' => $this->warehouse->id,
+            'customer_id' => $customer2->id,
+            'payment_method' => PaymentMethod::Cash->value,
+            'paid_total' => '0.00',
+            'items' => [['product_id' => $product2->id, 'quantity' => 1, 'unit_price' => '1000.05']],
+        ], $this->user->id);
+        app(PostSale::class)->handle($sale2, $this->user->id, ['payment_amount' => '0.00']);
+
+        $result2 = app(CollectPayment::class)->handle(
+            customer: $customer2,
+            userId: $this->user->id,
+            data: ['amount' => '1000.05', 'method' => 'cash'],
+        );
+        $this->assertSame('1000.05', $result2['allocated'][$sale2->id]);
+    }
+
     public function test_collection_flow_with_custom_allocations(): void
     {
         $customer = Customer::factory()->create(['shop_id' => $this->shop->id]);

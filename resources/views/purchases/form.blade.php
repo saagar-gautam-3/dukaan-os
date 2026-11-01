@@ -173,40 +173,43 @@
     </form>
 </div>
 
-<script>
+<script type="module">
+import { parseQuantity, parseMoney, formatMoney } from '{{ Vite::asset('resources/js/money.js') }}';
 document.addEventListener('DOMContentLoaded', function () {
     let rowIndex = 1;
     const itemsBody = document.getElementById('itemsBody');
     const addItemBtn = document.getElementById('addItemBtn');
 
     function calculateTotals() {
-        let subtotal = 0;
-        let discountTotal = 0;
+        let subtotal = 0n;
+        let discountTotal = 0n;
 
         document.querySelectorAll('.item-row').forEach(row => {
-            const qty = parseFloat(row.querySelector('.qty-input').value) || 0;
-            const cost = parseFloat(row.querySelector('.cost-input').value) || 0;
-            const disc = parseFloat(row.querySelector('.discount-input').value) || 0;
+            const qty = parseQuantity(row.querySelector('.qty-input').value);
+            const cost = parseMoney(row.querySelector('.cost-input').value);
+            const disc = parseMoney(row.querySelector('.discount-input').value);
 
-            const lineTotal = Math.max(0, (qty * cost) - disc);
-            row.querySelector('.line-total-text').textContent = @json(__('ui.currency_symbol')) + ' ' + lineTotal.toFixed(2);
+            const lineTotal = qty * cost - disc * 1000n;
+            const safeLineTotal = lineTotal > 0n ? lineTotal : 0n;
+            row.querySelector('.line-total-text').textContent = @json(__('ui.currency_symbol')) + ' ' + formatMoney(safeLineTotal / 1000n);
 
-            subtotal += (qty * cost);
-            discountTotal += disc;
+            subtotal += qty * cost;
+            discountTotal += disc * 1000n;
         });
 
-        const grandTotal = Math.max(0, subtotal - discountTotal);
+        const grandTotal = subtotal - discountTotal;
+        const safeGrandTotal = grandTotal > 0n ? grandTotal : 0n;
 
-        document.getElementById('summarySubtotal').textContent = @json(__('ui.currency_symbol')) + ' ' + subtotal.toFixed(2);
-        document.getElementById('summaryDiscount').textContent = '- ' + @json(__('ui.currency_symbol')) + ' ' + discountTotal.toFixed(2);
-        document.getElementById('summaryGrandTotal').textContent = @json(__('ui.currency_symbol')) + ' ' + grandTotal.toFixed(2);
+        document.getElementById('summarySubtotal').textContent = @json(__('ui.currency_symbol')) + ' ' + formatMoney(subtotal / 1000n);
+        document.getElementById('summaryDiscount').textContent = '- ' + @json(__('ui.currency_symbol')) + ' ' + formatMoney(discountTotal / 1000n);
+        document.getElementById('summaryGrandTotal').textContent = @json(__('ui.currency_symbol')) + ' ' + formatMoney(safeGrandTotal / 1000n);
     }
 
     function attachRowListeners(row) {
         row.querySelector('.product-select').addEventListener('change', function () {
             const selected = this.options[this.selectedIndex];
             if (selected && selected.dataset.cost) {
-                row.querySelector('.cost-input').value = parseFloat(selected.dataset.cost).toFixed(2);
+                row.querySelector('.cost-input').value = formatMoney(parseMoney(selected.dataset.cost));
             }
             calculateTotals();
         });
