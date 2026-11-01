@@ -27,18 +27,34 @@ class PurchaseFactory extends Factory
      */
     public function definition(): array
     {
+        if (TenantContext::has()) {
+            $shop = TenantContext::shop();
+
+            return [
+                'shop_id' => $shop->id,
+                'warehouse_id' => Warehouse::factory(),
+                'supplier_id' => Supplier::factory(),
+                'purchase_no' => fake()->unique()->lexify('PO-??????'),
+                'status' => PurchaseStatus::Draft,
+                'subtotal' => 1000.00,
+                'tax_total' => 0.00,
+                'discount_total' => 0.00,
+                'grand_total' => 1000.00,
+                'notes' => 'Stock replenishment order',
+                'purchase_date' => now()->toDateString(),
+                'posted_at' => null,
+                'created_by' => User::factory(),
+            ];
+        }
+
+        $shop = Shop::factory()->create();
+        $warehouse = TenantContext::runAs($shop, fn () => Warehouse::factory()->create(['shop_id' => $shop->id]));
+        $supplier = TenantContext::runAs($shop, fn () => Supplier::factory()->create(['shop_id' => $shop->id]));
+
         return [
-            'shop_id' => Shop::factory(),
-            'warehouse_id' => function (array $attributes): int {
-                $shop = Shop::findOrFail($attributes['shop_id']);
-
-                return TenantContext::runAs($shop, fn () => Warehouse::factory()->create(['shop_id' => $shop->id])->id);
-            },
-            'supplier_id' => function (array $attributes): int {
-                $shop = Shop::findOrFail($attributes['shop_id']);
-
-                return TenantContext::runAs($shop, fn () => Supplier::factory()->create(['shop_id' => $shop->id])->id);
-            },
+            'shop_id' => $shop->id,
+            'warehouse_id' => $warehouse->id,
+            'supplier_id' => $supplier->id,
             'purchase_no' => fake()->unique()->lexify('PO-??????'),
             'status' => PurchaseStatus::Draft,
             'subtotal' => 1000.00,
