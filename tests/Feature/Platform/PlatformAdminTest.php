@@ -82,6 +82,33 @@ class PlatformAdminTest extends TestCase
         $this->assertTrue($user->is_platform_admin);
     }
 
+    public function test_reactivation_restores_access(): void
+    {
+        $admin = User::factory()->create(['is_platform_admin' => true]);
+        $shop = Shop::factory()->create(['is_active' => true]);
+        TenantContext::setShop($shop);
+        $rbac = app(RbacService::class);
+        $roles = $rbac->createDefaultRolesForShop($shop);
+        $user = User::factory()->create();
+        ShopUser::factory()->create([
+            'shop_id' => $shop->id,
+            'user_id' => $user->id,
+            'role_id' => $roles['Shop Owner']->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin);
+        $before = AuditLog::count();
+        $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
+        $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
+        $this->assertSame($before + 2, AuditLog::count());
+
+        $this->actingAs($user);
+        TenantContext::setShop($shop);
+        $response = $this->get(route('dashboard'));
+        $this->assertLessThan(400, $response->getStatusCode());
+    }
+
     public function test_deactivated_shop_blocks_users(): void
     {
         $admin = User::factory()->create(['is_platform_admin' => true]);
