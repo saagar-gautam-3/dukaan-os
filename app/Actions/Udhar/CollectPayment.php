@@ -11,6 +11,7 @@ use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Sale;
+use App\Support\AuditTrail;
 use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
@@ -182,6 +183,12 @@ class CollectPayment
                     'created_by' => $userId,
                 ]);
             }
+
+            AuditTrail::record($payment, $userId, 'collected', null, [
+                'amount' => $amount,
+                'allocated' => $allocated,
+                'advance' => $advance,
+            ]);
 
             return [
                 'payment' => $payment->refresh()->load('allocations'),
