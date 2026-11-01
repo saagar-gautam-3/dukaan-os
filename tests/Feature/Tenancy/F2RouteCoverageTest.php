@@ -11,6 +11,7 @@ use App\Models\ShopUser;
 use App\Models\User;
 use App\Services\RbacService;
 use App\Tenancy\TenantContext;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -162,6 +163,29 @@ class F2RouteCoverageTest extends TestCase
             ->all();
 
         $this->assertSame(array_keys($exceptions), $platformRoutes);
+    }
+
+    public function test_public_health_route_is_an_explicit_tenant_matrix_exception(): void
+    {
+        $exceptions = [
+            'GET /up' => 'Public Laravel uptime monitor; no authentication, tenant resolution, or tenant data queries.',
+        ];
+        self::assertNotEmpty($exceptions['GET /up']);
+
+        $healthRoute = collect(RouteFacade::getRoutes())->first(
+            fn (Route $route): bool => $route->uri() === 'up' && in_array('GET', $route->methods(), true),
+        );
+        self::assertNotNull($healthRoute, 'Laravel health route must remain registered.');
+        self::assertNotContains('auth', $healthRoute->gatherMiddleware());
+        self::assertNotContains('tenant.resolve', $healthRoute->gatherMiddleware());
+
+        $queryCount = 0;
+        DB::listen(static function (QueryExecuted $query) use (&$queryCount): void {
+            $queryCount++;
+        });
+
+        $this->get('/up')->assertOk();
+        self::assertSame(0, $queryCount, 'The public health route must not query tenant data.');
     }
 
     /** @return array{Shop, User} */
