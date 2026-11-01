@@ -144,6 +144,26 @@ class F2RouteCoverageTest extends TestCase
         }
     }
 
+    public function test_platform_routes_are_explicit_exceptions_in_tenant_matrix(): void
+    {
+        $exceptions = [
+            'platform.shops.index' => 'Platform operator only; not tenant-scoped.',
+            'platform.shops.toggle' => 'Platform operator only; not tenant-scoped.',
+        ];
+
+        foreach (array_keys($exceptions) as $name) {
+            $this->assertTrue(RouteFacade::has($name), 'Platform route must exist: '.$name);
+        }
+
+        $platformRoutes = collect(RouteFacade::getRoutes())
+            ->filter(fn (Route $route): bool => str_starts_with((string) $route->getName(), 'platform.'))
+            ->map(fn (Route $route): ?string => $route->getName())
+            ->values()
+            ->all();
+
+        $this->assertSame(array_keys($exceptions), $platformRoutes);
+    }
+
     /** @return array{Shop, User} */
     private function createTenantMember(bool $owner): array
     {

@@ -50,6 +50,36 @@ class PlatformAdminTest extends TestCase
         $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
         $this->assertSame($before + 1, AuditLog::count());
         $this->assertFalse($shop->fresh()->is_active);
+
+        // reactivation restores access
+        $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
+        $this->assertTrue($shop->fresh()->is_active);
+    }
+
+    public function test_platform_index_exposes_counts_only(): void
+    {
+        $admin = User::factory()->create(['is_platform_admin' => true]);
+        Shop::factory()->create(['name' => 'Secret Shop']);
+        $this->actingAs($admin);
+
+        $response = $this->get(route('platform.shops.index'));
+        $response->assertOk();
+        $response->assertSee('Secret Shop');
+        $response->assertDontSee('sales_total');
+        $response->assertDontSee('customer_email');
+    }
+
+    public function test_platform_create_admin_command(): void
+    {
+        $this->artisan('platform:create-admin', [
+            '--name' => 'Operator',
+            '--email' => 'operator@example.com',
+        ])->expectsQuestion('Password', 'secret123')
+            ->assertExitCode(0);
+
+        $user = User::where('email', 'operator@example.com')->first();
+        $this->assertNotNull($user);
+        $this->assertTrue($user->is_platform_admin);
     }
 
     public function test_deactivated_shop_blocks_users(): void
