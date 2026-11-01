@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Tenancy\TenantContext;
 use App\Traits\Auditable;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,9 +16,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'locale'])]
+#[Fillable(['name', 'email', 'phone', 'password', 'locale', 'is_platform_admin'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use Auditable, HasFactory, Notifiable;
@@ -34,6 +34,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'permissions_version' => 'integer',
+            'is_platform_admin' => 'boolean',
         ];
     }
 
@@ -53,6 +54,11 @@ class User extends Authenticatable
     public function activeShopUsers(): HasMany
     {
         return $this->hasMany(ShopUser::class)->where('status', 'active');
+    }
+
+    public function isPlatformAdmin(): bool
+    {
+        return (bool) $this->is_platform_admin;
     }
 
     public function bumpPermissionsVersion(): void

@@ -30,4 +30,9 @@ return [
     'logged_out' => 'तपाईं सफलतापूर्वक लगआउट हुनुभयो।',
     'reset_sent' => 'हामीले तपाईंको इमेलमा पासवर्ड रिसेट लिङ्क पठाएका छौँ।',
     'reset_success' => 'तपाईंको पासवर्ड सफलतापूर्वक परिवर्तन भयो।',
+    'verify_email_title' => 'Verify your email address',
+    'verify_email_body' => 'A verification link has been sent to your email.',
+    'resend_verification' => 'Resend verification email',
+    'verified' => 'Your email has been verified.',
+    'verification_link_sent' => 'A new verification link has been sent.',
 ];

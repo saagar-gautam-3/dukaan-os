@@ -42,6 +42,10 @@ class ReceiveStock
             throw new InvalidArgumentException('Received quantity must be greater than zero.');
         }
 
+        if ($movementType === MovementType::Opening && Money::compare((string) $unitCost, '0', 2) <= 0) {
+            throw new InvalidArgumentException('Opening stock requires a unit cost greater than zero.');
+        }
+
         return DB::transaction(function () use (
             $product,
             $warehouse,

@@ -31,7 +31,7 @@ class UpdateProduct
                 'is_active' => isset($data['is_active']) ? (bool) $data['is_active'] : $product->is_active,
             ]);
 
-            return $product;
+            return $product->fresh();
         });
     }
 }

@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\EnsurePermissionsVersion;
+use App\Http\Middleware\EnsurePlatformAdmin;
 use App\Http\Middleware\EnsureShopAccess;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Auth\Middleware\Authorize;
+use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -32,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant.resolve' => ResolveTenant::class,
             'shop.access' => EnsureShopAccess::class,
+            'platform.admin' => EnsurePlatformAdmin::class,
+            'verified' => EnsureEmailIsVerified::class,
         ]);
 
         $middleware->priority([

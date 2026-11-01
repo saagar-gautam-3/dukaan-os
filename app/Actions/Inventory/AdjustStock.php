@@ -61,6 +61,10 @@ class AdjustStock
                 $qty = (string) $itemData['quantity'];
                 $unitCost = (string) ($itemData['unit_cost'] ?? $product->cost_price);
 
+                if ($type === 'in' && Money::compare($unitCost, '0', 2) <= 0) {
+                    throw new InvalidArgumentException("Unit cost is required when adding stock for product [{$product->name}].");
+                }
+
                 if (Money::compare($qty, '0', 3) <= 0) {
                     throw new InvalidArgumentException("Quantity for product [{$product->name}] must be positive.");
                 }
