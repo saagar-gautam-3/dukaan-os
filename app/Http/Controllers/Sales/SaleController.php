@@ -261,7 +261,7 @@ class SaleController extends Controller
             $filteredItems = array_values(array_filter($data['items'], fn ($i) => Money::compare((string) ($i['quantity'] ?? '0'), '0', 3) > 0));
 
             if (empty($filteredItems)) {
-                return back()->withInput()->with('error', 'Please enter a return quantity greater than 0 for at least one item.');
+                return back()->withInput()->with('error', __('errors.return_quantity_required'));
             }
 
             $this->returnSale->handle($sale, (int) auth()->id(), $filteredItems, $data['reason'] ?? '');

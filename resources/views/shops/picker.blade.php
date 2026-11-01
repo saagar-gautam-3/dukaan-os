@@ -44,7 +44,7 @@
                         <h5>{{ __('shops.no_shops') }}</h5>
                         <p class="text-muted small mb-4">{{ __('ui.no_active_memberships') }}</p>
                         <div>
-                            <a href="{{ route('register') }}" class="btn btn-primary">
+                            <a href="{{ route('shops.create') }}" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-1"></i>{{ __('shops.register_new') }}
                             </a>
                         </div>

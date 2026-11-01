@@ -47,7 +47,7 @@ class CollectPayment
         $amount = (string) $data['amount'];
 
         if (Money::compare($amount, '0', 2) <= 0) {
-            throw new InvalidArgumentException('Collection amount must be greater than zero.');
+            throw new InvalidArgumentException(__('errors.collection_amount_positive'));
         }
 
         return DB::transaction(function () use ($customer, $userId, $shop, $amount, $data) {

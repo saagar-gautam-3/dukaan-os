@@ -34,4 +34,6 @@ return [
     'switched_success' => 'Switched to shop: :name',
     'no_shops' => 'No active shops found.',
     'register_new' => 'Register a New Shop',
+    'create_title' => 'Register a New Shop',
+    'created_success' => 'Shop registered successfully. It is now active.',
 ];

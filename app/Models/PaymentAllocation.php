@@ -27,11 +27,11 @@ class PaymentAllocation extends Model
     protected static function booted(): void
     {
         static::updating(function (): void {
-            throw new ImmutableRecordException('Payment allocations are append-only and cannot be updated.');
+            throw new ImmutableRecordException(__('errors.payment_allocations_immutable'));
         });
 
         static::deleting(function (): void {
-            throw new ImmutableRecordException('Payment allocations are append-only and cannot be deleted.');
+            throw new ImmutableRecordException(__('errors.payment_allocations_cannot_delete'));
         });
     }
 

@@ -10,6 +10,10 @@ class InvalidReturnException extends InvalidArgumentException
 {
     public static function exceedsQuantity(string $requested, string $maxReturnable, int $itemId): self
     {
-        return new self("Return quantity {$requested} exceeds returnable quantity {$maxReturnable} for item #{$itemId}.");
+        return new self(__('errors.return_exceeds_quantity', [
+            'requested' => $requested,
+            'maximum' => $maxReturnable,
+            'id' => $itemId,
+        ]));
     }
 }

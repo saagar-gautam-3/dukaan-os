@@ -46,7 +46,7 @@ class RecordPayment
         $amount = (string) $data['amount'];
 
         if (Money::compare($amount, '0', 2) <= 0) {
-            throw new InvalidArgumentException('Payment amount must be greater than zero.');
+            throw new InvalidArgumentException(__('errors.payment_amount_positive'));
         }
 
         // Idempotency check

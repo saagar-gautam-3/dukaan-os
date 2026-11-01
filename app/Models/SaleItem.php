@@ -25,7 +25,7 @@ class SaleItem extends Model
             /** @var Sale|null $sale */
             $sale = $model->sale ?? Sale::withoutGlobalScopes()->find($model->sale_id);
             if ($sale && $sale->status !== null && $sale->status->isImmutable()) {
-                throw new ImmutableRecordException('Sale items of a posted/cancelled sale cannot be modified or deleted.');
+                throw new ImmutableRecordException(__('errors.sale_items_immutable'));
             }
         };
 

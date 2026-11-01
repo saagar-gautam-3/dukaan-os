@@ -33,7 +33,7 @@ class CreateSale
     public function handle(array $data): Sale
     {
         if (empty($data['items'])) {
-            throw new InvalidArgumentException('A sale must have at least one item.');
+            throw new InvalidArgumentException(__('errors.sale_items_required'));
         }
 
         $shop = TenantContext::shop();

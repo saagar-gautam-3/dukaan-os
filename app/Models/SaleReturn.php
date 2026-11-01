@@ -25,13 +25,13 @@ class SaleReturn extends Model
         static::updating(function (self $model): void {
             $original = ReturnStatus::tryFrom((string) $model->getRawOriginal('status'));
             if ($original !== null && $original !== ReturnStatus::Pending) {
-                throw new ImmutableRecordException('Completed or cancelled sale returns are immutable and cannot be modified.');
+                throw new ImmutableRecordException(__('errors.sale_return_immutable'));
             }
         });
 
         static::deleting(function (self $model): void {
             if ($model->status !== ReturnStatus::Pending) {
-                throw new ImmutableRecordException('Completed or cancelled sale returns cannot be deleted.');
+                throw new ImmutableRecordException(__('errors.sale_return_cannot_delete'));
             }
         });
     }

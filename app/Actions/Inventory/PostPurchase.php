@@ -32,7 +32,7 @@ class PostPurchase
         }
 
         if ($purchase->status === PurchaseStatus::Cancelled) {
-            throw new InvalidArgumentException('Cancelled purchases cannot be posted.');
+            throw new InvalidArgumentException(__('errors.cancelled_purchase_cannot_post'));
         }
 
         return DB::transaction(function () use ($purchase, $userId) {
@@ -42,7 +42,7 @@ class PostPurchase
             $purchase->loadMissing('items.product');
 
             if ($purchase->items->isEmpty()) {
-                throw new InvalidArgumentException('Cannot post a purchase with no line items.');
+                throw new InvalidArgumentException(__('errors.purchase_line_items_required'));
             }
 
             foreach ($purchase->items as $item) {

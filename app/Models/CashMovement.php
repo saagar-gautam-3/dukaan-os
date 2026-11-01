@@ -33,11 +33,11 @@ class CashMovement extends Model
     protected static function booted(): void
     {
         static::updating(function (): void {
-            throw new ImmutableRecordException('Cash movements are append-only and cannot be updated.');
+            throw new ImmutableRecordException(__('errors.cash_movements_immutable'));
         });
 
         static::deleting(function (): void {
-            throw new ImmutableRecordException('Cash movements are append-only and cannot be deleted.');
+            throw new ImmutableRecordException(__('errors.cash_movements_cannot_delete'));
         });
     }
 

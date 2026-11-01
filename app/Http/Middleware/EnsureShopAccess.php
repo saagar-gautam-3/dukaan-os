@@ -21,12 +21,12 @@ class EnsureShopAccess
     {
         $user = $request->user();
         if ($user === null || ! TenantContext::has()) {
-            abort(403, 'Tenant context missing or unauthorized.');
+            abort(403, __('errors.tenant_context_missing'));
         }
 
         $shop = TenantContext::currentShop();
         if (! $shop->is_active) {
-            abort(403, 'This shop has been deactivated.');
+            abort(403, __('errors.shop_deactivated'));
         }
 
         // Verify fresh active membership directly against the database
@@ -37,7 +37,7 @@ class EnsureShopAccess
             ->first();
 
         if ($membership === null) {
-            abort(403, 'Access to this shop is revoked or inactive.');
+            abort(403, __('errors.shop_access_revoked'));
         }
 
         return $next($request);

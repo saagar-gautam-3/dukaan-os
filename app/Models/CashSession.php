@@ -27,13 +27,13 @@ class CashSession extends Model
     {
         static::updating(function (self $model): void {
             if ($model->getRawOriginal('status') === CashSessionStatus::Closed->value) {
-                throw new ImmutableRecordException('Closed cash sessions are immutable and cannot be modified.');
+                throw new ImmutableRecordException(__('errors.closed_cash_immutable'));
             }
         });
 
         static::deleting(function (self $model): void {
             if ($model->status === CashSessionStatus::Closed) {
-                throw new ImmutableRecordException('Closed cash sessions cannot be deleted.');
+                throw new ImmutableRecordException(__('errors.closed_cash_cannot_delete'));
             }
         });
     }

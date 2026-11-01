@@ -37,11 +37,11 @@ class ReturnSale
     public function handle(Sale $sale, int $processedById, array $returnItems, string $reason = ''): SaleReturn
     {
         if ($sale->status !== SaleStatus::Posted) {
-            throw new InvalidArgumentException('Only posted sales can be returned.');
+            throw new InvalidArgumentException(__('errors.posted_sale_required_for_return'));
         }
 
         if (empty($returnItems)) {
-            throw new InvalidArgumentException('At least one item must be specified for return.');
+            throw new InvalidArgumentException(__('errors.sale_return_item_required'));
         }
 
         $shop = TenantContext::shop();
@@ -63,7 +63,7 @@ class ReturnSale
                 $originalItem = $originalItems->get($saleItemId);
 
                 if (! $originalItem) {
-                    throw new InvalidArgumentException("Sale item #{$saleItemId} not found on this sale.");
+                    throw new InvalidArgumentException(__('errors.sale_item_not_found', ['id' => $saleItemId]));
                 }
 
                 // Validate return quantity doesn't exceed original
@@ -181,7 +181,7 @@ class ReturnSale
             ?? Warehouse::where('shop_id', $shopId)->first();
 
         if (! $warehouse) {
-            throw new RuntimeException('No warehouse configured for this shop.');
+            throw new RuntimeException(__('errors.warehouse_not_configured'));
         }
 
         return $warehouse->id;

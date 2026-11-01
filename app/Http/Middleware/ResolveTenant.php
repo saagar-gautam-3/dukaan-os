@@ -42,7 +42,7 @@ class ResolveTenant
                 return redirect()->route('shops.picker');
             }
 
-            abort(403, 'Tenant context missing or unauthorized.');
+            abort(403, __('errors.tenant_context_missing'));
         }
 
         if (filled(config('sentry.dsn'))) {
