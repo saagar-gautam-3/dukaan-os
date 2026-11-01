@@ -165,9 +165,6 @@
                 </div>
 
                 <div class="p-3 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted small">
-                        {{ __('common.showing_of', ['first' => $balances->firstItem() ?? 0, 'last' => $balances->lastItem() ?? 0, 'total' => $balances->total(), 'resource' => __('inventory.current_stock')]) }}
-                    </span>
                     <div>
                         {{ $balances->links() }}
                     </div>

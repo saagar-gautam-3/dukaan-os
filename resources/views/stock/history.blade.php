@@ -145,9 +145,6 @@
                 </div>
 
                 <div class="p-3 border-top d-flex justify-content-between align-items-center">
-                    <span class="text-muted small">
-                        {{ __('common.showing_of', ['first' => $movements->firstItem() ?? 0, 'last' => $movements->lastItem() ?? 0, 'total' => $movements->total(), 'resource' => __('inventory.stock_movements')]) }}
-                    </span>
                     <div>
                         {{ $movements->links() }}
                     </div>
