@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Inventory\PurchaseController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\SupplierController;
+use App\Http\Controllers\Platform\PlatformShopController;
 use App\Http\Controllers\Product\CategoryController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\UnitController;
@@ -61,6 +63,9 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated User Routes (Shop Switching & Logout)
 Route::middleware('auth')->group(function () {
+    Route::get('/email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1')->name('verification.send');
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('/shops/picker', [ShopPickerController::class, 'index'])->name('shops.picker');
@@ -141,4 +146,10 @@ Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () 
         Route::get('/profit/export', [ReportController::class, 'exportCsv'])->name('profit.export');
         Route::get('/stock', [ReportController::class, 'stockValuation'])->name('stock');
     });
+});
+
+// Platform admin (audited, no impersonation)
+Route::middleware(['auth', 'platform.admin'])->prefix('platform')->name('platform.')->group(function () {
+    Route::get('/shops', [PlatformShopController::class, 'index'])->name('shops.index');
+    Route::post('/shops/{shop}/toggle', [PlatformShopController::class, 'toggle'])->name('shops.toggle');
 });

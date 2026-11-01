@@ -30,4 +30,9 @@ return [
     'logged_out' => 'You have been logged out successfully.',
     'reset_sent' => 'We have emailed your password reset link.',
     'reset_success' => 'Your password has been reset successfully.',
+    'verify_email_title' => 'Verify your email address',
+    'verify_email_body' => 'A verification link has been sent to your email.',
+    'resend_verification' => 'Resend verification email',
+    'verified' => 'Your email has been verified.',
+    'verification_link_sent' => 'A new verification link has been sent.',
 ];
