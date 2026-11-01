@@ -32,6 +32,8 @@ use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
+use function Sentry\configureScope;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -83,10 +85,22 @@ class AppServiceProvider extends ServiceProvider
 
         Queue::before(function (): void {
             TenantContext::reset();
+            if (filled(config('sentry.dsn'))) {
+                configureScope(static function ($scope): void {
+                    $scope->removeTag('shop_id');
+                    $scope->removeTag('user_id');
+                });
+            }
         });
 
         Queue::after(function (): void {
             TenantContext::reset();
+            if (filled(config('sentry.dsn'))) {
+                configureScope(static function ($scope): void {
+                    $scope->removeTag('shop_id');
+                    $scope->removeTag('user_id');
+                });
+            }
         });
 
         Queue::failing(function (): void {

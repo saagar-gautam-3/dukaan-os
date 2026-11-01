@@ -9,7 +9,10 @@ use App\Tenancy\TenantResolver;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Sentry\State\Scope;
 use Symfony\Component\HttpFoundation\Response;
+
+use function Sentry\configureScope;
 
 class ResolveTenant
 {
@@ -34,6 +37,15 @@ class ResolveTenant
             }
 
             abort(403, 'Tenant context missing or unauthorized.');
+        }
+
+        if (filled(config('sentry.dsn'))) {
+            configureScope(static function (Scope $scope) use ($request, $shop): void {
+                $scope->setTag('shop_id', (string) $shop->id);
+                if ($request->user() !== null) {
+                    $scope->setTag('user_id', (string) $request->user()->id);
+                }
+            });
         }
 
         return $next($request);

@@ -2,12 +2,15 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\ClearSentryTenantTags;
 use App\Http\Middleware\EnsurePermissionsVersion;
 use App\Http\Middleware\EnsurePlatformAdmin;
 use App\Http\Middleware\EnsureShopAccess;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\SetLocale;
+use App\Support\SentryExceptionPolicy;
+use App\Support\SentryExceptionReporter;
 use Illuminate\Auth\Middleware\Authorize;
 use Illuminate\Auth\Middleware\EnsureEmailIsVerified;
 use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
@@ -27,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SecurityHeaders::class,
+            ClearSentryTenantTags::class,
             SetLocale::class,
             EnsurePermissionsVersion::class,
         ]);
@@ -50,5 +54,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->reportable(function (Throwable $exception): ?bool {
+            if (! SentryExceptionPolicy::shouldReport($exception)) {
+                return false;
+            }
+
+            app(SentryExceptionReporter::class)->report($exception);
+
+            return null;
+        });
     })->create();
