@@ -73,7 +73,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Tenant-Scoped App Routes
-Route::middleware(['auth', 'tenant.resolve', 'shop.access'])->group(function () {
+Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/settings/shop', [ShopSettingsController::class, 'edit'])->name('settings.shop');
