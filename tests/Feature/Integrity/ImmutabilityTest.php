@@ -519,4 +519,15 @@ class ImmutabilityTest extends TestCase
         $this->expectException(QueryException::class);
         DB::update('UPDATE sale_returns SET return_no = ? WHERE id = ?', ['RET-2', $saleReturn->id]);
     }
+
+    public function test_completed_sale_returns_null_safe_trigger_blocks_null_return_no(): void
+    {
+        $saleReturn = SaleReturn::factory()->create([
+            'status' => ReturnStatus::Completed,
+            'return_no' => 'RET-1',
+        ]);
+
+        $this->expectException(QueryException::class);
+        DB::update('UPDATE sale_returns SET return_no = NULL WHERE id = ?', [$saleReturn->id]);
+    }
 }

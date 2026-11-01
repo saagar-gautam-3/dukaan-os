@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Inventory;
 
 use App\Actions\Inventory\AdjustStock;
+use App\Actions\Inventory\PerformStockAdjustment;
 use App\Actions\Inventory\ReceiveStock;
 use App\Actions\Inventory\ReverseStockMovement;
 use App\Enums\MovementType;
 use App\Models\Product;
 use App\Models\Shop;
 use App\Models\StockBalance;
+use App\Models\User;
 use App\Models\Warehouse;
 use App\Tenancy\TenantContext;
 use Exception;
@@ -300,5 +302,25 @@ class StockMovementTest extends TestCase
         $this->expectExceptionMessage('Cannot reverse an existing reversal movement.');
 
         $reversalAction->execute($reversal);
+    }
+
+    public function test_stock_adjustment_add_requires_unit_cost(): void
+    {
+        $shop = Shop::factory()->create();
+        TenantContext::setShop($shop);
+        $warehouse = Warehouse::factory()->create(['shop_id' => $shop->id]);
+        $product = Product::factory()->create(['shop_id' => $shop->id, 'cost_price' => '0.00']);
+        $user = User::factory()->create();
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unit cost is required');
+
+        app(PerformStockAdjustment::class)->handle([
+            'warehouse_id' => $warehouse->id,
+            'product_id' => $product->id,
+            'type' => 'in',
+            'quantity' => '1.000',
+            'reason' => 'test',
+        ], $user->id);
     }
 }
