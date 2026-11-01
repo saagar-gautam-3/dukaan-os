@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Middleware\EnsurePermissionsVersion;
+use App\Http\Middleware\EnsurePlatformAdmin;
 use App\Http\Middleware\EnsureShopAccess;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant.resolve' => ResolveTenant::class,
             'shop.access' => EnsureShopAccess::class,
+            'platform.admin' => EnsurePlatformAdmin::class,
         ]);
 
         $middleware->priority([

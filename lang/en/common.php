@@ -55,4 +55,6 @@ return [
     'close' => 'Close',
     'toggle_sidebar' => 'Toggle sidebar',
     'delete' => 'Delete',
+    'yes' => 'Yes',
+    'no' => 'No',
 ];
