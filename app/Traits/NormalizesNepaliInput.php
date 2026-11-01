@@ -35,9 +35,11 @@ trait NormalizesNepaliInput
                 $data[$key] = $this->normalizeValues($value);
             } elseif (is_string($value)) {
                 if (in_array($key, $phoneFields, true)) {
-                    $normalizedPhone = NepaliPhone::normalize($value);
-                    if ($normalizedPhone !== null) {
-                        $data[$key] = $normalizedPhone;
+                    if (NepaliPhone::hasSupportedCharacters($value)) {
+                        $normalizedPhone = NepaliPhone::normalize($value);
+                        if ($normalizedPhone !== null) {
+                            $data[$key] = $normalizedPhone;
+                        }
                     }
                 } else {
                     // Convert any Devanagari digits ०-९ to 0-9

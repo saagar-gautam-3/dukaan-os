@@ -37,7 +37,7 @@
                 <label for="phone" class="form-label">{{ __('auth.phone') }}</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                    <input type="text" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="{{ __('ui.phone_example') }}">
+                    <input type="tel" inputmode="tel" maxlength="20" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="{{ __('ui.phone_example') }}">
                 </div>
                 @error('phone')
                     <div class="invalid-feedback d-block mt-1">{{ $message }}</div>

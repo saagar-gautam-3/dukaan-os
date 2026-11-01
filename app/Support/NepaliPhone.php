@@ -25,6 +25,10 @@ class NepaliPhone
             return null;
         }
 
+        if (! self::hasSupportedCharacters($cleaned)) {
+            return $cleaned;
+        }
+
         // Convert Devanagari digits to ASCII
         $cleaned = NepaliNumber::toAscii($cleaned);
 
@@ -49,12 +53,21 @@ class NepaliPhone
      */
     public static function isValidMobile(?string $phone): bool
     {
+        if ($phone === null || ! self::hasSupportedCharacters($phone)) {
+            return false;
+        }
+
         $normalized = self::normalize($phone);
         if ($normalized === null) {
             return false;
         }
 
         return (bool) preg_match('/^9\d{9}$/', $normalized);
+    }
+
+    public static function hasSupportedCharacters(string $phone): bool
+    {
+        return (bool) preg_match('/^\+?[0-9०-९\s-]+$/u', trim($phone));
     }
 
     /**

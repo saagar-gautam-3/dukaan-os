@@ -85,4 +85,53 @@ class ShopSettingsTest extends TestCase
 
         $response->assertSessionHasErrors('timezone');
     }
+
+    public function test_shop_settings_rejects_overlong_phone_before_persisting(): void
+    {
+        $user = User::factory()->create();
+        $shop = Shop::factory()->create();
+        $roles = app(RbacService::class)->createDefaultRolesForShop($shop);
+        ShopUser::factory()->create([
+            'shop_id' => $shop->id,
+            'user_id' => $user->id,
+            'role_id' => $roles['Shop Owner']->id,
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['current_shop_id' => $shop->id])
+            ->put('/settings/shop', [
+                'name' => $shop->name,
+                'business_type' => $shop->business_type,
+                'timezone' => $shop->timezone,
+                'phone' => '98999999999999999999999999999',
+            ]);
+
+        $response->assertSessionHasErrors('phone');
+        self::assertNull($shop->fresh()->settings['phone'] ?? null);
+    }
+
+    public function test_shop_settings_rejects_eleven_digit_phone_before_persisting(): void
+    {
+        $user = User::factory()->create();
+        $shop = Shop::factory()->create();
+        $roles = app(RbacService::class)->createDefaultRolesForShop($shop);
+        ShopUser::factory()->create([
+            'shop_id' => $shop->id,
+            'user_id' => $user->id,
+            'role_id' => $roles['Shop Owner']->id,
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['current_shop_id' => $shop->id])
+            ->put('/settings/shop', [
+                'name' => $shop->name,
+                'business_type' => $shop->business_type,
+                'timezone' => $shop->timezone,
+                'phone' => '98412345678',
+            ]);
+
+        $response->assertSessionHasErrors('phone');
+    }
 }

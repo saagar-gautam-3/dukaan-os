@@ -55,6 +55,7 @@ return [
     'pagination' => 'Pagination',
     'previous_page' => 'Previous page',
     'next_page' => 'Next page',
+    'invalid_nepal_phone' => 'Enter a valid 10-digit Nepal mobile number starting with 9.',
     'retry' => 'Retry',
     'close' => 'Close',
     'toggle_sidebar' => 'Toggle sidebar',

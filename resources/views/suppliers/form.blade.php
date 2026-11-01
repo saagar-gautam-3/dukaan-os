@@ -46,7 +46,7 @@
 
                     <div class="col-12 col-md-6">
                         <label for="phone" class="form-label fw-semibold">{{ __('suppliers.phone') }}</label>
-                        <input type="text" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror" 
+                        <input type="tel" inputmode="tel" maxlength="20" name="phone" id="phone" class="form-control @error('phone') is-invalid @enderror"
                                value="{{ old('phone', $supplier->phone ?? '') }}" placeholder="{{ __('suppliers.phone_placeholder') }}">
                         @error('phone')
                             <div class="invalid-feedback">{{ $message }}</div>

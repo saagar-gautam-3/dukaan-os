@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Shop;
 
+use App\Rules\NepalMobilePhone;
 use App\Tenancy\TenantContext;
 use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
@@ -31,7 +32,7 @@ class UpdateShopSettingsRequest extends FormRequest
             'show_bs_dates' => ['nullable', 'boolean'],
             'devanagari_digits' => ['nullable', 'boolean'],
             'address' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20', new NepalMobilePhone],
             'pan_number' => ['nullable', 'string', 'max:50'],
         ];
     }
