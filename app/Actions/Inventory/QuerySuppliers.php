@@ -21,7 +21,6 @@ class QuerySuppliers
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('contact_person', 'like', "%{$search}%")
                     ->orWhere('pan_vat', 'like', "%{$search}%");
             });
         }
