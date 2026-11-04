@@ -20,6 +20,7 @@ class RbacService
         'shops.manage' => 'Manage shop profile and settings',
         'users.view' => 'View shop staff members',
         'users.manage' => 'Add, edit, or remove staff members',
+        'staff.manage' => 'Manage staff members and their roles',
         'roles.view' => 'View roles and permissions',
         'roles.manage' => 'Manage custom roles and assignments',
         'products.view' => 'View products and catalog',
