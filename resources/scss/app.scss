@@ -49,13 +49,22 @@ $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
 // Sidebar
 .app-sidebar {
     width: $sidebar-width;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
     background-color: $primary;
     color: #fff;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
     transition: width 0.2s ease;
+
+    .sidebar-brand,
+    .sidebar-shop,
+    > .border-top {
+        flex-shrink: 0;
+    }
 
     .sidebar-brand {
         padding: 1.25rem 1.5rem;
@@ -63,6 +72,15 @@ $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
         font-weight: 700;
         letter-spacing: 0.02em;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sidebar-nav {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 0.5rem;
     }
 
     .nav-link {
@@ -87,6 +105,14 @@ $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
             text-align: center;
         }
     }
+}
+
+body.sidebar-open {
+    overflow: hidden;
+}
+
+.sidebar-backdrop {
+    display: none;
 }
 
 // Main content
@@ -123,7 +149,8 @@ $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
         position: fixed;
         left: 0;
         top: 0;
-        bottom: 0;
+        height: 100vh;
+        height: 100dvh;
         z-index: 1040;
         transform: translateX(-100%);
         transition: transform 0.25s ease;
@@ -132,6 +159,17 @@ $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
             transform: translateX(0);
             box-shadow: 0.25rem 0 1.5rem rgba(0, 0, 0, 0.25);
         }
+    }
+
+    .sidebar-backdrop:not(.d-none) {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 1039;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        background: rgba(0, 0, 0, 0.45);
     }
 
     .app-layout {

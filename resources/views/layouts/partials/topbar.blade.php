@@ -1,6 +1,6 @@
 <header class="app-topbar">
     <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-outline-secondary d-lg-none" type="button" id="sidebarToggle" aria-label="{{ __('common.toggle_sidebar') }}">
+        <button class="btn btn-outline-secondary d-lg-none" type="button" id="sidebarToggle" aria-label="{{ __('common.toggle_sidebar') }}" aria-controls="appSidebar" aria-expanded="false">
             <i class="bi bi-list fs-5"></i>
         </button>
 

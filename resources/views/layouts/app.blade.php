@@ -16,6 +16,7 @@
     </script>
     <div class="app-layout">
         @include('layouts.partials.sidebar')
+        <button type="button" class="sidebar-backdrop d-none" id="sidebarBackdrop" aria-label="{{ __('common.close_sidebar') }}"></button>
 
         <div class="app-content">
             @include('layouts.partials.topbar')
