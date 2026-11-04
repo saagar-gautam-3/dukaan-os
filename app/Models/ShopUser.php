@@ -59,7 +59,7 @@ class ShopUser extends Pivot
         return $this->status === 'active';
     }
 
-    protected function resolveRouteBindingQuery($query, $value, $field = null)
+    public function resolveRouteBindingQuery($query, $value, $field = null)
     {
         $query = parent::resolveRouteBindingQuery($query, $value, $field);
 
