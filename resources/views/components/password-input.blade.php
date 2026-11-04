@@ -33,8 +33,9 @@
                   data-weak-label="{{ __('ui.password_strength_weak') }}"
                   data-medium-label="{{ __('ui.password_strength_medium') }}"
                   data-strong-label="{{ __('ui.password_strength_strong') }}"
+                  data-hint-label="{{ __('ui.password_strength_hint') }}"
                   aria-live="polite">{{ __('ui.password_strength_hint') }}</span>
         </div>
-        <span class="visually-hidden" data-password-generated role="status" aria-live="polite">{{ __('ui.password_generated') }}</span>
+        <span class="visually-hidden" data-password-generated data-generated-label="{{ __('ui.password_generated') }}" role="status" aria-live="polite"></span>
     @endif
 </div>

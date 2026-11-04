@@ -275,6 +275,21 @@ body.sidebar-open {
     min-height: 40px;
 }
 
+.password-suggestion {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.password-strength {
+    margin-left: 0 !important;
+
+    &[data-strength='weak'] { color: $danger; }
+    &[data-strength='medium'] { color: $warning; }
+    &[data-strength='strong'] { color: $success; }
+}
+
 // ── Mobile touch targets (max-width 576px) ────────────────────
 @media (max-width: 576px) {
     button,

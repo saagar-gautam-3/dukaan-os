@@ -33,6 +33,11 @@ final class PasswordInputRenderingTest extends TestCase
         $registerResponse = $this->get(route('register'));
         $registerResponse
             ->assertOk()
+            ->assertSee('data-password-generate', false)
+            ->assertSee('data-password-confirmation="password_confirmation"', false)
+            ->assertSee('data-password-strength', false)
+            ->assertSee('data-password-generated', false)
+            ->assertSee('aria-live="polite"', false)
             ->assertSee('autocomplete="new-password"', false);
         $this->assertSame(2, substr_count($registerResponse->getContent(), 'data-password-toggle'));
 
@@ -43,6 +48,8 @@ final class PasswordInputRenderingTest extends TestCase
         $this->get(route('password.reset', ['token' => 'sample-reset-token']))
             ->assertOk()
             ->assertSee('data-password-toggle', false)
+            ->assertSee('data-password-generate', false)
+            ->assertSee('data-password-strength', false)
             ->assertSee('autocomplete="new-password"', false);
     }
 
@@ -66,6 +73,8 @@ final class PasswordInputRenderingTest extends TestCase
             ->get(route('staff.create'))
             ->assertOk()
             ->assertSee('data-password-toggle', false)
+            ->assertSee('data-password-generate', false)
+            ->assertSee('data-password-strength', false)
             ->assertSee('autocomplete="new-password"', false)
             ->assertSee(__('staff.temporary_password_help'));
     }

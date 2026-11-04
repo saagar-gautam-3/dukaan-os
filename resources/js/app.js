@@ -16,7 +16,10 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 import * as bootstrap from 'bootstrap';
 window.bootstrap = bootstrap;
 
-// 3. Sidebar toggle for mobile
+// 3. Accessible password visibility and strong-password controls
+import './password-fields';
+
+// 4. Sidebar toggle for mobile
 document.addEventListener('DOMContentLoaded', () => {
     const networkStatus = document.getElementById('network-status');
 
