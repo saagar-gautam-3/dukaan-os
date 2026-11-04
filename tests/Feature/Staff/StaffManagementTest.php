@@ -14,6 +14,7 @@ use App\Tenancy\TenantContext;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
@@ -98,6 +99,70 @@ final class StaffManagementTest extends TestCase
         $this->assertFalse($this->roles['Manager']->permissions()->where('name', 'staff.manage')->exists());
         $this->assertFalse($this->roles['Cashier']->permissions()->where('name', 'staff.manage')->exists());
         $this->assertTrue($this->roles['Shop Owner']->permissions()->where('name', 'staff.manage')->exists());
+    }
+
+    public function test_added_staff_password_is_hashed_and_can_authenticate(): void
+    {
+        Notification::fake();
+        $password = 'Temporary123';
+        $email = 'new-staff@example.test';
+
+        $this->actingAs($this->owner)
+            ->withSession(['current_shop_id' => $this->shop->id])
+            ->post(route('staff.store'), [
+                'name' => 'New Staff',
+                'email' => $email,
+                'phone' => '9841234567',
+                'role_id' => $this->roles['Cashier']->id,
+                'password' => $password,
+            ])
+            ->assertRedirect(route('staff.index'));
+
+        $staff = User::query()->where('email', $email)->firstOrFail();
+        $membership = ShopUser::query()->where('user_id', $staff->id)->firstOrFail();
+        $storedPassword = DB::table('users')->where('id', $staff->id)->value('password');
+
+        $this->assertNotSame($password, $storedPassword);
+        $this->assertTrue(Hash::check($password, $storedPassword));
+        $this->assertNull($staff->email_verified_at);
+        $auditEntries = AuditLog::query()
+            ->where('auditable_id', $membership->id)
+            ->where('event', 'staff_added')
+            ->get();
+        $this->assertNotEmpty($auditEntries);
+        foreach ($auditEntries as $auditEntry) {
+            $this->assertStringNotContainsString($password, json_encode($auditEntry->toArray(), JSON_THROW_ON_ERROR));
+        }
+
+        auth()->logout();
+        $this->post(route('login'), ['email' => $email, 'password' => $password])
+            ->assertRedirect(route('dashboard'));
+        $this->assertAuthenticatedAs($staff);
+    }
+
+    public function test_verification_notification_failure_does_not_fail_staff_creation(): void
+    {
+        Notification::shouldReceive('send')->once()->andThrow(new \RuntimeException('Mail transport unavailable'));
+        $email = 'mail-failure-staff@example.test';
+
+        $response = $this->actingAs($this->owner)
+            ->withSession(['current_shop_id' => $this->shop->id])
+            ->post(route('staff.store'), [
+                'name' => 'Mail Failure Staff',
+                'email' => $email,
+                'phone' => '9841234567',
+                'role_id' => $this->roles['Cashier']->id,
+                'password' => 'Temporary123',
+            ]);
+
+        $response->assertRedirect(route('staff.index'))
+            ->assertSessionHas('status', __('staff.created_success'))
+            ->assertSessionMissing('error');
+        $this->assertDatabaseHas('users', ['email' => $email]);
+        $this->assertDatabaseHas('shop_user', [
+            'shop_id' => $this->shop->id,
+            'user_id' => User::query()->where('email', $email)->value('id'),
+        ]);
     }
 
     public function test_owner_can_list_staff_and_sidebar_link_is_permission_gated(): void

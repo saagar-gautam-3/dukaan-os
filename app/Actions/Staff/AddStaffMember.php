@@ -11,6 +11,7 @@ use App\Support\AuditTrail;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 final class AddStaffMember
 {
@@ -58,7 +59,11 @@ final class AddStaffMember
             return $membership->load(['user', 'role']);
         });
 
-        $membership->user->sendEmailVerificationNotification();
+        try {
+            $membership->user->sendEmailVerificationNotification();
+        } catch (Throwable $e) {
+            report($e);
+        }
 
         return $membership;
     }
