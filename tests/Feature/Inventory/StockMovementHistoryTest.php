@@ -45,7 +45,10 @@ class StockMovementHistoryTest extends TestCase
     {
         [$shop, , $product] = $this->createShopProductAndMovement();
         $otherShop = Shop::factory()->create();
-        $roles = app(RbacService::class)->createDefaultRolesForShop($otherShop);
+        $roles = TenantContext::runAs(
+            $otherShop,
+            fn () => app(RbacService::class)->createDefaultRolesForShop($otherShop),
+        );
         $otherUser = User::factory()->create();
         ShopUser::factory()->create([
             'shop_id' => $otherShop->id,
