@@ -27,7 +27,7 @@ class AllocatePayment
         $sale = Sale::where('shop_id', $shop->id)->where('id', $saleId)->firstOrFail();
 
         if (! $sale->isPosted()) {
-            throw new InvalidArgumentException("Sale #{$saleId} must be posted before payment can be allocated.");
+            throw new InvalidArgumentException(__('errors.sale_must_be_posted_for_allocation', ['id' => $saleId]));
         }
 
         return DB::transaction(function () use ($payment, $sale, $amount) {
@@ -35,7 +35,7 @@ class AllocatePayment
             $unallocated = $payment->unallocatedAmount();
             if (Money::compare($amount, $unallocated, 2) > 0) {
                 throw new InvalidArgumentException(
-                    "Cannot allocate {$amount}; payment only has {$unallocated} unallocated."
+                    __('errors.payment_unallocated_insufficient', ['amount' => $amount, 'available' => $unallocated])
                 );
             }
 
@@ -43,7 +43,7 @@ class AllocatePayment
             $saleDue = $sale->dueAmount();
             if (Money::compare($amount, $saleDue, 2) > 0) {
                 throw new InvalidArgumentException(
-                    "Cannot allocate {$amount}; sale only has {$saleDue} due."
+                    __('errors.sale_due_insufficient', ['amount' => $amount, 'due' => $saleDue])
                 );
             }
 

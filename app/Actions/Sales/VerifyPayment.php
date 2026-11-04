@@ -18,7 +18,7 @@ class VerifyPayment
             $payment->refresh();
 
             if ($payment->status !== PaymentStatus::Pending) {
-                throw new InvalidArgumentException('Only pending payments can be verified.');
+                throw new InvalidArgumentException(__('errors.payment_pending_verification'));
             }
 
             $oldStatus = $payment->status->value;

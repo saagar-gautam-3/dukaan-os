@@ -31,11 +31,11 @@ class SaleReturnItem extends Model
     protected static function booted(): void
     {
         static::updating(function (): void {
-            throw new ImmutableRecordException('Sale return items are append-only and cannot be updated.');
+            throw new ImmutableRecordException(__('errors.sale_return_items_immutable'));
         });
 
         static::deleting(function (): void {
-            throw new ImmutableRecordException('Sale return items are append-only and cannot be deleted.');
+            throw new ImmutableRecordException(__('errors.sale_return_items_cannot_delete'));
         });
     }
 

@@ -23,6 +23,12 @@
                     </div>
                 </div>
 
+                @if ($isPlatformAdmin)
+                    <div class="text-center mb-3">
+                        <a class="btn btn-outline-primary" href="{{ route('platform.shops.index') }}">{{ __('common.platform_shops') }}</a>
+                    </div>
+                @endif
+
                 @if (session('status'))
                     <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
                         {{ session('status') }}
@@ -38,7 +44,7 @@
                         <h5>{{ __('shops.no_shops') }}</h5>
                         <p class="text-muted small mb-4">{{ __('ui.no_active_memberships') }}</p>
                         <div>
-                            <a href="{{ route('register') }}" class="btn btn-primary">
+                            <a href="{{ route('shops.create') }}" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-1"></i>{{ __('shops.register_new') }}
                             </a>
                         </div>

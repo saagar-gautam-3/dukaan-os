@@ -30,7 +30,7 @@ class Payment extends Model
             $frozenColumns = ['amount', 'method', 'payment_no', 'shop_id', 'customer_id'];
             foreach ($frozenColumns as $col) {
                 if ($model->isDirty($col)) {
-                    throw new ImmutableRecordException("Payment field '{$col}' is frozen and cannot be changed.");
+                    throw new ImmutableRecordException(__('errors.payment_frozen_field', ['field' => $col]));
                 }
             }
 
@@ -41,12 +41,12 @@ class Payment extends Model
                 $originalStatus !== PaymentStatus::Pending &&
                 $newStatus !== $originalStatus
             ) {
-                throw new ImmutableRecordException('Verified or failed payment status is terminal and cannot be changed.');
+                throw new ImmutableRecordException(__('errors.payment_terminal_status'));
             }
         });
 
         static::deleting(function (): never {
-            throw new ImmutableRecordException('Payments cannot be deleted — use a reversal entry instead.');
+            throw new ImmutableRecordException(__('errors.payment_cannot_delete'));
         });
     }
 

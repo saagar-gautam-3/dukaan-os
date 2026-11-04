@@ -33,7 +33,7 @@ class AdjustStock
         ?int $userId = null
     ): array {
         if (empty($items)) {
-            throw new InvalidArgumentException('Stock adjustment must contain at least one item.');
+            throw new InvalidArgumentException(__('errors.stock_adjustment_items_required'));
         }
 
         return DB::transaction(function () use ($warehouse, $items, $reason, $userId) {
@@ -62,11 +62,11 @@ class AdjustStock
                 $unitCost = (string) ($itemData['unit_cost'] ?? $product->cost_price);
 
                 if ($type === 'in' && Money::compare($unitCost, '0', 2) <= 0) {
-                    throw new InvalidArgumentException("Unit cost is required when adding stock for product [{$product->name}].");
+                    throw new InvalidArgumentException(__('errors.unit_cost_required_for_product', ['name' => $product->name]));
                 }
 
                 if (Money::compare($qty, '0', 3) <= 0) {
-                    throw new InvalidArgumentException("Quantity for product [{$product->name}] must be positive.");
+                    throw new InvalidArgumentException(__('errors.positive_product_quantity', ['name' => $product->name]));
                 }
 
                 /** @var StockBalance $balance */
@@ -89,7 +89,7 @@ class AdjustStock
                 if ($type === 'out') {
                     $newBalance = Money::subtract((string) $balance->quantity, $qty, 3);
                     if (! $allowNegativeStock && Money::compare($newBalance, '0', 3) < 0) {
-                        throw new InvalidArgumentException("Insufficient stock for product [{$product->name}]. Negative stock is not permitted.");
+                        throw new InvalidArgumentException(__('errors.insufficient_product_stock', ['name' => $product->name]));
                     }
                     $movementType = MovementType::AdjustmentOut;
                     $signedQuantity = '-'.Money::round($qty, 3);
@@ -98,7 +98,7 @@ class AdjustStock
                     $movementType = MovementType::AdjustmentIn;
                     $signedQuantity = Money::round($qty, 3);
                 } else {
-                    throw new InvalidArgumentException("Invalid adjustment type [{$type}]. Expected 'in' or 'out'.");
+                    throw new InvalidArgumentException(__('errors.invalid_stock_adjustment_type', ['type' => $type]));
                 }
 
                 $balance->quantity = $newBalance;

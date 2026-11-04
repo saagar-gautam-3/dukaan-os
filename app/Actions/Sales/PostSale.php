@@ -87,7 +87,7 @@ class PostSale
             ]);
 
             if ($items->isEmpty()) {
-                throw new InvalidArgumentException('Cannot post a sale with no items.');
+                throw new InvalidArgumentException(__('errors.sale_items_required'));
             }
 
             $warehouseId = $sale->warehouse_id ?? $this->defaultWarehouseId($shop->id);
@@ -342,7 +342,7 @@ class PostSale
         }
 
         if (! $warehouse) {
-            throw new RuntimeException('No warehouse configured for this shop. Please create a warehouse first.');
+            throw new RuntimeException(__('errors.warehouse_not_configured'));
         }
 
         return $warehouse->id;

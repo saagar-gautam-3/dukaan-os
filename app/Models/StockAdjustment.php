@@ -28,13 +28,13 @@ class StockAdjustment extends Model
         static::updating(function (self $model): void {
             $originalStatus = AdjustmentStatus::tryFrom((string) $model->getRawOriginal('status'));
             if ($originalStatus !== null && $originalStatus !== AdjustmentStatus::Draft) {
-                throw new ImmutableRecordException('Posted stock adjustments are immutable and cannot be modified.');
+                throw new ImmutableRecordException(__('errors.stock_adjustment_immutable'));
             }
         });
 
         static::deleting(function (self $model): void {
             if ($model->status !== AdjustmentStatus::Draft) {
-                throw new ImmutableRecordException('Posted stock adjustments cannot be deleted.');
+                throw new ImmutableRecordException(__('errors.stock_adjustment_cannot_delete'));
             }
         });
     }

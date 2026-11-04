@@ -4,7 +4,10 @@
 
 @section('content')
 <div class="container py-4">
-    <h1 class="h4 mb-3">{{ __('platform.shops') }}</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h4 mb-0">{{ __('platform.shops') }}</h1>
+        <a class="btn btn-primary" href="{{ route('shops.create') }}">{{ __('shops.register_new') }}</a>
+    </div>
     <table class="table">
         <thead>
             <tr>

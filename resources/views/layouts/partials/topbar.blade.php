@@ -29,6 +29,10 @@
             <span class="d-none d-md-inline">{{ __('common.switch_shop') }}</span>
         </a>
 
+        @if (auth()->user()->is_platform_admin)
+            <a href="{{ route('platform.shops.index') }}" class="btn btn-sm btn-outline-primary">{{ __('common.platform_shops') }}</a>
+        @endif
+
         <!-- User Dropdown -->
         <div class="dropdown">
             <button class="btn btn-sm btn-light border dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">

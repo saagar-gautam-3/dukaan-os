@@ -73,6 +73,7 @@ return [
     // Customers
     'customers' => 'Customers',
     'new_customer' => 'Add Customer',
+    'customer_saved' => 'Customer saved.',
     'customer_name' => 'Customer Name',
     'phone' => 'Phone',
     'address' => 'Address',

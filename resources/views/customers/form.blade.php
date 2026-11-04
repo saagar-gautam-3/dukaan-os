@@ -31,7 +31,7 @@
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">{{ __('sales.phone') }}</label>
-                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror" 
+                        <input type="tel" inputmode="tel" maxlength="20" name="phone" class="form-control @error('phone') is-invalid @enderror"
                                value="{{ old('phone', $customer->phone ?? '') }}" placeholder="{{ __('ui.phone_example') }}">
                         @error('phone')
                             <div class="invalid-feedback">{{ $message }}</div>

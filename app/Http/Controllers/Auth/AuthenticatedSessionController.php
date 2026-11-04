@@ -62,6 +62,10 @@ class AuthenticatedSessionController extends Controller
         $user = $request->user();
         $memberships = $membershipsQuery->forLogin($user);
 
+        if ($user->is_platform_admin && $memberships->isEmpty()) {
+            return redirect()->route('platform.shops.index');
+        }
+
         if ($memberships->count() === 1) {
             $request->session()->put('current_shop_id', $memberships->first()->shop_id);
 

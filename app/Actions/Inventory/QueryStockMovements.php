@@ -16,7 +16,7 @@ class QueryStockMovements
     public function execute(Product $product, array $filters = [], int $perPage = 25): LengthAwarePaginator
     {
         $query = StockMovement::where('product_id', $product->id)
-            ->with(['warehouse', 'user'])
+            ->with(['warehouse', 'createdBy'])
             ->latest();
 
         if (! empty($filters['warehouse_id'])) {

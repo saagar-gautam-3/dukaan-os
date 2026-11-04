@@ -18,7 +18,7 @@ class FailPayment
             $payment->refresh();
 
             if ($payment->status !== PaymentStatus::Pending) {
-                throw new InvalidArgumentException('Only pending payments can be marked as failed.');
+                throw new InvalidArgumentException(__('errors.payment_pending_failure'));
             }
 
             $oldStatus = $payment->status->value;

@@ -73,6 +73,7 @@ return [
     // Customers
     'customers' => 'ग्राहकहरू',
     'new_customer' => 'नयाँ ग्राहक',
+    'customer_saved' => 'ग्राहक सुरक्षित गरियो।',
     'customer_name' => 'ग्राहकको नाम',
     'phone' => 'फोन',
     'address' => 'ठेगाना',

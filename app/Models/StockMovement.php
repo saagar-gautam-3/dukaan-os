@@ -26,11 +26,11 @@ class StockMovement extends Model
     protected static function booted(): void
     {
         static::updating(function (): never {
-            throw new ImmutableRecordException('Stock movements are strictly append-only and cannot be modified.');
+            throw new ImmutableRecordException(__('errors.stock_movements_immutable'));
         });
 
         static::deleting(function (): never {
-            throw new ImmutableRecordException('Stock movements are strictly append-only and cannot be deleted.');
+            throw new ImmutableRecordException(__('errors.stock_movements_cannot_delete'));
         });
     }
 

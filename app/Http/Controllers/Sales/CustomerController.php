@@ -69,7 +69,7 @@ class CustomerController extends Controller
             $customer = $this->createCustomer->handle($request->validated());
 
             return redirect()->route('customers.index')
-                ->with('status', __('sales.new_customer').' saved.');
+                ->with('status', __('sales.customer_saved'));
         } catch (Throwable $e) {
             report($e);
 

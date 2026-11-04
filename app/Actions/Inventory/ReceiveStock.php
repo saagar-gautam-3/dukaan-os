@@ -39,11 +39,11 @@ class ReceiveStock
         ?int $userId = null
     ): array {
         if (Money::compare((string) $quantity, '0', 3) <= 0) {
-            throw new InvalidArgumentException('Received quantity must be greater than zero.');
+            throw new InvalidArgumentException(__('errors.received_quantity_positive'));
         }
 
         if ($movementType === MovementType::Opening && Money::compare((string) $unitCost, '0', 2) <= 0) {
-            throw new InvalidArgumentException('Opening stock requires a unit cost greater than zero.');
+            throw new InvalidArgumentException(__('errors.opening_stock_cost_positive'));
         }
 
         return DB::transaction(function () use (

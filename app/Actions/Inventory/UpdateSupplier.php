@@ -17,9 +17,7 @@ class UpdateSupplier
         return DB::transaction(function () use ($supplier, $data) {
             $supplier->update([
                 'name' => $data['name'],
-                'contact_person' => $data['contact_person'] ?? null,
                 'phone' => $data['phone'] ?? null,
-                'email' => $data['email'] ?? null,
                 'pan_vat' => $data['pan_vat'] ?? null,
                 'address' => $data['address'] ?? null,
             ]);

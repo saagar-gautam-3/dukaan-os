@@ -72,7 +72,7 @@ $gzFile = "$sqlFile.gz"
 
 $env:MYSQL_PWD = $Password
 try {
-    & $mysqldump --single-transaction --routines --triggers --host=$DbHost --port=$Port --user=$User --result-file=$sqlFile $Database
+    & $mysqldump --no-tablespaces --single-transaction --routines --triggers --host=$DbHost --port=$Port --user=$User --result-file=$sqlFile $Database
     if ($LASTEXITCODE -ne 0) { throw "mysqldump failed with exit code $LASTEXITCODE" }
     if (-not (Test-Path $sqlFile) -or (Get-Item $sqlFile).Length -eq 0) {
         throw 'mysqldump produced an empty output file'

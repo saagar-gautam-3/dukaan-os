@@ -40,14 +40,14 @@ class Sale extends Model
 
             foreach ($frozenColumns as $col) {
                 if ($model->isDirty($col)) {
-                    throw new ImmutableRecordException("Posted/cancelled sale field '{$col}' is frozen.");
+                    throw new ImmutableRecordException(__('errors.posted_sale_field_frozen', ['field' => $col]));
                 }
             }
         });
 
         static::deleting(function (self $model): void {
             if ($model->status !== null && $model->status->isImmutable()) {
-                throw new ImmutableRecordException('Posted or cancelled sales cannot be deleted.');
+                throw new ImmutableRecordException(__('errors.posted_sale_cannot_delete'));
             }
         });
     }

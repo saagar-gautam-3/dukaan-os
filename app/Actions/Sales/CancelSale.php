@@ -22,7 +22,7 @@ class CancelSale
         }
 
         if ($sale->status === SaleStatus::Cancelled) {
-            throw new InvalidArgumentException("Sale #{$sale->id} is already cancelled.");
+            throw new InvalidArgumentException(__('errors.sale_already_cancelled', ['id' => $sale->id]));
         }
 
         return DB::transaction(function () use ($sale) {
@@ -30,7 +30,7 @@ class CancelSale
             $sale = Sale::where('id', $sale->id)->lockForUpdate()->firstOrFail();
 
             if ($sale->status !== SaleStatus::Draft) {
-                throw new InvalidArgumentException("Sale #{$sale->id} cannot be cancelled in its current state.");
+                throw new InvalidArgumentException(__('errors.sale_cannot_cancel_state', ['id' => $sale->id]));
             }
 
             $sale->update(['status' => SaleStatus::Cancelled]);

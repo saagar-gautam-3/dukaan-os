@@ -18,7 +18,7 @@ mkdir -p "$OUTDIR"
 TS=$(date +%Y%m%d_%H%M%S)
 FILE="$OUTDIR/${DB}_${TS}.sql.gz"
 
-MYSQL_PWD="$PASS" mysqldump --single-transaction --routines --triggers -h "$HOST" -P "$PORT" -u "$USER" "$DB" | gzip > "$FILE"
+MYSQL_PWD="$PASS" mysqldump --no-tablespaces --single-transaction --routines --triggers -h "$HOST" -P "$PORT" -u "$USER" "$DB" | gzip > "$FILE"
 
 # retention
 ls -1t "$OUTDIR"/${DB}_*.sql.gz 2>/dev/null | tail -n +$((KEEP+1)) | xargs -r rm -f

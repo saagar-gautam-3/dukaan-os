@@ -23,7 +23,7 @@ class ReverseStockMovement
         ?int $userId = null
     ): StockMovement {
         if ($originalMovement->movement_type === MovementType::Reversal) {
-            throw new InvalidArgumentException('Cannot reverse an existing reversal movement.');
+            throw new InvalidArgumentException(__('errors.reverse_reversal_forbidden'));
         }
 
         return DB::transaction(function () use ($originalMovement, $reason, $userId) {
@@ -43,7 +43,7 @@ class ReverseStockMovement
 
             $newBalance = Money::add((string) $balance->quantity, $reversalQty, 3);
             if (! $allowNegativeStock && Money::compare($newBalance, '0', 3) < 0) {
-                throw new InvalidArgumentException('Reversal would result in negative stock, which is not permitted.');
+                throw new InvalidArgumentException(__('errors.reversal_negative_stock'));
             }
 
             $balance->quantity = $newBalance;

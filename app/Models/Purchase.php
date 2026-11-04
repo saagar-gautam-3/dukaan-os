@@ -61,13 +61,13 @@ class Purchase extends Model
                 || $originalStatus === PurchaseStatus::Posted->value;
 
             if ($wasPosted) {
-                throw new InvalidArgumentException('Posted purchases are immutable and cannot be modified.');
+                throw new InvalidArgumentException(__('errors.posted_purchase_immutable'));
             }
         });
 
         static::deleting(function (Purchase $purchase): void {
             if ($purchase->status === PurchaseStatus::Posted) {
-                throw new InvalidArgumentException('Posted purchases cannot be deleted.');
+                throw new InvalidArgumentException(__('errors.posted_purchase_cannot_delete'));
             }
         });
     }

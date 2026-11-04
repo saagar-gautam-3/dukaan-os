@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.app-sidebar');
 
     if (sidebarToggle && sidebar) {

@@ -70,6 +70,10 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/shops/picker', [ShopPickerController::class, 'index'])->name('shops.picker');
     Route::post('/shops/switch/{shop}', [ShopPickerController::class, 'switch'])->name('shops.switch');
+    Route::middleware('verified')->group(function (): void {
+        Route::get('/shops/create', [ShopPickerController::class, 'create'])->name('shops.create');
+        Route::post('/shops', [ShopPickerController::class, 'store'])->name('shops.store');
+    });
 });
 
 // Tenant-Scoped App Routes
