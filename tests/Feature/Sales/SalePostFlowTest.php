@@ -413,7 +413,11 @@ class SalePostFlowTest extends TestCase
         $saleItem = $posted->items->first();
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('exceeds returnable quantity');
+        $this->expectExceptionMessage(__('errors.return_exceeds_quantity', [
+            'requested' => '5.000',
+            'maximum' => '3.000',
+            'id' => $saleItem->id,
+        ]));
 
         // Attempting to return 5 units when only 3 were purchased
         $returnSale->handle($posted, $this->user->id, [

@@ -183,7 +183,7 @@ class StockMovementTest extends TestCase
 
         // Attempt to adjust out 10.000 (which would leave balance at -5.000)
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Insufficient stock for product');
+        $this->expectExceptionMessage(__('errors.insufficient_product_stock', ['name' => $product->name]));
 
         $adjustAction->execute(
             warehouse: $warehouse,
@@ -299,7 +299,7 @@ class StockMovementTest extends TestCase
         $reversal = $reversalAction->execute($receiveResult['movement']);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Cannot reverse an existing reversal movement.');
+        $this->expectExceptionMessage(__('errors.reverse_reversal_forbidden'));
 
         $reversalAction->execute($reversal);
     }
@@ -313,7 +313,7 @@ class StockMovementTest extends TestCase
         $user = User::factory()->create();
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unit cost is required');
+        $this->expectExceptionMessage(__('errors.unit_cost_required_for_product', ['name' => $product->name]));
 
         app(PerformStockAdjustment::class)->handle([
             'warehouse_id' => $warehouse->id,
