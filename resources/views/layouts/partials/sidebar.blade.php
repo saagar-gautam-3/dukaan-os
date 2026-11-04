@@ -98,10 +98,12 @@
             <span>{{ __('cash.sessions_history') }}</span>
         </a>
 
-        <a href="#" class="nav-link text-white-50 disabled">
+        @can('staff.manage')
+        <a href="{{ route('staff.index') }}" class="nav-link {{ request()->routeIs('staff.*') ? 'active' : '' }}">
             <i class="bi bi-people"></i>
             <span>{{ __('common.nav.staff') }}</span>
         </a>
+        @endcan
 
         <a href="{{ route('settings.shop') }}" class="nav-link {{ request()->routeIs('settings.shop') ? 'active' : '' }}">
             <i class="bi bi-gear"></i>
