@@ -10,6 +10,7 @@ use App\Models\CustomerLedgerEntry;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Sale;
+use App\Models\ShopUser;
 use App\Models\StockBalance;
 use App\Models\SupplierLedgerEntry;
 use App\Models\User;
@@ -19,6 +20,7 @@ use App\Policies\CustomerPolicy;
 use App\Policies\ExpenseCategoryPolicy;
 use App\Policies\ExpensePolicy;
 use App\Policies\SalePolicy;
+use App\Policies\ShopUserPolicy;
 use App\Policies\StockPolicy;
 use App\Policies\SupplierLedgerEntryPolicy;
 use App\Tenancy\TenantContext;
@@ -61,6 +63,7 @@ class AppServiceProvider extends ServiceProvider
 
         Gate::policy(StockBalance::class, StockPolicy::class);
         Gate::policy(Sale::class, SalePolicy::class);
+        Gate::policy(ShopUser::class, ShopUserPolicy::class);
         Gate::policy(Customer::class, CustomerPolicy::class);
         Gate::policy(CustomerLedgerEntry::class, CustomerLedgerEntryPolicy::class);
         Gate::policy(SupplierLedgerEntry::class, SupplierLedgerEntryPolicy::class);
@@ -82,6 +85,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('payment', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('collect', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('remind', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('staff-write', fn (Request $request) => Limit::perMinute(30)->by($request->user()?->id ?: $request->ip()));
 
         Queue::before(function (): void {
             TenantContext::reset();

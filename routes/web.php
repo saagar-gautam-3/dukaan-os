@@ -24,6 +24,7 @@ use App\Http\Controllers\Sales\PaymentController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Shop\ShopPickerController;
 use App\Http\Controllers\Shop\ShopSettingsController;
+use App\Http\Controllers\Staff\StaffController;
 use App\Http\Controllers\Udhar\UdharController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +83,14 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
 
     Route::get('/settings/shop', [ShopSettingsController::class, 'edit'])->name('settings.shop');
     Route::put('/settings/shop', [ShopSettingsController::class, 'update'])->name('settings.shop.update');
+
+    // Staff management
+    Route::get('/staff', [StaffController::class, 'index'])->name('staff.index');
+    Route::get('/staff/create', [StaffController::class, 'create'])->name('staff.create');
+    Route::post('/staff', [StaffController::class, 'store'])->name('staff.store')->middleware('throttle:staff-write');
+    Route::get('/staff/{shopUser}/edit', [StaffController::class, 'edit'])->name('staff.edit');
+    Route::put('/staff/{shopUser}', [StaffController::class, 'update'])->name('staff.update')->middleware('throttle:staff-write');
+    Route::delete('/staff/{shopUser}', [StaffController::class, 'destroy'])->name('staff.destroy')->middleware('throttle:staff-write');
 
     // Products, Categories, Units
     Route::resource('products', ProductController::class)->except(['show']);

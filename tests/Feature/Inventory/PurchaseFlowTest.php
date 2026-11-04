@@ -173,7 +173,7 @@ class PurchaseFlowTest extends TestCase
 
         // Attempting to update a posted purchase must throw an exception
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Posted purchases are immutable and cannot be modified.');
+        $this->expectExceptionMessage(__('errors.posted_purchase_immutable'));
 
         $purchase->notes = 'Updated notes after post';
         $purchase->save();
@@ -209,7 +209,7 @@ class PurchaseFlowTest extends TestCase
 
         // Attempting to delete a posted purchase must throw an exception
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Posted purchases cannot be deleted.');
+        $this->expectExceptionMessage(__('errors.posted_purchase_cannot_delete'));
 
         $purchase->delete();
     }

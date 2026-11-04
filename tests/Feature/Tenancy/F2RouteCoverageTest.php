@@ -77,6 +77,27 @@ class F2RouteCoverageTest extends TestCase
         }
     }
 
+    public function test_staff_routes_are_in_the_tenant_matrix_and_write_routes_are_throttled(): void
+    {
+        $tenantRoutes = $this->tenantRoutes()->keyBy(fn (Route $route): string => (string) $route->getName());
+        $staffRouteNames = [
+            'staff.index',
+            'staff.create',
+            'staff.store',
+            'staff.edit',
+            'staff.update',
+            'staff.destroy',
+        ];
+
+        foreach ($staffRouteNames as $name) {
+            $this->assertTrue($tenantRoutes->has($name), 'Staff route must be tenant-scoped and included in the route matrix: '.$name);
+        }
+
+        foreach (['staff.store', 'staff.update', 'staff.destroy'] as $name) {
+            $this->assertContains('throttle:staff-write', $tenantRoutes[$name]->gatherMiddleware());
+        }
+    }
+
     public function test_global_roles_are_not_visible_in_tenant_queries_and_units_are_read_only(): void
     {
         [$shop] = $this->createTenantMember(true);

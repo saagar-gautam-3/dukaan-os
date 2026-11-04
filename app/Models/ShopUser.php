@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Tenancy\TenantContext;
 use Database\Factories\ShopUserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,5 +57,16 @@ class ShopUser extends Pivot
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        $query = parent::resolveRouteBindingQuery($query, $value, $field);
+
+        if (! TenantContext::has()) {
+            return $query->whereRaw('0 = 1');
+        }
+
+        return $query->where($this->qualifyColumn('shop_id'), TenantContext::getShopId());
     }
 }
