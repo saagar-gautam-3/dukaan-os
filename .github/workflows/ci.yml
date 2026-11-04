@@ -108,5 +108,12 @@ jobs:
         run: php artisan migrate --force
 
       # ── PHPUnit test suite ───────────────────────────────────
-      - name: Run PHPUnit tests
+      - name: Test (locale en)
+        env:
+          APP_LOCALE: en
+        run: php artisan test
+
+      - name: Test (locale ne)
+        env:
+          APP_LOCALE: ne
         run: php artisan test
