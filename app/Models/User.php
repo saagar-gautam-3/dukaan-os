@@ -24,6 +24,24 @@ class User extends Authenticatable implements MustVerifyEmail
     use Auditable, HasFactory, Notifiable;
 
     /**
+     * Attributes excluded from the generic Auditable trail.
+     *
+     * `permissions_version` is bumped internally whenever a membership changes
+     * (role change, removal) and is not a user-facing data change, so it must
+     * not create a second audit row next to the explicit staff_* entry.
+     *
+     * @var array<int, string>
+     */
+    protected array $auditExcluded = [
+        'password',
+        'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'updated_at',
+        'permissions_version',
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

@@ -63,12 +63,15 @@ final class StaffManagementTest extends TestCase
 
         foreach (['Manager', 'Cashier', 'Inventory Staff', 'Accountant'] as $index => $roleName) {
             $email = strtolower(str_replace(' ', '-', $roleName)).'@example.test';
+            // Phones are globally unique, so each staff member needs a distinct one.
+            $phone = '९८४-१२३-४५६'.['०', '१', '२', '३'][$index];
+            $normalizedPhone = '984123456'.$index;
             $response = $this->actingAs($this->owner)
                 ->withSession(['current_shop_id' => $this->shop->id])
                 ->post(route('staff.store'), [
                     'name' => "Staff Member {$index}",
                     'email' => $email,
-                    'phone' => '९८४-१२३-४५६७',
+                    'phone' => $phone,
                     'role_id' => $this->roles[$roleName]->id,
                     'password' => 'Temporary123',
                 ]);
@@ -78,7 +81,7 @@ final class StaffManagementTest extends TestCase
             $membership = ShopUser::query()->where('shop_id', $this->shop->id)->where('user_id', $user->id)->firstOrFail();
 
             $this->assertNull($user->email_verified_at);
-            $this->assertSame('9841234567', $user->phone);
+            $this->assertSame($normalizedPhone, $user->phone);
             $this->assertFalse($user->is_platform_admin);
             $this->assertSame((int) $this->roles[$roleName]->id, (int) $membership->role_id);
             $this->assertSame((int) $this->shop->id, (int) $membership->shop_id);
@@ -92,7 +95,7 @@ final class StaffManagementTest extends TestCase
                 ->first();
 
             $this->assertNotNull($audit);
-            $this->assertSame(['user_id', 'role_id'], array_keys($audit->new_values));
+            $this->assertEqualsCanonicalizing(['user_id', 'role_id'], array_keys($audit->new_values));
             $this->assertArrayNotHasKey('password', $audit->new_values);
         }
 
@@ -418,6 +421,45 @@ final class StaffManagementTest extends TestCase
             'role_id' => $legacyOwnerRole->id,
             'permission_id' => $permissionId,
         ]);
+    }
+
+    public function test_permissions_version_bump_alone_does_not_write_audit_row(): void
+    {
+        $staff = User::factory()->create(['name' => 'Versioned Staff']);
+        $before = AuditLog::query()
+            ->where('auditable_type', $staff->getMorphClass())
+            ->where('auditable_id', $staff->id)
+            ->count();
+
+        $staff->bumpPermissionsVersion();
+
+        $after = AuditLog::query()
+            ->where('auditable_type', $staff->getMorphClass())
+            ->where('auditable_id', $staff->id)
+            ->count();
+
+        $this->assertSame($before, $after);
+        $this->assertSame(1, (int) $staff->fresh()->permissions_version);
+    }
+
+    public function test_user_name_and_email_changes_are_still_audited(): void
+    {
+        $user = User::factory()->create(['name' => 'Old Name', 'email' => 'old@example.test']);
+
+        $user->name = 'New Name';
+        $user->email = 'new@example.test';
+        $user->save();
+
+        $audit = AuditLog::query()
+            ->where('auditable_type', $user->getMorphClass())
+            ->where('auditable_id', $user->id)
+            ->where('event', 'updated')
+            ->latest('id')
+            ->firstOrFail();
+
+        $this->assertSame('New Name', $audit->new_values['name']);
+        $this->assertSame('new@example.test', $audit->new_values['email']);
+        $this->assertArrayNotHasKey('permissions_version', $audit->new_values);
     }
 
     /** @return array{User, ShopUser} */
