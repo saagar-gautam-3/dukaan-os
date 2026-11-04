@@ -10,6 +10,7 @@ use App\Models\ShopUser;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Services\RbacService;
+use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -40,23 +41,25 @@ final class CreateShopForUser
                 'is_active' => true,
             ]);
 
-            $roles = $this->rbacService->createDefaultRolesForShop($shop);
-            $membership = ShopUser::create([
-                'shop_id' => $shop->id,
-                'user_id' => $user->id,
-                'role_id' => $roles['Shop Owner']->id,
-                'status' => 'active',
-            ]);
+            return TenantContext::runAs($shop, function () use ($shop, $user): array {
+                $roles = $this->rbacService->createDefaultRolesForShop($shop);
+                $membership = ShopUser::create([
+                    'shop_id' => $shop->id,
+                    'user_id' => $user->id,
+                    'role_id' => $roles['Shop Owner']->id,
+                    'status' => 'active',
+                ]);
 
-            $warehouse = new Warehouse;
-            $warehouse->shop_id = $shop->id;
-            $warehouse->name = 'Main Godown';
-            $warehouse->code = 'MAIN';
-            $warehouse->is_default = true;
-            $warehouse->is_active = true;
-            $warehouse->save();
+                $warehouse = new Warehouse;
+                $warehouse->shop_id = $shop->id;
+                $warehouse->name = 'Main Godown';
+                $warehouse->code = 'MAIN';
+                $warehouse->is_default = true;
+                $warehouse->is_active = true;
+                $warehouse->save();
 
-            return compact('shop', 'membership', 'roles');
+                return compact('shop', 'membership', 'roles');
+            });
         });
     }
 }
