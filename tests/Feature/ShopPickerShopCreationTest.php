@@ -58,7 +58,9 @@ class ShopPickerShopCreationTest extends TestCase
             'status' => 'active',
         ]);
         app(RbacService::class)->createDefaultRolesForShop($oldShop);
-        $oldRoles = Role::query()->where('shop_id', $oldShop->id)->get(['id', 'name', 'shop_id'])->toArray();
+        $oldRoles = Role::withoutGlobalScopes()->where('shop_id', $oldShop->id)
+            ->orderBy('id')->get(['id', 'name', 'shop_id'])->toArray();
+        $this->assertCount(5, $oldRoles);
         TenantContext::setShop($oldShop);
 
         $response = $this->actingAs($user)
@@ -85,7 +87,7 @@ class ShopPickerShopCreationTest extends TestCase
         $this->assertEqualsCanonicalizing($expectedRoleNames, $newRoles->pluck('name')->all());
         $this->assertSame([$newShop->id], $newRoles->pluck('shop_id')->unique()->values()->all());
         $this->assertSame($oldRoles, Role::withoutGlobalScopes()->where('shop_id', $oldShop->id)
-            ->get(['id', 'name', 'shop_id'])->toArray());
+            ->orderBy('id')->get(['id', 'name', 'shop_id'])->toArray());
         $this->assertSame(5, $newRoles->pluck('name')->unique()->count());
         TenantContext::reset();
     }
