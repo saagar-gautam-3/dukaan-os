@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Shop;
+use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Collection;
 
 class RbacService
@@ -78,67 +79,69 @@ class RbacService
      */
     public function createDefaultRolesForShop(Shop $shop): array
     {
-        $this->syncSystemPermissions();
-        $allPermissions = Permission::all()->keyBy('name');
+        return TenantContext::runAs($shop, function () use ($shop): array {
+            $this->syncSystemPermissions();
+            $allPermissions = Permission::all()->keyBy('name');
 
-        $roleDefinitions = [
-            'Shop Owner' => array_keys(self::PERMISSIONS),
-            'Manager' => [
-                'users.view', 'products.view', 'products.manage',
-                'inventory.view', 'inventory.manage', 'sales.view',
-                'sales.create', 'sales.cancel', 'sales.return', 'purchases.view',
-                'purchases.manage', 'customers.view', 'customers.manage',
-                'udhar.view', 'udhar.collect', 'udhar.remind',
-                'suppliers.view', 'suppliers.manage', 'expenses.view',
-                'expenses.create', 'expenses.manage', 'expenses.delete',
-                'cash.view', 'cash.manage', 'reports.view', 'reports.profit.view',
-                'reports.export', 'audit.view',
-            ],
-            'Cashier' => [
-                'products.view', 'sales.view', 'sales.create', 'sales.return',
-                'customers.view', 'customers.manage', 'udhar.view', 'udhar.collect',
-                'cash.view', 'cash.manage',
-            ],
-            'Inventory Staff' => [
-                'products.view', 'products.manage',
-                'inventory.view', 'inventory.manage',
-                'suppliers.view', 'purchases.view', 'purchases.manage',
-            ],
-            'Accountant' => [
-                'sales.view', 'purchases.view', 'expenses.view',
-                'expenses.create', 'expenses.manage', 'customers.view',
-                'suppliers.view', 'udhar.view', 'cash.view',
-                'reports.view', 'reports.profit.view', 'reports.export',
-            ],
-        ];
+            $roleDefinitions = [
+                'Shop Owner' => array_keys(self::PERMISSIONS),
+                'Manager' => [
+                    'users.view', 'products.view', 'products.manage',
+                    'inventory.view', 'inventory.manage', 'sales.view',
+                    'sales.create', 'sales.cancel', 'sales.return', 'purchases.view',
+                    'purchases.manage', 'customers.view', 'customers.manage',
+                    'udhar.view', 'udhar.collect', 'udhar.remind',
+                    'suppliers.view', 'suppliers.manage', 'expenses.view',
+                    'expenses.create', 'expenses.manage', 'expenses.delete',
+                    'cash.view', 'cash.manage', 'reports.view', 'reports.profit.view',
+                    'reports.export', 'audit.view',
+                ],
+                'Cashier' => [
+                    'products.view', 'sales.view', 'sales.create', 'sales.return',
+                    'customers.view', 'customers.manage', 'udhar.view', 'udhar.collect',
+                    'cash.view', 'cash.manage',
+                ],
+                'Inventory Staff' => [
+                    'products.view', 'products.manage',
+                    'inventory.view', 'inventory.manage',
+                    'suppliers.view', 'purchases.view', 'purchases.manage',
+                ],
+                'Accountant' => [
+                    'sales.view', 'purchases.view', 'expenses.view',
+                    'expenses.create', 'expenses.manage', 'customers.view',
+                    'suppliers.view', 'udhar.view', 'cash.view',
+                    'reports.view', 'reports.profit.view', 'reports.export',
+                ],
+            ];
 
-        $roles = [];
+            $roles = [];
 
-        foreach ($roleDefinitions as $roleName => $permissionNames) {
-            /** @var Role|null $role */
-            $role = Role::withoutGlobalScopes()
-                ->where('shop_id', $shop->id)
-                ->where('name', $roleName)
-                ->first();
+            foreach ($roleDefinitions as $roleName => $permissionNames) {
+                /** @var Role|null $role */
+                $role = Role::withoutGlobalScopes()
+                    ->where('shop_id', $shop->id)
+                    ->where('name', $roleName)
+                    ->first();
 
-            if ($role === null) {
-                $role = new Role;
-                $role->shop_id = $shop->id;
-                $role->name = $roleName;
-                $role->guard_name = 'web';
-                $role->save();
+                if ($role === null) {
+                    $role = new Role;
+                    $role->shop_id = $shop->id;
+                    $role->name = $roleName;
+                    $role->guard_name = 'web';
+                    $role->save();
+                }
+
+                $permissionIds = collect($permissionNames)
+                    ->map(fn (string $name) => $allPermissions->get($name)?->id)
+                    ->filter()
+                    ->values()
+                    ->all();
+
+                $role->permissions()->sync($permissionIds);
+                $roles[$roleName] = $role;
             }
 
-            $permissionIds = collect($permissionNames)
-                ->map(fn (string $name) => $allPermissions->get($name)?->id)
-                ->filter()
-                ->values()
-                ->all();
-
-            $role->permissions()->sync($permissionIds);
-            $roles[$roleName] = $role;
-        }
-
-        return $roles;
+            return $roles;
+        });
     }
 }

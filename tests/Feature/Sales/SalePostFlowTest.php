@@ -142,7 +142,12 @@ class SalePostFlowTest extends TestCase
             ]);
         } catch (InvalidArgumentException $e) {
             $exceptionCaught = true;
-            $this->assertStringContainsString('Insufficient stock', $e->getMessage());
+            $this->assertSame(__('errors.insufficient_stock_exception', [
+                'id' => $productLowStock->id,
+                'name' => $productLowStock->name,
+                'available' => '1.000',
+                'requested' => '3.000',
+            ]), $e->getMessage());
         }
 
         $this->assertTrue($exceptionCaught);

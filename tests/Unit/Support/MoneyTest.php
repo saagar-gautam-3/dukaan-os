@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Support;
 
 use App\Support\Money;
-use PHPUnit\Framework\TestCase;
+use Illuminate\Support\Facades\App;
+use Tests\TestCase;
 
 final class MoneyTest extends TestCase
 {
@@ -22,5 +23,18 @@ final class MoneyTest extends TestCase
         $this->assertSame('1.01', Money::round('1.005', 2));
         $this->assertSame('-1.01', Money::round('-1.005', 2));
         $this->assertSame('100000000000000.00', Money::round('99999999999999.999', 2));
+    }
+
+    public function test_invalid_decimal_message_uses_the_active_locale_translation(): void
+    {
+        App::setLocale('ne');
+        try {
+            Money::round('not-a-decimal');
+            $this->fail('Invalid decimal input should throw.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertSame(__('errors.invalid_decimal_string'), $exception->getMessage());
+        } finally {
+            App::setLocale(config('app.locale'));
+        }
     }
 }

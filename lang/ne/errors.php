@@ -65,4 +65,6 @@ return [
     'stock_adjustment_immutable' => 'पोस्ट गरिएको स्टक समायोजन परिवर्तन गर्न मिल्दैन।',
     'stock_adjustment_cannot_delete' => 'पोस्ट गरिएको स्टक समायोजन मेटाउन मिल्दैन।',
     'cannot_reverse_reversal' => 'उल्ट्याइएको कारोबारलाई फेरि उल्ट्याउन मिल्दैन।',
+    'insufficient_stock_exception' => 'उत्पादन #:id (:name) का लागि मौज्दात पर्याप्त छैन। उपलब्ध: :available, अनुरोध गरिएको: :requested।',
+    'invalid_decimal_string' => 'मान दशमलव स्ट्रिङ हुनुपर्छ।',
 ];

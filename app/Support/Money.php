@@ -41,7 +41,7 @@ final class Money
     {
         $value = trim((string) $value);
         if (! preg_match('/^[+-]?\d+(?:\.\d*)?$/', $value)) {
-            throw new \InvalidArgumentException('Value must be a decimal string.');
+            throw new \InvalidArgumentException(__('errors.invalid_decimal_string'));
         }
 
         $negative = str_starts_with($value, '-');
