@@ -65,4 +65,6 @@ return [
     'stock_adjustment_immutable' => 'Posted stock adjustments are immutable and cannot be modified.',
     'stock_adjustment_cannot_delete' => 'Posted stock adjustments cannot be deleted.',
     'cannot_reverse_reversal' => 'Cannot reverse an existing reversal movement.',
+    'insufficient_stock_exception' => 'Insufficient stock for product #:id (:name). Available: :available, requested: :requested.',
+    'invalid_decimal_string' => 'Value must be a decimal string.',
 ];
