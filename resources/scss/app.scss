@@ -63,7 +63,7 @@ $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
     .sidebar-brand,
     .sidebar-shop,
     > .border-top {
-        flex-shrink: 0;
+        flex: 0 0 auto;
     }
 
     .sidebar-brand {
@@ -75,12 +75,22 @@ $bootstrap-icons-font-dir: 'bootstrap-icons/font/fonts';
     }
 
     .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
+        overflow-x: hidden;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 0.5rem;
+
+        > .nav-link,
+        > .sidebar-logout {
+            width: 100%;
+            flex: 0 0 auto;
+        }
     }
 
     .nav-link {

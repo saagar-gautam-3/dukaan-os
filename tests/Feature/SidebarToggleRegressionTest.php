@@ -46,11 +46,21 @@ class SidebarToggleRegressionTest extends TestCase
     {
         $styles = file_get_contents(resource_path('scss/app.scss'));
         $this->assertIsString($styles);
+        preg_match('/\.sidebar-nav\s*\{([^}]*)\}/s', $styles, $navRules);
+        $this->assertNotEmpty($navRules, 'Sidebar nav rules must be defined.');
+        foreach ([
+            'display: flex;',
+            'flex-direction: column;',
+            'flex-wrap: nowrap;',
+            'overflow-y: auto;',
+            'overflow-x: hidden;',
+        ] as $rule) {
+            $this->assertStringContainsString($rule, $navRules[1]);
+        }
         foreach ([
             'height: 100vh;',
             'height: 100dvh;',
             'min-height: 0;',
-            'overflow-y: auto;',
             'overscroll-behavior: contain;',
             '-webkit-overflow-scrolling: touch;',
             'env(safe-area-inset-bottom)',
