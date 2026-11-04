@@ -18,6 +18,9 @@ use App\Actions\Sales\PostSale;
 use App\Actions\Sales\RecordPayment;
 use App\Actions\Sales\ReturnSale;
 use App\Actions\Sales\VerifyPayment;
+use App\Actions\Staff\AddStaffMember;
+use App\Actions\Staff\ChangeStaffRole;
+use App\Actions\Staff\RemoveStaffMember;
 use App\Actions\Udhar\CollectPayment;
 use App\Enums\PaymentMethod;
 use App\Enums\PurchaseStatus;
@@ -27,6 +30,7 @@ use App\Models\ExpenseCategory;
 use App\Models\Product;
 use App\Models\Purchase;
 use App\Models\PurchaseItem;
+use App\Models\Role;
 use App\Models\Shop;
 use App\Models\ShopUser;
 use App\Models\Supplier;
@@ -35,6 +39,7 @@ use App\Models\Warehouse;
 use App\Services\RbacService;
 use App\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class AuditCoverageTest extends TestCase
@@ -233,5 +238,78 @@ class AuditCoverageTest extends TestCase
             'track_stock' => true,
         ]);
         $this->assertSame($before + 1, AuditLog::count());
+    }
+
+    public function test_add_staff_member_writes_audit(): void
+    {
+        Notification::fake();
+        $role = $this->shop->roles()->where('name', 'Cashier')->firstOrFail();
+        $before = AuditLog::count();
+
+        $membership = app(AddStaffMember::class)->execute([
+            'name' => 'Audited Staff',
+            'email' => 'audited-staff@example.test',
+            'phone' => '9841234567',
+            'role_id' => (int) $role->id,
+            'password' => 'Temporary123',
+        ], (int) $this->user->id);
+
+        $this->assertSame($before + 1, AuditLog::count());
+        $this->assertDatabaseHas('audit_logs', [
+            'shop_id' => $this->shop->id,
+            'user_id' => $this->user->id,
+            'event' => 'staff_added',
+            'auditable_id' => $membership->id,
+        ]);
+        $this->assertArrayNotHasKey('password', AuditLog::query()->where('event', 'staff_added')->latest('id')->firstOrFail()->new_values);
+    }
+
+    public function test_change_staff_role_writes_audit(): void
+    {
+        $staffUser = User::factory()->create();
+        $cashier = $this->shop->roles()->where('name', 'Cashier')->firstOrFail();
+        $accountant = $this->shop->roles()->where('name', 'Accountant')->firstOrFail();
+        $membership = ShopUser::create([
+            'shop_id' => $this->shop->id,
+            'user_id' => $staffUser->id,
+            'role_id' => $cashier->id,
+            'status' => 'active',
+        ]);
+        $before = AuditLog::count();
+
+        app(ChangeStaffRole::class)->execute($membership, (int) $accountant->id, (int) $this->user->id);
+
+        $this->assertSame($before + 1, AuditLog::count());
+        $this->assertDatabaseHas('audit_logs', [
+            'shop_id' => $this->shop->id,
+            'user_id' => $this->user->id,
+            'event' => 'staff_role_changed',
+            'auditable_id' => $membership->id,
+        ]);
+    }
+
+    public function test_remove_staff_member_writes_audit(): void
+    {
+        $staffUser = User::factory()->create();
+        $role = Role::query()->where('name', 'Cashier')->firstOrFail();
+        $membership = ShopUser::create([
+            'shop_id' => $this->shop->id,
+            'user_id' => $staffUser->id,
+            'role_id' => $role->id,
+            'status' => 'active',
+        ]);
+        $before = AuditLog::count();
+
+        app(RemoveStaffMember::class)->execute($membership, (int) $this->user->id);
+
+        $this->assertSame($before + 1, AuditLog::count());
+        $this->assertDatabaseHas('audit_logs', [
+            'shop_id' => $this->shop->id,
+            'user_id' => $this->user->id,
+            'event' => 'staff_removed',
+            'auditable_id' => $membership->id,
+        ]);
+        $this->assertDatabaseMissing('shop_user', ['id' => $membership->id]);
+        $this->assertDatabaseHas('users', ['id' => $staffUser->id]);
     }
 }
