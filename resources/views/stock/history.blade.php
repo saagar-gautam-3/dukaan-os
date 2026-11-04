@@ -104,7 +104,7 @@
                                     </small>
                                 </td>
                                 <td>
-                                    <small class="text-muted">{{ $movement->user?->name ?? __('ui.system') }}</small>
+                                    <small class="text-muted">{{ $movement->createdBy?->name ?? __('ui.system') }}</small>
                                 </td>
                                 <td class="pe-3 small text-muted text-truncate" style="max-width: 200px;">
                                     {{ $movement->notes ?: '—' }}
