@@ -266,6 +266,15 @@ body.sidebar-open {
     border-radius: 0.75rem !important;
 }
 
+.password-toggle {
+    min-width: 40px;
+    min-height: 40px;
+}
+
+.password-generate {
+    min-height: 40px;
+}
+
 // ── Mobile touch targets (max-width 576px) ────────────────────
 @media (max-width: 576px) {
     button,

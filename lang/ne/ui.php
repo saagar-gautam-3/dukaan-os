@@ -121,4 +121,12 @@ return [
     'delete_product_confirmation' => ':product सामान मेटाउने हो?',
     'unit_name_example' => 'जस्तै: किलोग्राम',
     'unit_symbol_example' => 'जस्तै: kg, pkt, ltr',
+    'show_password' => 'पासवर्ड देखाउनुहोस्',
+    'hide_password' => 'पासवर्ड लुकाउनुहोस्',
+    'suggest_strong_password' => 'बलियो पासवर्ड सुझाउनुहोस्',
+    'password_strength_hint' => 'पासवर्डको बल: जाँच गरिएको छैन',
+    'password_strength_weak' => 'कमजोर',
+    'password_strength_medium' => 'मध्यम',
+    'password_strength_strong' => 'बलियो',
+    'password_generated' => 'पासवर्ड बनाइयो',
 ];

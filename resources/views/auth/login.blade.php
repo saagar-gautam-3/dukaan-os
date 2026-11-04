@@ -28,10 +28,9 @@
                         <a href="{{ route('password.request') }}" class="small text-decoration-none">{{ __('auth.forgot_password') }}</a>
                     @endif
                 </div>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                    <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" required autocomplete="current-password">
-                </div>
+                <x-password-input id="password" name="password" autocomplete="current-password" required class="@error('password') is-invalid @enderror">
+                    <x-slot:prepend><span class="input-group-text"><i class="bi bi-lock"></i></span></x-slot:prepend>
+                </x-password-input>
                 @error('password')
                     <div class="invalid-feedback d-block mt-1">{{ $message }}</div>
                 @enderror

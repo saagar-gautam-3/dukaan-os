@@ -26,10 +26,9 @@
 
             <div class="mb-3">
                 <label for="password" class="form-label">{{ __('auth.password_label') }}</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                    <input type="password" class="form-control @error('password') is-invalid @enderror" id="password" name="password" required autocomplete="new-password">
-                </div>
+                <x-password-input id="password" name="password" autocomplete="new-password" required suggest confirmation-id="password_confirmation" class="@error('password') is-invalid @enderror">
+                    <x-slot:prepend><span class="input-group-text"><i class="bi bi-lock"></i></span></x-slot:prepend>
+                </x-password-input>
                 @error('password')
                     <div class="invalid-feedback d-block mt-1">{{ $message }}</div>
                 @enderror
@@ -37,10 +36,9 @@
 
             <div class="mb-4">
                 <label for="password_confirmation" class="form-label">{{ __('auth.password_confirmation') }}</label>
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                    <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required autocomplete="new-password">
-                </div>
+                <x-password-input id="password_confirmation" name="password_confirmation" autocomplete="new-password" required>
+                    <x-slot:prepend><span class="input-group-text"><i class="bi bi-lock-fill"></i></span></x-slot:prepend>
+                </x-password-input>
             </div>
 
             <div class="d-grid gap-2">

@@ -50,7 +50,7 @@
                         </div>
                         <div class="col-12 col-md-6">
                             <label for="password" class="form-label fw-semibold">{{ __('staff.temporary_password') }}</label>
-                            <input id="password" name="password" type="password" required minlength="8" autocomplete="new-password" class="form-control @error('password') is-invalid @enderror">
+                            <x-password-input id="password" name="password" autocomplete="new-password" required minlength="8" suggest class="@error('password') is-invalid @enderror" />
                             <div class="form-text">{{ __('staff.temporary_password_help') }}</div>
                             @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
