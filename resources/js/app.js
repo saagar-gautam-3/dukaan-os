@@ -16,7 +16,10 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 import * as bootstrap from 'bootstrap';
 window.bootstrap = bootstrap;
 
-// 3. Sidebar toggle for mobile
+// 3. Accessible password visibility and strong-password controls
+import './password-fields';
+
+// 4. Sidebar toggle for mobile
 document.addEventListener('DOMContentLoaded', () => {
     const networkStatus = document.getElementById('network-status');
 
@@ -66,20 +69,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.app-sidebar');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
     if (sidebarToggle && sidebar) {
+        const setSidebarOpen = (isOpen) => {
+            sidebar.classList.toggle('show', isOpen);
+            sidebarBackdrop?.classList.toggle('d-none', !isOpen);
+            document.body.classList.toggle('sidebar-open', isOpen);
+            sidebarToggle.setAttribute('aria-expanded', String(isOpen));
+        };
+
         sidebarToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('show');
+            setSidebarOpen(!sidebar.classList.contains('show'));
         });
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', (e) => {
-            if (
-                sidebar.classList.contains('show') &&
-                !sidebar.contains(e.target) &&
-                !sidebarToggle.contains(e.target)
-            ) {
-                sidebar.classList.remove('show');
+        sidebarBackdrop?.addEventListener('click', () => setSidebarOpen(false));
+
+        sidebar.addEventListener('click', (event) => {
+            if (event.target.closest('a.nav-link, form.sidebar-logout button')) {
+                setSidebarOpen(false);
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (sidebar.classList.contains('show') &&
+                !sidebar.contains(event.target) &&
+                !sidebarToggle.contains(event.target)) {
+                setSidebarOpen(false);
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 992 && sidebar.classList.contains('show')) {
+                setSidebarOpen(false);
             }
         });
     }

@@ -121,4 +121,12 @@ return [
     'delete_product_confirmation' => 'Delete product :product?',
     'unit_name_example' => 'e.g. kilogram',
     'unit_symbol_example' => 'e.g. kg, pkt, ltr',
+    'show_password' => 'Show password',
+    'hide_password' => 'Hide password',
+    'suggest_strong_password' => 'Suggest strong password',
+    'password_strength_hint' => 'Password strength: not checked',
+    'password_strength_weak' => 'Weak',
+    'password_strength_medium' => 'Medium',
+    'password_strength_strong' => 'Strong',
+    'password_generated' => 'Password generated',
 ];

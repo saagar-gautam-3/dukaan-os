@@ -1,4 +1,4 @@
-<aside class="app-sidebar" id="appSidebar">
+<aside class="app-sidebar" id="appSidebar" aria-label="{{ __('common.navigation') }}">
     <div class="sidebar-brand d-flex align-items-center justify-content-between">
         <a href="{{ route('dashboard') }}" class="text-white text-decoration-none d-flex align-items-center">
             <i class="bi bi-shop me-2 fs-4 text-warning"></i>
@@ -6,7 +6,7 @@
         </a>
     </div>
 
-    <div class="p-3 border-bottom border-white-10">
+    <div class="sidebar-shop p-3 border-bottom border-white-10">
         <div class="d-flex align-items-center justify-content-between">
             <small class="text-white-50 text-uppercase">{{ __('common.current_shop') }}</small>
             <a href="{{ route('shops.picker') }}" class="badge bg-white text-dark text-decoration-none py-1 px-2" title="{{ __('common.switch_shop') }}">
@@ -21,7 +21,7 @@
         </small>
     </div>
 
-    <nav class="nav flex-column my-2 flex-grow-1">
+    <nav class="nav flex-column my-2 flex-grow-1 sidebar-nav" data-sidebar-scroll-region>
         <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
             <i class="bi bi-speedometer2"></i>
             <span>{{ __('common.nav.dashboard') }}</span>
@@ -109,6 +109,21 @@
             <i class="bi bi-gear"></i>
             <span>{{ __('common.nav.settings') }}</span>
         </a>
+
+        @if (auth()->user()->is_platform_admin)
+        <a href="{{ route('platform.shops.index') }}" class="nav-link {{ request()->routeIs('platform.*') ? 'active' : '' }}">
+            <i class="bi bi-building"></i>
+            <span>{{ __('common.platform_shops') }}</span>
+        </a>
+        @endif
+
+        <form method="POST" action="{{ route('logout') }}" class="sidebar-logout">
+            @csrf
+            <button type="submit" class="nav-link w-100 text-start border-0 bg-transparent">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>{{ __('common.logout') }}</span>
+            </button>
+        </form>
     </nav>
 
     <div class="p-3 border-top border-white-10 text-white-50 small">

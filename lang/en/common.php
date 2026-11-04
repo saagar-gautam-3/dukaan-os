@@ -19,6 +19,8 @@ return [
         'settings' => 'Shop Settings',
     ],
     'switch_shop' => 'Switch Shop',
+    'navigation' => 'Main navigation',
+    'close_sidebar' => 'Close sidebar',
     'platform_shops' => 'Platform shops',
     'logout' => 'Log Out',
     'current_shop' => 'Current Shop',
