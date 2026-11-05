@@ -79,4 +79,5 @@ return [
     'import_error_missing_column' => 'Missing required column: :column.',
     'import_error_too_many_rows' => 'Too many rows (max :max).',
     'import_error_text_too_large' => 'Text column contains too many digits.',
+    'import_error_barcode_scientific' => 'Barcode was converted by Excel; format the column as text or use the Excel template.',
 ];

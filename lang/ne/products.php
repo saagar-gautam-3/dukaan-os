@@ -79,4 +79,5 @@ return [
     'import_sku_required' => 'तपाईंको फाइलमा SKU आवश्यक छ।',
     'sku_required' => 'SKU आवश्यक छ।',
     'import_error_text_too_large' => 'पाठ स्तम्भमा धेरै अङ्क छ।',
+    'import_error_barcode_scientific' => 'बारकोड Excel ले वैज्ञानिक रूपमा बदल्यो; स्तम्भलाई टेक्स्ट बनाउनुहोस् वा Excel टेम्प्लेट प्रयोग गर्नुहोस्।',
 ];

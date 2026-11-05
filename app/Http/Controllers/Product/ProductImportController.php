@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -37,8 +38,6 @@ class ProductImportController extends Controller
 
     public function store(Request $request, ParseProductImport $parse): RedirectResponse
     {
-        $this->authorize('create', Product::class);
-
         $request->validate([
             'file' => ['required', 'file', 'max:2048', 'mimes:csv,txt,xlsx'],
         ]);
@@ -151,6 +150,8 @@ class ProductImportController extends Controller
         $shop = Shop::findOrFail($shopId);
         $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
 
+        $spreadsheet = new Spreadsheet;
+
         $headers = ['name', 'name_ne'];
         if (! $autoSku) {
             $headers[] = 'sku';
@@ -162,7 +163,6 @@ class ProductImportController extends Controller
             $required[] = 'sku';
         }
 
-        // Products sheet
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Products');
         foreach ($headers as $i => $h) {
@@ -183,36 +183,37 @@ class ProductImportController extends Controller
         }
         $sheet->freezePane('A2');
 
-        // Example sheet
         $example = $spreadsheet->createSheet();
         $example->setTitle('Example');
         foreach ($headers as $i => $h) {
             $col = Coordinate::stringFromColumnIndex($i + 1);
             $example->setCellValue($col.'1', $h);
         }
+        $units = Unit::all()->take(2)->values();
+        $u1 = $units->get(0)?->code ?? $units->get(0)?->name ?? '';
+        $u2 = $units->get(1)?->code ?? $units->get(1)?->name ?? $u1;
         $example->setCellValue('A2', 'Sample Product');
         $example->setCellValue('B2', 'नमुना वस्तु');
+        $example->setCellValue('H2', '10.00');
+        $example->setCellValue('I2', '15.00');
 
-        // Instructions sheet
         $instr = $spreadsheet->createSheet();
         $instr->setTitle('Instructions');
         $instr->setCellValue('A1', 'Required: name, unit, selling_price'.($autoSku ? '' : ', sku'));
         $instr->setCellValue('A2', 'Limits: 2 MB, 2000 rows.');
         $instr->setCellValue('A3', 'Save as .xlsx. Do not rename headers.');
         $instr->setCellValue('A4', 'Excel cannot enforce blank cells; server validates again.');
+        $instr->setCellValue('A5', 'For barcodes use the Excel template; CSV opened in Excel can corrupt long numbers.');
 
-        // Lists sheet (hidden)
         $lists = $spreadsheet->createSheet();
         $lists->setTitle('Lists');
-        $units = Unit::all();
         $r = 2;
-        foreach ($units as $u) {
+        foreach (Unit::all() as $u) {
             $lists->setCellValue('A'.$r, $u->code ?? $u->name);
             $r++;
         }
-        $cats = Category::where('shop_id', $shopId)->get();
         $r = 2;
-        foreach ($cats as $c) {
+        foreach (Category::where('shop_id', $shopId)->get() as $c) {
             $lists->setCellValue('B'.$r, $c->name);
             $r++;
         }
@@ -236,12 +237,35 @@ class ProductImportController extends Controller
 
     public function template()
     {
-        $filename = 'products-import-template.csv';
-        $header = ['name', 'sku', 'barcode', 'category', 'unit', 'cost_price', 'selling_price', 'opening_stock', 'reorder_level'];
-        $rows = [
-            ['Sample Product', 'SKU-001', '', 'Grocery', 'pcs', '10.00', '15.00', '5', '2'],
-            ['नमुना वस्तु', 'SKU-002', '1234567890', 'किराना', 'kg', '20.50', '30.00', '0', '1'],
-        ];
+        $shopId = TenantContext::getShopId();
+        $shop = Shop::findOrFail($shopId);
+        $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
+
+        $units = Unit::all()->take(2)->values();
+        $u1 = $units->get(0)?->code ?? $units->get(0)?->name ?? '';
+        $u2 = $units->get(1)?->code ?? $units->get(1)?->name ?? $u1;
+
+        $header = ['name', 'name_ne'];
+        if (! $autoSku) {
+            $header[] = 'sku';
+        }
+        $header = array_merge($header, ['barcode', 'category', 'unit', 'cost_price', 'selling_price', 'opening_stock', 'reorder_level']);
+
+        $rows = [];
+        $r1 = ['Sample Product', ''];
+        if (! $autoSku) {
+            $r1[] = 'SKU-001';
+        }
+        $r1 = array_merge($r1, ['', 'Grocery', $u1, '10.00', '15.00', '5', '2']);
+        $rows[] = $r1;
+
+        $r2 = ['नमुना वस्तु', 'नमुना'];
+        if (! $autoSku) {
+            $r2[] = 'SKU-002';
+        }
+        $r2 = array_merge($r2, ['1234567890', 'किराना', $u2, '20.50', '30.00', '0', '1']);
+        $rows[] = $r2;
+
         $out = "\xEF\xBB\xBF";
         $f = fopen('php://temp', 'w');
         fputcsv($f, $header);
@@ -254,7 +278,7 @@ class ProductImportController extends Controller
 
         return response($out, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+            'Content-Disposition' => 'attachment; filename="products-import-template.csv"',
         ]);
     }
 }

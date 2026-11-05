@@ -91,6 +91,9 @@ class ParseProductImport
             $nameNe = $get('name_ne');
             $sku = $get('sku');
             $barcode = $get('barcode');
+            if ($barcode !== '' && preg_match('/^\d+(\.\d+)?[eE]\+\d+$/', $barcode)) {
+                $errors[] = __('products.import_error_barcode_scientific');
+            }
             $categoryName = $get('category');
             $unitKey = strtolower($get('unit'));
             $costStr = $get('cost_price');
