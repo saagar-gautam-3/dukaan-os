@@ -102,6 +102,30 @@ class ProductImportController extends Controller
         return view('products.import-success', ['import' => $productImport]);
     }
 
+    public function errorsCsv(ProductImport $productImport)
+    {
+        abort_unless(auth()->user()?->can('create', Product::class), 403);
+
+        $out = "\xEF\xBB\xBF";
+        $f = fopen('php://temp', 'w');
+        fputcsv($f, ['line', 'reason']);
+        foreach ($productImport->errors_json ?? [] as $e) {
+            $reason = (string) ($e['reason'] ?? '');
+            if (preg_match('/^[=+\-@]/', $reason)) {
+                $reason = "'".$reason;
+            }
+            fputcsv($f, [$e['line'] ?? '', $reason]);
+        }
+        rewind($f);
+        $out .= stream_get_contents($f);
+        fclose($f);
+
+        return response($out, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="import-errors.csv"',
+        ]);
+    }
+
     public function template()
     {
         $filename = 'products-import-template.csv';

@@ -44,6 +44,9 @@
         <button type="submit" class="btn btn-success" id="confirmImport">
             <i class="bi bi-check-circle me-1"></i>{{ __('products.import_confirm') }}
         </button>
+        <script>
+            document.querySelector('form').addEventListener('submit', function(){ var b=document.getElementById('confirmImport'); b.disabled=true; b.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span>{{ __('products.import_confirm') }}'; });
+        </script>
         <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">{{ __('products.cancel') }}</a>
     </form>
 </div>
