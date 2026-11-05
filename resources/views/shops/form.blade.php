@@ -99,6 +99,14 @@
                                 </label>
                                 <div class="form-text text-muted">{{ __('shops.devanagari_digits_help') }}</div>
                             </div>
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="sku_auto_generate" value="0">
+                                <input class="form-check-input" type="checkbox" role="switch" id="sku_auto_generate" name="sku_auto_generate" value="1" {{ old('sku_auto_generate', $shop->settings['sku_auto_generate'] ?? true) ? 'checked' : '' }}>
+                                <label class="form-check-label fw-medium" for="sku_auto_generate">
+                                    {{ __('shops.sku_auto_generate') }}
+                                </label>
+                                <div class="form-text text-muted">{{ __('shops.sku_auto_generate_help') }}</div>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">

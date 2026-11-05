@@ -54,12 +54,21 @@
 
                     <!-- SKU -->
                     <div class="col-12 col-md-4">
+                        @php
+                            $shop = \App\Tenancy\TenantContext::currentShop();
+                            $autoSku = (bool) ($shop?->settings['sku_auto_generate'] ?? true);
+                        @endphp
                         <label for="sku" class="form-label fw-semibold">{{ __('products.sku') }}</label>
-                        <input type="text" name="sku" id="sku" class="form-control @error('sku') is-invalid @enderror" 
-                               value="{{ old('sku', $product->sku ?? '') }}" placeholder="{{ __('ui.sku_example') }}">
-                        @error('sku')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+                        @if($autoSku)
+                            <input type="text" class="form-control" value="{{ $product->sku ?? __('products.sku_auto') }}" readonly>
+                            <div class="form-text">{{ __('products.sku_auto_hint') }}</div>
+                        @else
+                            <input type="text" name="sku" id="sku" class="form-control @error('sku') is-invalid @enderror"
+                                   value="{{ old('sku', $product->sku ?? '') }}" placeholder="{{ __('ui.sku_example') }}">
+                            @error('sku')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        @endif
                     </div>
 
                     <!-- Barcode -->

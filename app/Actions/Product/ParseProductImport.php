@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Product;
 
 use App\Models\Category;
+use App\Models\Shop;
 use App\Models\Unit;
 use App\Support\Money;
 use App\Support\NepaliNumber;
@@ -85,6 +86,9 @@ class ParseProductImport
         if (! isset($colIndex['selling_price'])) {
             throw new \InvalidArgumentException('Missing required column: selling_price.');
         }
+
+        $shop = Shop::findOrFail($shopId);
+        $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
 
         $units = Unit::all()->keyBy(fn ($u) => strtolower($u->code ?? $u->name));
         $categories = Category::where('shop_id', $shopId)->get()->keyBy(fn ($c) => strtolower($c->name));
@@ -262,7 +266,7 @@ class ParseProductImport
                 $valid[] = [
                     'name' => $name,
                     'name_ne' => $nameNe ?: null,
-                    'sku' => $sku ?: null,
+                    'sku' => $autoSku ? null : ($sku ?: null),
                     'barcode' => $barcode ?: null,
                     'category_id' => $categoryId,
                     'unit_id' => $unit->id,
@@ -280,12 +284,18 @@ class ParseProductImport
             throw new \InvalidArgumentException('Too many rows (max 2000).');
         }
 
+        $warnings = [];
+        if ($autoSku && isset($colIndex['sku'])) {
+            $warnings[] = 'SKU is generated automatically; the sku column was ignored.';
+        }
+
         return [
             'total' => count($dataRows),
             'valid' => $valid,
             'invalid' => $invalid,
             'skipped' => count($dataRows) - count($valid) - count($invalid),
             'headers' => $header,
+            'warnings' => $warnings,
         ];
     }
 }

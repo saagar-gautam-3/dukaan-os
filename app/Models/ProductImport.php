@@ -26,6 +26,7 @@ class ProductImport extends Model
         'skipped_rows',
         'imported_rows',
         'errors_json',
+        'warnings_json',
         'valid_rows_json',
     ];
 
@@ -33,6 +34,7 @@ class ProductImport extends Model
     {
         return [
             'errors_json' => 'array',
+            'warnings_json' => 'array',
             'valid_rows_json' => 'array',
         ];
     }

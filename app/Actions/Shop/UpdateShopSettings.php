@@ -32,6 +32,9 @@ class UpdateShopSettings
             if (array_key_exists('pan_number', $data)) {
                 $settings['pan_number'] = $data['pan_number'];
             }
+            if (array_key_exists('sku_auto_generate', $data)) {
+                $settings['sku_auto_generate'] = (bool) $data['sku_auto_generate'];
+            }
 
             $shop->update([
                 'name' => $data['name'],

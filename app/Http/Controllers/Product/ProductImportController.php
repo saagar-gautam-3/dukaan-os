@@ -68,6 +68,7 @@ class ProductImportController extends Controller
             'invalid_rows' => count($result['invalid']),
             'skipped_rows' => $result['skipped'],
             'errors_json' => $result['invalid'],
+            'warnings_json' => $result['warnings'] ?? [],
             'valid_rows_json' => $result['valid'],
         ]);
 

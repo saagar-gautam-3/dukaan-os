@@ -49,6 +49,8 @@ return [
     'is_fractional' => 'Allows Decimals (e.g. 1.5 kg)',
     'add_unit' => 'Add Unit',
     'actions' => 'Actions',
+    'sku_auto' => 'Auto-generated',
+    'sku_auto_hint' => 'SKU is generated automatically.',
     'import_products' => 'Import Products',
     'import_title' => 'Import Products from CSV',
     'import_help' => 'Download the template, fill it in Excel, save as CSV UTF-8, then upload.',

@@ -8,6 +8,7 @@ use App\Actions\Inventory\ReceiveStock;
 use App\Enums\MovementType;
 use App\Models\Product;
 use App\Models\ProductImport;
+use App\Models\Shop;
 use App\Models\Warehouse;
 use App\Support\AuditTrail;
 use App\Support\Money;
@@ -15,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 class ConfirmProductImport
 {
-    public function __construct(protected ReceiveStock $receiveStock) {}
+    public function __construct(protected ReceiveStock $receiveStock, protected ResolveProductSku $resolveSku) {}
 
     public function execute(ProductImport $import, int $userId): ProductImport
     {
@@ -28,15 +29,17 @@ class ConfirmProductImport
 
             $rows = $import->valid_rows_json ?? [];
             $imported = 0;
+            $shop = Shop::findOrFail($import->shop_id);
             $warehouse = Warehouse::where('shop_id', $import->shop_id)->where('is_default', true)->first()
                 ?? Warehouse::where('shop_id', $import->shop_id)->first();
 
             foreach ($rows as $row) {
+                $sku = $this->resolveSku->execute($shop, $row['sku'] ?? null);
                 $product = Product::create([
                     'shop_id' => $import->shop_id,
                     'name' => $row['name'],
                     'name_ne' => $row['name_ne'],
-                    'sku' => $row['sku'],
+                    'sku' => $sku,
                     'barcode' => $row['barcode'],
                     'category_id' => $row['category_id'],
                     'unit_id' => $row['unit_id'],
