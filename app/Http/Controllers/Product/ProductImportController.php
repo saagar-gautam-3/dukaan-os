@@ -7,9 +7,11 @@ namespace App\Http\Controllers\Product;
 use App\Actions\Product\ConfirmProductImport;
 use App\Actions\Product\ParseProductImport;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductImport;
 use App\Models\Shop;
+use App\Models\Unit;
 use App\Support\ProductImport\CsvProductImportReader;
 use App\Support\ProductImport\XlsxProductImportReader;
 use App\Tenancy\TenantContext;
@@ -18,8 +20,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Throwable;
 
@@ -149,25 +151,29 @@ class ProductImportController extends Controller
         $shop = Shop::findOrFail($shopId);
         $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
 
-        $spreadsheet = new Spreadsheet;
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Products');
-
         $headers = ['name', 'name_ne'];
         if (! $autoSku) {
             $headers[] = 'sku';
         }
         $headers = array_merge($headers, ['barcode', 'category', 'unit', 'cost_price', 'selling_price', 'opening_stock', 'reorder_level']);
 
+        $required = ['name', 'unit', 'selling_price'];
+        if (! $autoSku) {
+            $required[] = 'sku';
+        }
+
+        // Products sheet
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Products');
         foreach ($headers as $i => $h) {
             $col = Coordinate::stringFromColumnIndex($i + 1);
             $sheet->setCellValue($col.'1', $h);
-            $sheet->getStyle($col.'1')->getFont()->setBold(true);
-            $sheet->getStyle($col.'1')->getFill()->setFillType(Fill::FILL_SOLID)
-                ->getStartColor()->setARGB('FFE0E0E0');
+            $sheet->getStyle($col.'1')->getFont()->setBold(in_array($h, $required, true));
+            if (in_array($h, $required, true)) {
+                $sheet->getStyle($col.'1')->getFill()->setFillType(Fill::FILL_SOLID)
+                    ->getStartColor()->setARGB('FFDDEBF7');
+            }
         }
-
-        // format barcode and sku as text
         foreach (['barcode', 'sku'] as $h) {
             $idx = array_search($h, $headers, true);
             if ($idx !== false) {
@@ -175,8 +181,44 @@ class ProductImportController extends Controller
                 $sheet->getStyle($col.'2:'.$col.'2001')->getNumberFormat()->setFormatCode('@');
             }
         }
-
         $sheet->freezePane('A2');
+
+        // Example sheet
+        $example = $spreadsheet->createSheet();
+        $example->setTitle('Example');
+        foreach ($headers as $i => $h) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $example->setCellValue($col.'1', $h);
+        }
+        $example->setCellValue('A2', 'Sample Product');
+        $example->setCellValue('B2', 'नमुना वस्तु');
+
+        // Instructions sheet
+        $instr = $spreadsheet->createSheet();
+        $instr->setTitle('Instructions');
+        $instr->setCellValue('A1', 'Required: name, unit, selling_price'.($autoSku ? '' : ', sku'));
+        $instr->setCellValue('A2', 'Limits: 2 MB, 2000 rows.');
+        $instr->setCellValue('A3', 'Save as .xlsx. Do not rename headers.');
+        $instr->setCellValue('A4', 'Excel cannot enforce blank cells; server validates again.');
+
+        // Lists sheet (hidden)
+        $lists = $spreadsheet->createSheet();
+        $lists->setTitle('Lists');
+        $units = Unit::all();
+        $r = 2;
+        foreach ($units as $u) {
+            $lists->setCellValue('A'.$r, $u->code ?? $u->name);
+            $r++;
+        }
+        $cats = Category::where('shop_id', $shopId)->get();
+        $r = 2;
+        foreach ($cats as $c) {
+            $lists->setCellValue('B'.$r, $c->name);
+            $r++;
+        }
+        $lists->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
+
+        $spreadsheet->setActiveSheetIndex(0);
 
         $writer = new Xlsx($spreadsheet);
         $tmp = tempnam(sys_get_temp_dir(), 'xlsx');

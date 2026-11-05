@@ -6,6 +6,7 @@ namespace App\Actions\Product;
 
 use App\Models\Shop;
 use App\Services\DocumentSequenceService;
+use Illuminate\Validation\ValidationException;
 
 class ResolveProductSku
 {
@@ -25,7 +26,12 @@ class ResolveProductSku
         }
 
         $sku = $requestedSku !== null ? trim($requestedSku) : '';
+        if ($sku === '') {
+            throw ValidationException::withMessages([
+                'sku' => [__('products.sku_required')],
+            ]);
+        }
 
-        return $sku === '' ? null : $sku;
+        return $sku;
     }
 }

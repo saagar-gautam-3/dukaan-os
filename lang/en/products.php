@@ -49,6 +49,7 @@ return [
     'is_fractional' => 'Allows Decimals (e.g. 1.5 kg)',
     'add_unit' => 'Add Unit',
     'actions' => 'Actions',
+    'sku_required' => 'SKU is required.',
     'sku_auto' => 'Auto-generated',
     'sku_auto_hint' => 'SKU is generated automatically.',
     'import_products' => 'Import Products',
@@ -77,4 +78,5 @@ return [
     'import_error_empty' => 'Empty file.',
     'import_error_missing_column' => 'Missing required column: :column.',
     'import_error_too_many_rows' => 'Too many rows (max :max).',
+    'import_error_text_too_large' => 'Text column contains too many digits.',
 ];

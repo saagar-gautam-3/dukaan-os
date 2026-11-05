@@ -5,7 +5,7 @@
     <h2 class="fw-bold mb-3"><i class="bi bi-upload me-2"></i>{{ __('products.import_title') }}</h2>
     <p class="text-muted small">{{ __('products.import_help') }}</p>
     @php
-        $shop = \\App\\Tenancy\\TenantContext::currentShop();
+        $shop = \App\Tenancy\TenantContext::currentShop();
         $autoSku = (bool) ($shop?->settings['sku_auto_generate'] ?? true);
     @endphp
     <p class="small text-muted">{{ $autoSku ? __('products.import_sku_auto') : __('products.import_sku_required') }}</p>

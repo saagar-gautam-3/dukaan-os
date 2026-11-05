@@ -77,4 +77,6 @@ return [
     'import_download_csv' => 'CSV टेम्प्लेट डाउनलोड',
     'import_sku_auto' => 'यस पसलका लागि SKU स्वतः सिर्जना हुन्छ।',
     'import_sku_required' => 'तपाईंको फाइलमा SKU आवश्यक छ।',
+    'sku_required' => 'SKU आवश्यक छ।',
+    'import_error_text_too_large' => 'पाठ स्तम्भमा धेरै अङ्क छ।',
 ];
