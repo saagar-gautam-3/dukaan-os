@@ -14,6 +14,7 @@ use App\Http\Controllers\Inventory\SupplierController;
 use App\Http\Controllers\Platform\PlatformShopController;
 use App\Http\Controllers\Product\CategoryController;
 use App\Http\Controllers\Product\ProductController;
+use App\Http\Controllers\Product\ProductImportController;
 use App\Http\Controllers\Product\UnitController;
 use App\Http\Controllers\Reports\CashSessionController;
 use App\Http\Controllers\Reports\ExpenseCategoryController;
@@ -94,6 +95,13 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
 
     // Products, Categories, Units
     Route::resource('products', ProductController::class)->except(['show']);
+
+    Route::get('/products/import', [ProductImportController::class, 'create'])->name('products.import.create')->middleware('throttle:10,1');
+    Route::post('/products/import', [ProductImportController::class, 'store'])->name('products.import.store')->middleware('throttle:10,1');
+    Route::get('/products/import/{productImport}/preview', [ProductImportController::class, 'preview'])->name('products.import.preview')->middleware('throttle:10,1');
+    Route::post('/products/import/{productImport}/confirm', [ProductImportController::class, 'confirm'])->name('products.import.confirm')->middleware('throttle:10,1');
+    Route::get('/products/import/{productImport}/success', [ProductImportController::class, 'success'])->name('products.import.success')->middleware('throttle:10,1');
+    Route::get('/products/import/template', [ProductImportController::class, 'template'])->name('products.import.template')->middleware('throttle:10,1');
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
     Route::resource('units', UnitController::class)->only(['index']);
 
