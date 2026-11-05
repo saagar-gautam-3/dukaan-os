@@ -29,6 +29,7 @@ use App\Tenancy\TenantContext;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -562,14 +563,13 @@ class ImmutabilityTest extends TestCase
         $this->assertSame(SaleStatus::Posted->value, (string) $sale->fresh()->status->value);
     }
 
-    /**
-     * @dataProvider disallowedSaleStatusTransitionProvider
-     */
+    #[DataProvider('disallowedSaleStatusTransitionProvider')]
     public function test_sale_status_transition_disallowed(string $from, string $to): void
     {
         $sale = Sale::factory()->create(['status' => SaleStatus::from($from)]);
 
         $this->expectException(QueryException::class);
+        $this->expectExceptionMessage('Sale status transition not allowed');
         DB::table('sales')->where('id', $sale->id)->update(['status' => $to]);
     }
 
