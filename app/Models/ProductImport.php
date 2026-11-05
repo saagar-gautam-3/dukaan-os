@@ -6,12 +6,15 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
+use Database\Factories\ProductImportFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductImport extends Model
 {
-    use Auditable, BelongsToShop;
+    /** @use HasFactory<ProductImportFactory> */
+    use Auditable, BelongsToShop, HasFactory;
 
     protected $fillable = [
         'shop_id',

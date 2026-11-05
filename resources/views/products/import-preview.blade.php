@@ -15,7 +15,7 @@
             <h5>{{ __('products.import_valid_rows') }}</h5>
             <div class="table-responsive">
                 <table class="table table-sm">
-                    <thead><tr><th>#</th><th>{{ __('products.name') }}</th><th>SKU</th><th>{{ __('products.selling_price') }}</th></tr></thead>
+                    <thead><tr><th>#</th><th>{{ __('products.name') }}</th><th>{{ __('products.sku') }}</th><th>{{ __('products.selling_price') }}</th></tr></thead>
                     <tbody>
                     @foreach(array_slice($imp->valid_rows_json ?? [], 0, 20) as $i => $r)
                         <tr><td>{{ $i+1 }}</td><td>{{ $r['name'] }}</td><td>{{ $r['sku'] }}</td><td>{{ $r['selling_price'] }}</td></tr>

@@ -68,4 +68,9 @@ return [
     'import_success_title' => 'Import Completed',
     'import_created' => 'Products created',
     'cancel' => 'Cancel',
+    'import_error_read' => 'Unable to read file.',
+    'import_error_encoding' => 'File must be UTF-8 encoded.',
+    'import_error_empty' => 'Empty file.',
+    'import_error_missing_column' => 'Missing required column: :column.',
+    'import_error_too_many_rows' => 'Too many rows (max :max).',
 ];

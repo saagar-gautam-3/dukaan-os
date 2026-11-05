@@ -23,7 +23,7 @@ class ParseProductImport
     {
         $content = file_get_contents($path);
         if ($content === false) {
-            throw new \RuntimeException('Unable to read file.');
+            throw new \RuntimeException(__('products.import_error_read'));
         }
         // Strip BOM
         if (str_starts_with($content, "\xEF\xBB\xBF")) {
@@ -31,7 +31,7 @@ class ParseProductImport
         }
         // Validate UTF-8
         if (! mb_check_encoding($content, 'UTF-8')) {
-            throw new \InvalidArgumentException('File must be UTF-8 encoded.');
+            throw new \InvalidArgumentException(__('products.import_error_encoding'));
         }
 
         $lines = preg_split('/\r\n|\r|\n/', $content);
@@ -46,7 +46,7 @@ class ParseProductImport
         }
 
         if (empty($rows)) {
-            throw new \InvalidArgumentException('Empty file.');
+            throw new \InvalidArgumentException(__('products.import_error_empty'));
         }
 
         $header = array_map(fn ($h) => strtolower(trim((string) $h)), $rows[0]);
@@ -78,13 +78,13 @@ class ParseProductImport
         }
 
         if (! isset($colIndex['name'])) {
-            throw new \InvalidArgumentException('Missing required column: name.');
+            throw new \InvalidArgumentException(__('products.import_error_missing_column', ['column' => 'name']));
         }
         if (! isset($colIndex['unit'])) {
-            throw new \InvalidArgumentException('Missing required column: unit.');
+            throw new \InvalidArgumentException(__('products.import_error_missing_column', ['column' => 'unit']));
         }
         if (! isset($colIndex['selling_price'])) {
-            throw new \InvalidArgumentException('Missing required column: selling_price.');
+            throw new \InvalidArgumentException(__('products.import_error_missing_column', ['column' => 'selling_price']));
         }
 
         $shop = Shop::findOrFail($shopId);
@@ -281,7 +281,7 @@ class ParseProductImport
         }
 
         if (count($dataRows) > 2000) {
-            throw new \InvalidArgumentException('Too many rows (max 2000).');
+            throw new \InvalidArgumentException(__('products.import_error_too_many_rows', ['max' => 2000]));
         }
 
         $warnings = [];

@@ -9,12 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement('ALTER TABLE products MODIFY sku VARCHAR(100) NULL');
+        DB::statement("UPDATE shops SET settings = JSON_SET(COALESCE(settings, '{}'), '$.sku_auto_generate', true) WHERE JSON_EXTRACT(settings, '$.sku_auto_generate') IS NULL");
     }
 
     public function down(): void
     {
-        DB::statement("UPDATE products SET sku = '' WHERE sku IS NULL");
-        DB::statement('ALTER TABLE products MODIFY sku VARCHAR(100) NOT NULL');
+        // Do not touch products.sku.
     }
 };

@@ -61,6 +61,7 @@ class RegisterShopAction
                 'settings' => [
                     'currency' => 'NPR',
                     'pan_no' => null,
+                    'sku_auto_generate' => true,
                 ],
                 'is_active' => true,
             ]);

@@ -16,7 +16,12 @@ class ResolveProductSku
         $auto = (bool) ($shop->settings['sku_auto_generate'] ?? true);
 
         if ($auto) {
-            return $this->sequenceService->nextNumber($shop->id, 'SKU', '0000');
+            $raw = $this->sequenceService->nextNumber($shop->id, 'SKU', '0000');
+            // nextNumber returns PREFIX-FISCALYEAR-000000; keep only the numeric tail.
+            $parts = explode('-', $raw);
+            $num = end($parts);
+
+            return 'SKU-'.str_pad((string) (int) $num, 6, '0', STR_PAD_LEFT);
         }
 
         $sku = $requestedSku !== null ? trim($requestedSku) : '';

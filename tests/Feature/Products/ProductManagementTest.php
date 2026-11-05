@@ -126,13 +126,12 @@ class ProductManagementTest extends TestCase
 
         $response->assertRedirect(route('products.index'));
 
-        $this->assertDatabaseHas('products', [
-            'shop_id' => $shop->id,
-            'name' => 'Chowmein Packet',
-            'sku' => 'CHOW-100',
-            'cost_price' => '35.00',
-            'selling_price' => '45.00',
-        ]);
+        $product = Product::where('shop_id', $shop->id)->where('name', 'Chowmein Packet')->first();
+        $this->assertNotNull($product);
+        $this->assertMatchesRegularExpression('/^SKU-\d{6}$/', (string) $product->sku);
+        $this->assertNotSame('CHOW-100', $product->sku);
+        $this->assertSame('35.00', (string) $product->cost_price);
+        $this->assertSame('45.00', (string) $product->selling_price);
     }
 
     public function test_product_creation_validates_required_fields(): void
@@ -194,5 +193,49 @@ class ProductManagementTest extends TestCase
             ->get(route('products.edit', $productB));
 
         $response->assertNotFound();
+    }
+
+    public function test_auto_off_sku_is_editable_and_blank_rejected(): void
+    {
+        [$shop, $user] = $this->createShopWithStaff('Shop Owner');
+        $shop->update(['settings' => array_merge($shop->settings ?? [], ['sku_auto_generate' => false])]);
+
+        $unit = Unit::firstOrCreate(['symbol' => 'pkt'], [
+            'name' => 'Packet',
+            'is_fractional' => false,
+        ]);
+        $category = Category::factory()->create(['shop_id' => $shop->id]);
+
+        $response = $this->actingAs($user)
+            ->withSession(['current_shop_id' => $shop->id])
+            ->post(route('products.store'), [
+                'name' => 'Chowmein Packet',
+                'sku' => 'CHOW-100',
+                'barcode' => '8901234567890',
+                'category_id' => $category->id,
+                'unit_id' => $unit->id,
+                'cost_price' => '35.00',
+                'selling_price' => '45.00',
+                'min_stock_alert' => '10.000',
+                'is_active' => '1',
+            ]);
+        $response->assertRedirect(route('products.index'));
+        $this->assertDatabaseHas('products', [
+            'shop_id' => $shop->id,
+            'name' => 'Chowmein Packet',
+            'sku' => 'CHOW-100',
+        ]);
+
+        $response2 = $this->actingAs($user)
+            ->withSession(['current_shop_id' => $shop->id])
+            ->post(route('products.store'), [
+                'name' => 'No SKU Product',
+                'sku' => '',
+                'category_id' => $category->id,
+                'unit_id' => $unit->id,
+                'cost_price' => '1.00',
+                'selling_price' => '2.00',
+            ]);
+        $response2->assertSessionHasErrors('sku');
     }
 }

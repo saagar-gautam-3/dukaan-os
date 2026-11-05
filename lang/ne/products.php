@@ -68,4 +68,9 @@ return [
     'import_success_title' => 'आयात सम्पन्न',
     'import_created' => 'सिर्जना भएका उत्पादन',
     'cancel' => 'रद्द',
+    'import_error_read' => 'फाइल पढ्न सकिएन।',
+    'import_error_encoding' => 'फाइल UTF-8 मा हुनुपर्छ।',
+    'import_error_empty' => 'खाली फाइल।',
+    'import_error_missing_column' => 'आवश्यक स्तम्भ छुट्यो: :column।',
+    'import_error_too_many_rows' => 'धेरै पङ्क्तिहरू (अधिकतम :max)।',
 ];
