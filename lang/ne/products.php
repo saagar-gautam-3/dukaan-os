@@ -73,4 +73,8 @@ return [
     'import_error_empty' => 'खाली फाइल।',
     'import_error_missing_column' => 'आवश्यक स्तम्भ छुट्यो: :column।',
     'import_error_too_many_rows' => 'धेरै पङ्क्तिहरू (अधिकतम :max)।',
+    'import_download_xlsx' => 'Excel टेम्प्लेट डाउनलोड',
+    'import_download_csv' => 'CSV टेम्प्लेट डाउनलोड',
+    'import_sku_auto' => 'यस पसलका लागि SKU स्वतः सिर्जना हुन्छ।',
+    'import_sku_required' => 'तपाईंको फाइलमा SKU आवश्यक छ।',
 ];
