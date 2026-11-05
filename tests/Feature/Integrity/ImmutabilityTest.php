@@ -29,6 +29,7 @@ use App\Tenancy\TenantContext;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
@@ -529,5 +530,67 @@ class ImmutabilityTest extends TestCase
 
         $this->expectException(QueryException::class);
         DB::update('UPDATE sale_returns SET return_no = NULL WHERE id = ?', [$saleReturn->id]);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
+    // Sales status transitions: only draft->posted and draft->cancelled allowed
+    // ──────────────────────────────────────────────────────────────────────────
+
+    public function test_sale_status_transition_draft_to_posted_allowed(): void
+    {
+        $sale = Sale::factory()->create(['status' => SaleStatus::Draft]);
+
+        DB::table('sales')->where('id', $sale->id)->update(['status' => SaleStatus::Posted->value]);
+
+        $this->assertSame(SaleStatus::Posted->value, (string) $sale->fresh()->status->value);
+    }
+
+    public function test_sale_status_transition_draft_to_cancelled_allowed(): void
+    {
+        $sale = Sale::factory()->create(['status' => SaleStatus::Draft]);
+
+        DB::table('sales')->where('id', $sale->id)->update(['status' => SaleStatus::Cancelled->value]);
+
+        $this->assertSame(SaleStatus::Cancelled->value, (string) $sale->fresh()->status->value);
+    }
+
+    public function test_sale_status_transition_no_change_allowed(): void
+    {
+        $sale = Sale::factory()->create(['status' => SaleStatus::Posted, 'paid_total' => '0.00']);
+
+        DB::table('sales')->where('id', $sale->id)->update(['paid_total' => '50.00']);
+
+        $this->assertSame(SaleStatus::Posted->value, (string) $sale->fresh()->status->value);
+    }
+
+    #[DataProvider('disallowedSaleStatusTransitionProvider')]
+    public function test_sale_status_transition_disallowed(string $from, string $to): void
+    {
+        $sale = Sale::factory()->create(['status' => SaleStatus::from($from)]);
+
+        $this->expectException(QueryException::class);
+        $this->expectExceptionMessage('Sale status transition not allowed');
+        DB::table('sales')->where('id', $sale->id)->update(['status' => $to]);
+    }
+
+    public static function disallowedSaleStatusTransitionProvider(): array
+    {
+        return [
+            'posted -> draft' => ['posted', 'draft'],
+            'posted -> cancelled' => ['posted', 'cancelled'],
+            'cancelled -> posted' => ['cancelled', 'posted'],
+            'cancelled -> draft' => ['cancelled', 'draft'],
+            'draft -> unknown' => ['draft', 'unknown_status'],
+            'posted -> unknown' => ['posted', 'unknown_status'],
+        ];
+    }
+
+    public function test_sale_status_transition_migration_down_restores_trigger(): void
+    {
+        // Smoke check: the trigger still blocks a disallowed transition.
+        $sale = Sale::factory()->create(['status' => SaleStatus::Posted]);
+
+        $this->expectException(QueryException::class);
+        DB::table('sales')->where('id', $sale->id)->update(['status' => 'draft']);
     }
 }
