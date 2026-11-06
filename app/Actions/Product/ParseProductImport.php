@@ -28,6 +28,10 @@ class ParseProductImport
             throw new \InvalidArgumentException(__('products.import_error_empty'));
         }
 
+        if (empty($dataRows)) {
+            throw new \InvalidArgumentException(__('products.import_error_empty'));
+        }
+
         // Map aliases
         $aliases = [
             'name' => ['name', 'product_name', 'product'],
@@ -66,7 +70,7 @@ class ParseProductImport
         $shop = Shop::findOrFail($shopId);
         $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
 
-        $units = Unit::all()->keyBy(fn ($u) => strtolower($u->code ?? $u->name));
+        $units = Unit::all()->keyBy(fn ($u) => strtolower($u->symbol ?? $u->name));
         $categories = Category::where('shop_id', $shopId)->get()->keyBy(fn ($c) => strtolower($c->name));
 
         $valid = [];
@@ -91,9 +95,6 @@ class ParseProductImport
             $nameNe = $get('name_ne');
             $sku = $get('sku');
             $barcode = $get('barcode');
-            if ($barcode !== '' && preg_match('/^\d+(\.\d+)?[eE]\+\d+$/', $barcode)) {
-                $errors[] = __('products.import_error_barcode_scientific');
-            }
             $categoryName = $get('category');
             $unitKey = strtolower($get('unit'));
             $costStr = $get('cost_price');
@@ -102,6 +103,10 @@ class ParseProductImport
             $reorderStr = $get('reorder_level');
 
             $errors = [];
+
+            if ($barcode !== '' && preg_match('/^[0-9]+([.][0-9]+)?[eE][+][0-9]+$/', $barcode)) {
+                $errors[] = __('products.import_error_barcode_scientific');
+            }
 
             if ($name === '') {
                 $errors[] = 'Name is required.';

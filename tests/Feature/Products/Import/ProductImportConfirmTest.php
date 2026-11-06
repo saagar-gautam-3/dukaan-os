@@ -47,7 +47,7 @@ class ProductImportConfirmTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::factory()->create();
-        $csv = "name,unit,selling_price\nItem,{$unit->code},10.00\n";
+        $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
         $file = UploadedFile::fake()->createWithContent('t.csv', $csv);
 
         $this->actingAs($user)

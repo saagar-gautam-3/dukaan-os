@@ -38,6 +38,9 @@ class ProductImportController extends Controller
 
     public function store(Request $request, ParseProductImport $parse): RedirectResponse
     {
+        abort_unless(auth()->user()?->can('create', Product::class), 403);
+        abort_unless(auth()->user()?->can('inventory.manage'), 403);
+
         $request->validate([
             'file' => ['required', 'file', 'max:2048', 'mimes:csv,txt,xlsx'],
         ]);
@@ -71,6 +74,10 @@ class ProductImportController extends Controller
         } catch (Throwable $e) {
             @unlink($storedPath);
 
+            if ($e->getMessage() === __('products.import_error_empty')) {
+                return back()->withErrors(['file' => $e->getMessage()]);
+            }
+
             return back()->with('error', $e->getMessage());
         }
 
@@ -95,14 +102,14 @@ class ProductImportController extends Controller
 
     public function preview(ProductImport $productImport): View
     {
-        abort_unless(auth()->user()?->can('create', Product::class), 403);
+        $this->authorize('view', $productImport);
 
         return view('products.import-preview', ['import' => $productImport]);
     }
 
     public function confirm(ProductImport $productImport, ConfirmProductImport $confirm): RedirectResponse
     {
-        abort_unless(auth()->user()?->can('create', Product::class), 403);
+        $this->authorize('update', $productImport);
 
         try {
             $confirm->execute($productImport, (int) auth()->id());
@@ -117,12 +124,14 @@ class ProductImportController extends Controller
 
     public function success(ProductImport $productImport): View
     {
+        $this->authorize('view', $productImport);
+
         return view('products.import-success', ['import' => $productImport]);
     }
 
     public function errorsCsv(ProductImport $productImport)
     {
-        abort_unless(auth()->user()?->can('create', Product::class), 403);
+        $this->authorize('view', $productImport);
 
         $out = "\xEF\xBB\xBF";
         $f = fopen('php://temp', 'w');
@@ -146,6 +155,9 @@ class ProductImportController extends Controller
 
     public function templateXlsx()
     {
+        abort_unless(auth()->user()?->can('create', Product::class), 403);
+        abort_unless(auth()->user()?->can('inventory.manage'), 403);
+
         $shopId = TenantContext::getShopId();
         $shop = Shop::findOrFail($shopId);
         $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
@@ -190,8 +202,8 @@ class ProductImportController extends Controller
             $example->setCellValue($col.'1', $h);
         }
         $units = Unit::all()->take(2)->values();
-        $u1 = $units->get(0)?->code ?? $units->get(0)?->name ?? '';
-        $u2 = $units->get(1)?->code ?? $units->get(1)?->name ?? $u1;
+        $u1 = $units->get(0)?->symbol ?? $units->get(0)?->name ?? '';
+        $u2 = $units->get(1)?->symbol ?? $units->get(1)?->name ?? $u1;
         $example->setCellValue('A2', 'Sample Product');
         $example->setCellValue('B2', 'नमुना वस्तु');
         $example->setCellValue('H2', '10.00');
@@ -209,7 +221,7 @@ class ProductImportController extends Controller
         $lists->setTitle('Lists');
         $r = 2;
         foreach (Unit::all() as $u) {
-            $lists->setCellValue('A'.$r, $u->code ?? $u->name);
+            $lists->setCellValue('A'.$r, $u->symbol ?? $u->name);
             $r++;
         }
         $r = 2;
@@ -221,13 +233,16 @@ class ProductImportController extends Controller
 
         $spreadsheet->setActiveSheetIndex(0);
 
-        $writer = new Xlsx($spreadsheet);
         $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
-        $writer->save($tmp);
-        $content = file_get_contents($tmp);
-        @unlink($tmp);
-        $spreadsheet->disconnectWorksheets();
-        unset($spreadsheet);
+        try {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tmp);
+            $content = file_get_contents($tmp) ?: '';
+        } finally {
+            @unlink($tmp);
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
+        }
 
         return response($content, 200, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -237,13 +252,16 @@ class ProductImportController extends Controller
 
     public function template()
     {
+        abort_unless(auth()->user()?->can('create', Product::class), 403);
+        abort_unless(auth()->user()?->can('inventory.manage'), 403);
+
         $shopId = TenantContext::getShopId();
         $shop = Shop::findOrFail($shopId);
         $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
 
         $units = Unit::all()->take(2)->values();
-        $u1 = $units->get(0)?->code ?? $units->get(0)?->name ?? '';
-        $u2 = $units->get(1)?->code ?? $units->get(1)?->name ?? $u1;
+        $u1 = $units->get(0)?->symbol ?? $units->get(0)?->name ?? '';
+        $u2 = $units->get(1)?->symbol ?? $units->get(1)?->name ?? $u1;
 
         $header = ['name', 'name_ne'];
         if (! $autoSku) {

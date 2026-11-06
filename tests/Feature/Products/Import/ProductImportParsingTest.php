@@ -51,9 +51,9 @@ class ProductImportParsingTest extends TestCase
     public function test_p1_valid_csv_with_bom_and_devanagari_previews(): void
     {
         [$shop, $user] = $this->createShopWithOwner();
-        $unit = Unit::factory()->create();
+        $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
         $csv = "\xEF\xBB\xBFname,unit,selling_price,cost_price,opening_stock\n"
-            ."Item,{$unit->code},10.00,5.00,१२०\n";
+            ."Item,{$unit->symbol},10.00,5.00,१२०\n";
 
         $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -70,7 +70,7 @@ class ProductImportParsingTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::factory()->create();
-        $csv = "name,unit,selling_price\nItem,{$unit->code},10.00\n";
+        $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -88,5 +88,18 @@ class ProductImportParsingTest extends TestCase
             ->post(route('products.import.store'), ['file' => $this->csvUpload('')]);
 
         $response->assertSessionHasErrors('file');
+        $this->assertSame(0, ProductImport::where('shop_id', $shop->id)->count());
+    }
+
+    public function test_p3_header_only_file_rejected(): void
+    {
+        [$shop, $user] = $this->createShopWithOwner();
+
+        $response = $this->actingAs($user)
+            ->withSession(['current_shop_id' => $shop->id])
+            ->post(route('products.import.store'), ['file' => $this->csvUpload("name,unit,selling_price\n")]);
+
+        $response->assertSessionHasErrors('file');
+        $this->assertSame(0, ProductImport::where('shop_id', $shop->id)->count());
     }
 }
