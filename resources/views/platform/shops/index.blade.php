@@ -8,7 +8,8 @@
         <h1 class="h4 mb-0">{{ __('platform.shops') }}</h1>
         <a class="btn btn-primary" href="{{ route('shops.create') }}">{{ __('shops.register_new') }}</a>
     </div>
-    <table class="table">
+    <div class="table-responsive">
+        <table class="table">
         <thead>
             <tr>
                 <th>{{ __('platform.name') }}</th>
@@ -35,6 +36,7 @@
             @endforeach
         </tbody>
     </table>
+    </div>
     {{ $shops->links() }}
 </div>
 @endsection
