@@ -37,7 +37,7 @@ class ProductImportConfirmTest extends TestCase
             'shop_id' => $shop->id,
             'user_id' => $user->id,
             'role_id' => $roles['Shop Owner']->id,
-            'is_active' => true,
+            'status' => 'active',
         ]);
 
         return [$shop, $user];
@@ -50,10 +50,13 @@ class ProductImportConfirmTest extends TestCase
         $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
         $file = UploadedFile::fake()->createWithContent('t.csv', $csv);
 
-        $this->actingAs($user)
+        $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
             ->post(route('products.import.store'), ['file' => $file]);
 
+        $response->assertSessionHasNoErrors();
+        $this->assertNotSame(403, $response->getStatusCode());
+        $response->assertRedirect();
         $import = ProductImport::where('shop_id', $shop->id)->firstOrFail();
 
         $this->actingAs($user)
