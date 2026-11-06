@@ -70,6 +70,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.app-sidebar');
     const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    const sidebarNav = document.querySelector('[data-sidebar-scroll-region]');
+
+    if (sidebarNav) {
+        const activeItem = sidebarNav.querySelector('.nav-link.active');
+        if (activeItem) {
+            activeItem.scrollIntoView({ block: 'nearest' });
+        }
+    }
 
     if (sidebarToggle && sidebar) {
         const setSidebarOpen = (isOpen) => {
