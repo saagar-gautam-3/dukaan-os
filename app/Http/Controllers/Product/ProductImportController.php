@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -180,10 +181,11 @@ class ProductImportController extends Controller
         foreach ($headers as $i => $h) {
             $col = Coordinate::stringFromColumnIndex($i + 1);
             $sheet->setCellValue($col.'1', $h);
-            $sheet->getStyle($col.'1')->getFont()->setBold(in_array($h, $required, true));
             if (in_array($h, $required, true)) {
+                $sheet->getStyle($col.'1')->getFont()->setBold(true)->getColor()->setARGB('FFC00000');
                 $sheet->getStyle($col.'1')->getFill()->setFillType(Fill::FILL_SOLID)
                     ->getStartColor()->setARGB('FFDDEBF7');
+                $sheet->getStyle($col.'1')->getNumberFormat()->setFormatCode('@ " *"');
             }
         }
         foreach (['barcode', 'sku'] as $h) {
@@ -193,6 +195,92 @@ class ProductImportController extends Controller
                 $sheet->getStyle($col.'2:'.$col.'2001')->getNumberFormat()->setFormatCode('@');
             }
         }
+
+        // Column letters keyed by header name (sku mode aware).
+        $col = [];
+        foreach ($headers as $i => $h) {
+            $col[$h] = Coordinate::stringFromColumnIndex($i + 1);
+        }
+
+        $units = Unit::all();
+        $unitCount = $units->count();
+        $categories = Category::where('shop_id', $shopId)->get();
+        $categoryCount = $categories->count();
+
+        // name: text length 1..255
+        $v = new DataValidation;
+        $v->setType(DataValidation::TYPE_TEXTLENGTH)
+            ->setOperator(DataValidation::OPERATOR_BETWEEN)
+            ->setFormula1('1')
+            ->setFormula2('255')
+            ->setAllowBlank(false)
+            ->setShowErrorMessage(true)
+            ->setErrorStyle(DataValidation::STYLE_STOP)
+            ->setErrorTitle(__('products.import_validation_name'))
+            ->setError(__('products.import_validation_name'));
+        $sheet->setDataValidation($col['name'].'2:'.$col['name'].'2001', $v);
+
+        // sku (OFF mode only): text length 1..100
+        if (! $autoSku && isset($col['sku'])) {
+            $v = new DataValidation;
+            $v->setType(DataValidation::TYPE_TEXTLENGTH)
+                ->setOperator(DataValidation::OPERATOR_BETWEEN)
+                ->setFormula1('1')
+                ->setFormula2('100')
+                ->setAllowBlank(false)
+                ->setShowErrorMessage(true)
+                ->setErrorStyle(DataValidation::STYLE_STOP)
+                ->setErrorTitle(__('products.import_validation_sku'))
+                ->setError(__('products.import_validation_sku'));
+            $sheet->setDataValidation($col['sku'].'2:'.$col['sku'].'2001', $v);
+        }
+
+        // unit: list (only when units exist)
+        if ($unitCount > 0) {
+            $v = new DataValidation;
+            $v->setType(DataValidation::TYPE_LIST)
+                ->setFormula1('=Lists!$A$2:$A$'.($unitCount + 1))
+                ->setAllowBlank(false)
+                ->setShowDropDown(false)
+                ->setShowErrorMessage(true)
+                ->setErrorStyle(DataValidation::STYLE_STOP)
+                ->setErrorTitle(__('products.import_validation_unit'))
+                ->setError(__('products.import_validation_unit'));
+            $sheet->setDataValidation($col['unit'].'2:'.$col['unit'].'2001', $v);
+        }
+
+        // category: list (optional, warning when invalid)
+        if ($categoryCount > 0) {
+            $v = new DataValidation;
+            $v->setType(DataValidation::TYPE_LIST)
+                ->setFormula1('=Lists!$B$2:$B$'.($categoryCount + 1))
+                ->setAllowBlank(true)
+                ->setShowDropDown(false)
+                ->setShowErrorMessage(true)
+                ->setErrorStyle(DataValidation::STYLE_WARNING)
+                ->setErrorTitle(__('products.import_validation_category'))
+                ->setError(__('products.import_validation_category'));
+            $sheet->setDataValidation($col['category'].'2:'.$col['category'].'2001', $v);
+        }
+
+        // numeric columns: decimal 0..999999999.99
+        foreach (['cost_price', 'selling_price', 'opening_stock', 'reorder_level'] as $numHeader) {
+            if (! isset($col[$numHeader])) {
+                continue;
+            }
+            $v = new DataValidation;
+            $v->setType(DataValidation::TYPE_DECIMAL)
+                ->setOperator(DataValidation::OPERATOR_BETWEEN)
+                ->setFormula1('0')
+                ->setFormula2('999999999.99')
+                ->setAllowBlank($numHeader !== 'selling_price')
+                ->setShowErrorMessage(true)
+                ->setErrorStyle(DataValidation::STYLE_STOP)
+                ->setErrorTitle(__('products.import_validation_number'))
+                ->setError(__('products.import_validation_number'));
+            $sheet->setDataValidation($col[$numHeader].'2:'.$col[$numHeader].'2001', $v);
+        }
+
         $sheet->freezePane('A2');
 
         $example = $spreadsheet->createSheet();
@@ -206,8 +294,12 @@ class ProductImportController extends Controller
         $u2 = $units->get(1)?->symbol ?? $units->get(1)?->name ?? $u1;
         $example->setCellValue('A2', 'Sample Product');
         $example->setCellValue('B2', 'नमुना वस्तु');
-        $example->setCellValue('H2', '10.00');
-        $example->setCellValue('I2', '15.00');
+        $example->setCellValue('D2', 'Grocery');
+        $example->setCellValue('E2', $u1);
+        $example->setCellValue('F2', '10.00');
+        $example->setCellValue('G2', '15.00');
+        $example->setCellValue('H2', '5');
+        $example->setCellValue('I2', '2');
 
         $instr = $spreadsheet->createSheet();
         $instr->setTitle('Instructions');
@@ -216,6 +308,14 @@ class ProductImportController extends Controller
         $instr->setCellValue('A3', 'Save as .xlsx. Do not rename headers.');
         $instr->setCellValue('A4', 'Excel cannot enforce blank cells; server validates again.');
         $instr->setCellValue('A5', 'For barcodes use the Excel template; CSV opened in Excel can corrupt long numbers.');
+        $instr->setCellValue('A6', '* = required column.');
+        $r = 8;
+        $instr->setCellValue('A'.$r, 'Units (accepted symbol = name):');
+        $r++;
+        foreach (Unit::all() as $u) {
+            $instr->setCellValue('A'.$r, ($u->symbol ?? '').' = '.($u->name ?? ''));
+            $r++;
+        }
 
         $lists = $spreadsheet->createSheet();
         $lists->setTitle('Lists');

@@ -80,4 +80,9 @@ return [
     'import_error_too_many_rows' => 'Too many rows (max :max).',
     'import_error_text_too_large' => 'Text column contains too many digits.',
     'import_error_barcode_scientific' => 'Barcode was converted by Excel; format the column as text or use the Excel template.',
+    'import_validation_name' => 'Name must be between 1 and 255 characters.',
+    'import_validation_sku' => 'SKU must be between 1 and 100 characters.',
+    'import_validation_unit' => 'Please choose a unit from the list.',
+    'import_validation_category' => 'Please choose a category from the list.',
+    'import_validation_number' => 'Enter a number between 0 and 999999999.99.',
 ];
