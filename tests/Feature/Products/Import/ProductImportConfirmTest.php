@@ -50,14 +50,19 @@ class ProductImportConfirmTest extends TestCase
         $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
         $file = UploadedFile::fake()->createWithContent('t.csv', $csv);
 
+        // CSV relies on the factory Unit's symbol and one valid data row.
         $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
             ->post(route('products.import.store'), ['file' => $file]);
 
         $response->assertSessionHasNoErrors();
+        $response->assertSessionMissing('error');
         $this->assertNotSame(403, $response->getStatusCode());
         $response->assertRedirect();
+
+        TenantContext::setShop($shop);
         $import = ProductImport::where('shop_id', $shop->id)->firstOrFail();
+        $response->assertRedirect(route('products.import.preview', $import));
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])

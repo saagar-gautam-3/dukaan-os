@@ -55,14 +55,19 @@ class ProductImportParsingTest extends TestCase
         $csv = "\xEF\xBB\xBFname,unit,selling_price,cost_price,opening_stock\n"
             ."Item,{$unit->symbol},10.00,5.00,१२०\n";
 
+        // CSV relies on a Unit with symbol 'pc' (created above) and one valid data row (opening_stock १२०).
         $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
             ->post(route('products.import.store'), ['file' => $this->csvUpload($csv)]);
 
         $response->assertSessionHasNoErrors();
+        $response->assertSessionMissing('error');
         $this->assertNotSame(403, $response->getStatusCode());
         $response->assertRedirect();
+
+        TenantContext::setShop($shop);
         $import = ProductImport::where('shop_id', $shop->id)->firstOrFail();
+        $response->assertRedirect(route('products.import.preview', $import));
         $this->assertSame(1, $import->valid_rows);
         $this->assertSame(0, $import->invalid_rows);
         $this->assertSame(120, (int) ($import->valid_rows_json[0]['opening_stock'] ?? 0));
