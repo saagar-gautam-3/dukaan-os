@@ -17,7 +17,7 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
-    protected function createApplication()
+    public function createApplication()
     {
         $app = parent::createApplication();
 
