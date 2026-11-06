@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Product;
 
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\Shop;
 use App\Models\Unit;
 use App\Support\Money;
@@ -12,13 +13,6 @@ use App\Support\NepaliNumber;
 
 class ParseProductImport
 {
-    /**
-     * Parse and validate a CSV file. Returns an array with keys:
-     * total, valid (array of rows), invalid (array of {line, reason}), skipped_existing (int),
-     * headers (array), warnings (array).
-     *
-     * @return array<string, mixed>
-     */
     public function execute(array $parsed, int $shopId): array
     {
         $header = array_map(fn ($h) => strtolower(trim((string) $h)), $parsed['header'] ?? []);
@@ -32,7 +26,6 @@ class ParseProductImport
             throw new \InvalidArgumentException(__('products.import_error_empty'));
         }
 
-        // Map aliases
         $aliases = [
             'name' => ['name', 'product_name', 'product'],
             'name_ne' => ['name_ne', 'name_nepali'],
@@ -75,11 +68,12 @@ class ParseProductImport
 
         $valid = [];
         $invalid = [];
+        $errorEntries = [];
         $seenSkus = [];
         $seenBarcodes = [];
         $seenNameUnit = [];
 
-        $lineNo = 2; // data starts at line 2
+        $lineNo = 2;
         foreach ($dataRows as $row) {
             if (count($row) === 1 && trim((string) $row[0]) === '') {
                 $lineNo++;
@@ -102,121 +96,132 @@ class ParseProductImport
             $stockStr = $get('opening_stock');
             $reorderStr = $get('reorder_level');
 
-            $errors = [];
+            $rowErrors = [];
+
+            $rowSnapshot = [
+                'name' => $name,
+                'name_ne' => $nameNe,
+                'sku' => $sku,
+                'barcode' => $barcode,
+                'category' => $categoryName,
+                'unit' => $get('unit'),
+                'cost_price' => $get('cost_price'),
+                'selling_price' => $get('selling_price'),
+                'opening_stock' => $get('opening_stock'),
+                'reorder_level' => $get('reorder_level'),
+            ];
+
+            $add = function (string $field, string $code, string $key, array $params = [], string $value = '') use (&$rowErrors, $lineNo, $rowSnapshot): void {
+                $rowErrors[] = [
+                    'line' => $lineNo,
+                    'field' => $field,
+                    'code' => $code,
+                    'message' => __($key, $params),
+                    'value' => mb_substr($value, 0, 200),
+                    'row' => $rowSnapshot,
+                ];
+            };
 
             if ($barcode !== '' && preg_match('/^[0-9]+([.][0-9]+)?[eE][+][0-9]+$/', $barcode)) {
-                $errors[] = __('products.import_error_barcode_scientific');
+                $add('barcode', 'barcode_scientific', 'products.import_error_barcode_scientific', [], $barcode);
             }
 
             if ($name === '') {
-                $errors[] = 'Name is required.';
+                $add('name', 'name_required', 'products.import_error_name_required', [], $name);
             } elseif (mb_strlen($name) > 255) {
-                $errors[] = 'Name too long.';
+                $add('name', 'name_too_long', 'products.import_error_name_too_long', [], $name);
             }
 
-            // unit
             $unit = $units->get($unitKey);
             if ($unit === null) {
-                $errors[] = 'Unknown unit.';
+                $add('unit', 'unknown_unit', 'products.import_error_unknown_unit', ['value' => $get('unit')], $get('unit'));
             }
 
-            // normalize Devanagari digits
             $costStr = NepaliNumber::toAscii($costStr);
             $sellingStr = NepaliNumber::toAscii($sellingStr);
             $stockStr = NepaliNumber::toAscii($stockStr);
             $reorderStr = NepaliNumber::toAscii($reorderStr);
 
-            $validateMoney = function (string $v, string $field) use (&$errors) {
-                if ($v === '') {
-                    return null;
-                }
-                if (! is_numeric($v) || stripos($v, 'e') !== false) {
-                    $errors[] = $field.' must be a number.';
-
-                    return null;
-                }
-                if (Money::compare($v, '0', 2) < 0) {
-                    $errors[] = $field.' must be non-negative.';
-
-                    return null;
-                }
-                // reject 3 decimals
-                if (preg_match('/\.\d{3,}/', $v)) {
-                    $errors[] = $field.' has too many decimals.';
-
-                    return null;
-                }
-                if (Money::compare($v, '1000000000', 2) >= 0) {
-                    $errors[] = $field.' is too large.';
-
-                    return null;
-                }
-
-                return $v;
-            };
-
-            $costPrice = $validateMoney($costStr === '' ? '0' : $costStr, 'Cost price');
-            $sellingPrice = $validateMoney($sellingStr, 'Selling price');
-            if ($sellingPrice === null && $sellingStr !== '') {
-                // already errored
+            $costPrice = null;
+            if ($costStr === '') {
+                $costPrice = '0';
+            } elseif (! is_numeric($costStr) || stripos($costStr, 'e') !== false) {
+                $add('cost_price', 'cost_number', 'products.import_error_cost_number', [], $costStr);
+            } elseif (Money::compare($costStr, '0', 2) < 0) {
+                $add('cost_price', 'cost_negative', 'products.import_error_cost_negative', [], $costStr);
+            } elseif (preg_match('/\.\d{3,}/', $costStr)) {
+                $add('cost_price', 'cost_decimals', 'products.import_error_cost_decimals', [], $costStr);
+            } elseif (Money::compare($costStr, '1000000000', 2) >= 0) {
+                $add('cost_price', 'cost_large', 'products.import_error_cost_large', [], $costStr);
+            } else {
+                $costPrice = $costStr;
             }
+
+            $sellingPrice = null;
             if ($sellingStr === '') {
-                $errors[] = 'Selling price is required.';
+                $add('selling_price', 'selling_required', 'products.import_error_selling_required', [], $sellingStr);
+            } elseif (! is_numeric($sellingStr) || stripos($sellingStr, 'e') !== false) {
+                $add('selling_price', 'selling_number', 'products.import_error_selling_number', [], $sellingStr);
+            } elseif (Money::compare($sellingStr, '0', 2) < 0) {
+                $add('selling_price', 'selling_negative', 'products.import_error_selling_negative', [], $sellingStr);
+            } elseif (preg_match('/\.\d{3,}/', $sellingStr)) {
+                $add('selling_price', 'selling_decimals', 'products.import_error_selling_decimals', [], $sellingStr);
+            } elseif (Money::compare($sellingStr, '1000000000', 2) >= 0) {
+                $add('selling_price', 'selling_large', 'products.import_error_selling_large', [], $sellingStr);
+            } else {
+                $sellingPrice = $sellingStr;
             }
 
-            // quantity
             $openingStock = '0';
             if ($stockStr !== '') {
                 if (! is_numeric($stockStr) || stripos($stockStr, 'e') !== false) {
-                    $errors[] = 'Opening stock must be a number.';
+                    $add('opening_stock', 'stock_number', 'products.import_error_stock_number', [], $stockStr);
                 } elseif (Money::compare($stockStr, '0', 3) < 0) {
-                    $errors[] = 'Opening stock cannot be negative.';
+                    $add('opening_stock', 'stock_negative', 'products.import_error_stock_negative', [], $stockStr);
                 } elseif (preg_match('/\.\d{4,}/', $stockStr)) {
-                    $errors[] = 'Opening stock has too many decimals.';
+                    $add('opening_stock', 'stock_decimals', 'products.import_error_stock_decimals', [], $stockStr);
                 } elseif (Money::compare($stockStr, '1000000000', 3) >= 0) {
-                    $errors[] = 'Opening stock is too large.';
+                    $add('opening_stock', 'stock_large', 'products.import_error_stock_large', [], $stockStr);
                 } else {
                     $openingStock = $stockStr;
                 }
             }
+
             $reorderLevel = '0';
             if ($reorderStr !== '') {
                 if (! is_numeric($reorderStr) || stripos($reorderStr, 'e') !== false) {
-                    $errors[] = 'Reorder level must be a number.';
+                    $add('reorder_level', 'reorder_number', 'products.import_error_reorder_number', [], $reorderStr);
                 } else {
                     $reorderLevel = $reorderStr;
                 }
             }
 
-            // opening stock requires cost > 0
-            if (Money::compare($openingStock, '0', 3) > 0 && Money::compare((string) $costPrice, '0', 2) <= 0) {
-                $errors[] = 'Opening stock requires cost price > 0.';
+            if ($costPrice !== null && $sellingPrice !== null && Money::compare($openingStock, '0', 3) > 0 && Money::compare((string) $costPrice, '0', 2) <= 0) {
+                $add('opening_stock', 'stock_requires_cost', 'products.import_error_stock_requires_cost', [], $stockStr);
             }
 
-            // duplicate within file
             if ($sku !== '') {
                 if (isset($seenSkus[$sku])) {
-                    $errors[] = 'Duplicate SKU in file.';
+                    $add('sku', 'duplicate_sku', 'products.import_error_duplicate_sku', [], $sku);
                 }
             }
             if ($barcode !== '') {
                 if (isset($seenBarcodes[$barcode])) {
-                    $errors[] = 'Duplicate barcode in file.';
+                    $add('barcode', 'duplicate_barcode', 'products.import_error_duplicate_barcode', [], $barcode);
                 }
             }
             $nameUnitKey = strtolower($name).'|'.($unit?->id ?? '');
             if ($sku === '' && isset($seenNameUnit[$nameUnitKey])) {
-                $errors[] = 'Duplicate product in file.';
+                $add('name', 'duplicate_product', 'products.import_error_duplicate_product', [], $name);
             }
 
-            // existing in shop
             $skip = false;
-            if (empty($errors)) {
+            if (empty($rowErrors)) {
                 if ($sku !== '' && Product::where('shop_id', $shopId)->where('sku', $sku)->exists()) {
                     $skip = true;
                 } elseif ($barcode !== '' && Product::where('shop_id', $shopId)->where('barcode', $barcode)->exists()) {
                     $skip = true;
-                } elseif ($sku === '' && Product::where('shop_id', $shopId)->where('name', $name)->where('unit_id', $unit->id)->exists()) {
+                } elseif ($sku === '' && $unit !== null && Product::where('shop_id', $shopId)->where('name', $name)->where('unit_id', $unit->id)->exists()) {
                     $skip = true;
                 }
             }
@@ -229,12 +234,14 @@ class ParseProductImport
             }
             $seenNameUnit[$nameUnitKey] = true;
 
-            if (! empty($errors)) {
-                $invalid[] = ['line' => $lineNo, 'reason' => implode(' ', $errors)];
+            if (! empty($rowErrors)) {
+                $invalid[] = ['line' => $lineNo, 'errors' => $rowErrors];
+                foreach ($rowErrors as $e) {
+                    $errorEntries[] = $e;
+                }
             } elseif ($skip) {
                 // counted as skipped
             } else {
-                // category: match or create
                 $categoryId = null;
                 if ($categoryName !== '') {
                     $key = strtolower($categoryName);
@@ -277,6 +284,7 @@ class ParseProductImport
             'total' => count($dataRows),
             'valid' => $valid,
             'invalid' => $invalid,
+            'errors' => $errorEntries,
             'skipped' => count($dataRows) - count($valid) - count($invalid),
             'headers' => $header,
             'warnings' => $warnings,

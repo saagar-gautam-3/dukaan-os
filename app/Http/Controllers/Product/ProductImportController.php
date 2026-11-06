@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -93,7 +94,7 @@ class ProductImportController extends Controller
             'valid_rows' => count($result['valid']),
             'invalid_rows' => count($result['invalid']),
             'skipped_rows' => $result['skipped'],
-            'errors_json' => $result['invalid'],
+            'errors_json' => $result['errors'] ?? [],
             'warnings_json' => $result['warnings'] ?? [],
             'valid_rows_json' => $result['valid'],
         ]);
@@ -151,6 +152,80 @@ class ProductImportController extends Controller
         return response($out, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="import-errors.csv"',
+        ]);
+    }
+
+    public function errorsXlsx(ProductImport $productImport)
+    {
+        $this->authorize('view', $productImport);
+
+        $shop = Shop::findOrFail($productImport->shop_id);
+        $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
+
+        $headers = ['name', 'name_ne'];
+        if (! $autoSku) {
+            $headers[] = 'sku';
+        }
+        $headers = array_merge($headers, ['barcode', 'category', 'unit', 'cost_price', 'selling_price', 'opening_stock', 'reorder_level']);
+
+        $allHeaders = array_merge(['line'], $headers, ['error']);
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Errors');
+
+        foreach ($allHeaders as $i => $h) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValueExplicit($col.'1', $h, DataType::TYPE_STRING);
+            $sheet->getStyle($col.'1')->getFont()->setBold(true);
+        }
+
+        $grouped = [];
+        foreach ($productImport->errors_json ?? [] as $e) {
+            $line = (int) ($e['line'] ?? 0);
+            if (! isset($grouped[$line])) {
+                $grouped[$line] = ['errors' => [], 'row' => $e['row'] ?? []];
+            }
+            $grouped[$line]['errors'][] = trim(($e['field'] ?? '').': '.($e['message'] ?? ''), ': ');
+        }
+
+        $r = 2;
+        foreach ($grouped as $line => $data) {
+            $sheet->setCellValueExplicit('A'.$r, (string) $line, DataType::TYPE_STRING);
+            $row = $data['row'] ?? [];
+            foreach ($headers as $i => $h) {
+                $col = Coordinate::stringFromColumnIndex($i + 2);
+                $sheet->setCellValueExplicit($col.$r, (string) ($row[$h] ?? ''), DataType::TYPE_STRING);
+            }
+            $errorCol = Coordinate::stringFromColumnIndex(count($allHeaders));
+            $sheet->setCellValueExplicit($errorCol.$r, implode('; ', $data['errors']), DataType::TYPE_STRING);
+            $sheet->getStyle($errorCol.$r)->getFont()->getColor()->setARGB('FFFF0000');
+            $r++;
+        }
+
+        foreach ($allHeaders as $i => $h) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->getColumnDimension($col)->setWidth($h === 'error' ? 60 : 16);
+        }
+        if ($r > 2) {
+            $errorCol = Coordinate::stringFromColumnIndex(count($allHeaders));
+            $sheet->getStyle($errorCol.'2:'.$errorCol.($r - 1))->getAlignment()->setWrapText(true);
+        }
+
+        $tmp = tempnam(sys_get_temp_dir(), 'xlsx');
+        try {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tmp);
+            $content = file_get_contents($tmp) ?: '';
+        } finally {
+            @unlink($tmp);
+            $spreadsheet->disconnectWorksheets();
+            unset($spreadsheet);
+        }
+
+        return response($content, 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => 'attachment; filename="import-errors.xlsx"',
         ]);
     }
 

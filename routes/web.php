@@ -102,6 +102,7 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
     Route::post('/products/import/{productImport}/confirm', [ProductImportController::class, 'confirm'])->name('products.import.confirm')->middleware('throttle:10,1');
     Route::get('/products/import/{productImport}/success', [ProductImportController::class, 'success'])->name('products.import.success')->middleware('throttle:10,1');
     Route::get('/products/import/{productImport}/errors.csv', [ProductImportController::class, 'errorsCsv'])->name('products.import.errors')->middleware('throttle:10,1');
+    Route::get('/products/import/{productImport}/errors.xlsx', [ProductImportController::class, 'errorsXlsx'])->name('products.import.errors.xlsx')->middleware('throttle:10,1');
     Route::get('/products/import/template', [ProductImportController::class, 'template'])->name('products.import.template')->middleware('throttle:10,1');
     Route::get('/products/import/template.xlsx', [ProductImportController::class, 'templateXlsx'])->name('products.import.template.xlsx')->middleware('throttle:10,1');
     Route::resource('categories', CategoryController::class)->except(['create', 'show', 'edit']);
