@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Udhar;
 use App\Actions\Udhar\CollectPayment;
 use App\Actions\Udhar\QueryUdharCollectionForm;
 use App\Actions\Udhar\SendReminder;
+use App\Actions\Udhar\SendWhatsAppReminder;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Udhar\CollectPaymentRequest;
 use App\Jobs\SendReminderJob;
@@ -25,6 +26,7 @@ final class UdharController extends Controller
         private readonly LedgerService $ledgerService,
         private readonly CollectPayment $collectPayment,
         private readonly SendReminder $sendReminder,
+        private readonly SendWhatsAppReminder $sendWhatsAppReminder,
         private readonly QueryUdharCollectionForm $queryCollectionForm,
     ) {}
 
@@ -139,6 +141,26 @@ final class UdharController extends Controller
             );
 
             return back()->with('status', __('udhar.reminder_sent'));
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->with('error', __('common.error_generic'));
+        }
+    }
+
+    /**
+     * Send a WhatsApp payment reminder and open the wa.me link.
+     */
+    public function sendWhatsAppReminder(Customer $customer): RedirectResponse
+    {
+        $this->authorize('remind', $customer);
+
+        try {
+            $result = $this->sendWhatsAppReminder->handle($customer, (int) auth()->id());
+
+            return redirect()->away($result['url']);
+        } catch (InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
         } catch (Throwable $e) {
             report($e);
 

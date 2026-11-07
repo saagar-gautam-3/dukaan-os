@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use App\Traits\BelongsToShop;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,13 +16,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class ReminderLog extends Model
 {
-    use BelongsToShop, HasFactory;
+    use Auditable, BelongsToShop, HasFactory;
 
     protected $fillable = [
         'customer_id',
         'channel',
         'status',
+        'amount',
         'phone_masked',
+        'message',
         'message_preview',
         'reference_type',
         'reference_id',
@@ -30,6 +33,7 @@ class ReminderLog extends Model
     ];
 
     protected $casts = [
+        'amount' => 'decimal:2',
         'created_at' => 'datetime',
     ];
 

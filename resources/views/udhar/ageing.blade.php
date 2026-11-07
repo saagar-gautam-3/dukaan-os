@@ -57,41 +57,41 @@
                         </td>
                         <td class="text-end">
                             @if(\App\Support\Money::compare((string) $customer->ageing_buckets['current'], '0', 2) > 0)
-                                {{ __('ui.currency_symbol') }} @npr($customer->ageing_buckets['current'])
+                                @npr($customer->ageing_buckets['current'])
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
                             @if(\App\Support\Money::compare((string) $customer->ageing_buckets['days_30'], '0', 2) > 0)
-                                <span class="text-warning fw-semibold">{{ __('ui.currency_symbol') }} @npr($customer->ageing_buckets['days_30'])</span>
+                                <span class="text-warning fw-semibold">@npr($customer->ageing_buckets['days_30'])</span>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
                             @if(\App\Support\Money::compare((string) $customer->ageing_buckets['days_60'], '0', 2) > 0)
-                                <span class="text-primary fw-semibold">{{ __('ui.currency_symbol') }} @npr($customer->ageing_buckets['days_60'])</span>
+                                <span class="text-primary fw-semibold">@npr($customer->ageing_buckets['days_60'])</span>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
                             @if(\App\Support\Money::compare((string) $customer->ageing_buckets['days_90'], '0', 2) > 0)
-                                <span class="text-danger fw-semibold">{{ __('ui.currency_symbol') }} @npr($customer->ageing_buckets['days_90'])</span>
+                                <span class="text-danger fw-semibold">@npr($customer->ageing_buckets['days_90'])</span>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end">
                             @if(\App\Support\Money::compare((string) $customer->ageing_buckets['over_90'], '0', 2) > 0)
-                                <span class="badge bg-danger">{{ __('ui.currency_symbol') }} @npr($customer->ageing_buckets['over_90'])</span>
+                                <span class="badge bg-danger">@npr($customer->ageing_buckets['over_90'])</span>
                             @else
                                 <span class="text-muted small">-</span>
                             @endif
                         </td>
                         <td class="text-end fw-bold text-danger">
-                            {{ __('ui.currency_symbol') }} @npr($customer->balance)
+                            @npr($customer->balance)
                         </td>
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
@@ -103,6 +103,18 @@
                                 <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary" title="{{ __('udhar.view_ledger') }}">
                                     <i class="bi bi-journal-text"></i>
                                 </a>
+                                @can('remind', $customer)
+                                @php
+                                    $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
+                                        && \App\Support\Money::compare((string) $customer->balance, '0', 2) > 0;
+                                @endphp
+                                <form method="POST" action="{{ route('udhar.reminders.send', $customer) }}" class="d-inline" target="_blank">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-success btn-sm" @disabled(!$canRemind) title="{{ __('udhar.send_reminder') }}">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </button>
+                                </form>
+                                @endcan
                             </div>
                         </td>
                     </tr>
@@ -119,12 +131,12 @@
                 <tfoot class="table-light fw-bold border-top border-2">
                     <tr>
                         <th colspan="2">{{ __('common.total') }}</th>
-                        <th class="text-end text-success">{{ __('ui.currency_symbol') }} @npr($totals['current'] ?? '0.00')</th>
-                        <th class="text-end text-warning">{{ __('ui.currency_symbol') }} @npr($totals['days_30'] ?? '0.00')</th>
-                        <th class="text-end text-primary">{{ __('ui.currency_symbol') }} @npr($totals['days_60'] ?? '0.00')</th>
-                        <th class="text-end text-danger">{{ __('ui.currency_symbol') }} @npr($totals['days_90'] ?? '0.00')</th>
-                        <th class="text-end text-danger">{{ __('ui.currency_symbol') }} @npr($totals['over_90'] ?? '0.00')</th>
-                        <th class="text-end text-danger">{{ __('ui.currency_symbol') }} @npr($totals['total'] ?? '0.00')</th>
+                        <th class="text-end text-success">@npr($totals['current'] ?? '0.00')</th>
+                        <th class="text-end text-warning">@npr($totals['days_30'] ?? '0.00')</th>
+                        <th class="text-end text-primary">@npr($totals['days_60'] ?? '0.00')</th>
+                        <th class="text-end text-danger">@npr($totals['days_90'] ?? '0.00')</th>
+                        <th class="text-end text-danger">@npr($totals['over_90'] ?? '0.00')</th>
+                        <th class="text-end text-danger">@npr($totals['total'] ?? '0.00')</th>
                         <th></th>
                     </tr>
                 </tfoot>

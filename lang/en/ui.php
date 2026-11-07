@@ -129,4 +129,5 @@ return [
     'password_strength_medium' => 'Medium',
     'password_strength_strong' => 'Strong',
     'password_generated' => 'Password generated',
+    'clear' => 'Clear',
 ];

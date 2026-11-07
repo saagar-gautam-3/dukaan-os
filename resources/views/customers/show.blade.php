@@ -22,12 +22,23 @@
             </a>
             @endcan
             @can('remind', $customer)
-            <form method="POST" action="{{ route('udhar.remind', $customer) }}" class="d-inline" onsubmit="return confirm('{{ __('udhar.send_reminder') }}?');">
+            @php
+                $lastReminder = $customer->reminderLogs()->latest()->first();
+                $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
+                    && \App\Support\Money::compare((string) $customer->balance, '0', 2) > 0;
+            @endphp
+            <form method="POST" action="{{ route('udhar.reminders.send', $customer) }}" class="d-inline" target="_blank">
                 @csrf
-                <button type="submit" class="btn btn-outline-warning">
-                    <i class="bi bi-bell me-1"></i> {{ __('udhar.send_reminder') }}
+                <button type="submit" class="btn btn-outline-success" @disabled(!$canRemind) title="{{ __('udhar.send_reminder') }}">
+                    <i class="bi bi-whatsapp me-1"></i> {{ __('udhar.send_reminder') }}
                 </button>
             </form>
+            @if($lastReminder)
+                <small class="text-muted d-block">{{ __('udhar.last_reminded', ['time' => $lastReminder->created_at->diffForHumans()]) }}</small>
+                @if($lastReminder->created_at->gt(now()->subDay()))
+                    <span class="badge bg-info">{{ __('udhar.reminded_recently') }}</span>
+                @endif
+            @endif
             @endcan
             @can('update', $customer)
             <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-secondary">
@@ -56,7 +67,7 @@
                     <div class="p-3 {{ \App\Support\Money::compare($balance, '0', 2) > 0 ? 'bg-danger-subtle' : 'bg-success-subtle' }} rounded text-center mb-3">
                         <small class="text-muted text-uppercase fw-semibold d-block mb-1">{{ __('udhar.total_outstanding') }}</small>
                         <div class="h3 fw-bold {{ \App\Support\Money::compare($balance, '0', 2) > 0 ? 'text-danger' : 'text-success' }} mb-0">
-                            {{ __('ui.currency_symbol') }} @npr($balance)
+                            @npr($balance)
                         </div>
                     </div>
 
@@ -64,12 +75,12 @@
                     <div class="border rounded p-3 mb-2">
                         <div class="d-flex justify-content-between mb-1">
                             <small class="text-muted">{{ __('udhar.credit_limit') }}:</small>
-                            <span class="fw-bold">{{ __('ui.currency_symbol') }} @npr($customer->credit_limit)</span>
+                            <span class="fw-bold">@npr($customer->credit_limit)</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <small class="text-muted">{{ __('udhar.credit_headroom') }}:</small>
                             <span class="fw-semibold {{ \App\Support\Money::compare($headroom, '0', 2) < 0 ? 'text-danger' : 'text-success' }}">
-                                {{ __('ui.currency_symbol') }} @npr($headroom)
+                                @npr($headroom)
                             </span>
                         </div>
                         @if(\App\Support\Money::compare($headroom, '0', 2) <= 0)
@@ -177,9 +188,9 @@
                                         <span class="text-muted small">-</span>
                                     @endif
                                 </td>
-                                <td class="text-end">{{ __('ui.currency_symbol') }} @npr($sale->grand_total)</td>
-                                <td class="text-end text-success">{{ __('ui.currency_symbol') }} @npr($sale->paid_total)</td>
-                                <td class="text-end fw-bold text-danger">{{ __('ui.currency_symbol') }} @npr($due)</td>
+                                <td class="text-end">@npr($sale->grand_total)</td>
+                                <td class="text-end text-success">@npr($sale->paid_total)</td>
+                                <td class="text-end fw-bold text-danger">@npr($due)</td>
                                 <td class="text-end">
                                     <a href="{{ route('sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary" title="{{ __('ui.view_bill') }}">
                                         <i class="bi bi-eye"></i>
@@ -240,14 +251,14 @@
                                 </td>
                                 <td class="text-end">
                                     @if(\App\Support\Money::compare((string) $entry->debit, '0', 2) > 0)
-                                        <span class="text-danger fw-bold">{{ __('ui.currency_symbol') }} @npr($entry->debit)</span>
+                                        <span class="text-danger fw-bold">@npr($entry->debit)</span>
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif
                                 </td>
                                 <td class="text-end">
                                     @if(\App\Support\Money::compare((string) $entry->credit, '0', 2) > 0)
-                                        <span class="text-success fw-bold">{{ __('ui.currency_symbol') }} @npr($entry->credit)</span>
+                                        <span class="text-success fw-bold">@npr($entry->credit)</span>
                                     @else
                                         <span class="text-muted small">-</span>
                                     @endif
@@ -305,12 +316,12 @@
                                     </a>
                                 </td>
                                 <td>{{ $sale->created_at->format('Y-m-d') }}</td>
-                                <td class="text-end fw-bold">{{ __('ui.currency_symbol') }} @npr($sale->grand_total)</td>
-                                <td class="text-end text-success">{{ __('ui.currency_symbol') }} @npr($sale->paid_total)</td>
+                                <td class="text-end fw-bold">@npr($sale->grand_total)</td>
+                                <td class="text-end text-success">@npr($sale->paid_total)</td>
                                 <td class="text-end">
                                     @php $due = $sale->dueAmount(); @endphp
                                     @if(\App\Support\Money::compare((string) $due, '0', 2) > 0)
-                                        <span class="text-danger fw-bold">{{ __('ui.currency_symbol') }} @npr($due)</span>
+                                        <span class="text-danger fw-bold">@npr($due)</span>
                                     @else
                                         <span class="text-muted">{{ __('ui.currency_symbol') }} 0.00</span>
                                     @endif

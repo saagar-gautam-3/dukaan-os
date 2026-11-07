@@ -141,7 +141,7 @@
                         <div class="form-check form-switch mt-2">
                             <input class="form-check-input" type="checkbox" role="switch" name="is_active" id="is_active" value="1" 
                                    {{ old('is_active', $product->is_active ?? true) ? 'checked' : '' }}>
-                            <label class="form-check-label fw-semibold" for="is_active">{{ __('products.is_active') }}</label>
+                            <label class="form-check-label fw-semibold" for="is_active">{{ __('products.active') }}</label>
                         </div>
                     </div>
                 </div>
@@ -151,7 +151,7 @@
                         {{ __('common.cancel') }}
                     </a>
                     <button type="submit" class="btn btn-primary px-4 fw-semibold">
-                        <i class="bi bi-check2 me-1"></i>{{ isset($product) ? __('products.save_changes') : __('products.create_product') }}
+                        <i class="bi bi-check2 me-1"></i>{{ isset($product) ? __('common.save_changes') : __('products.create_product') }}
                     </button>
                 </div>
             </form>

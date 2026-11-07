@@ -150,6 +150,7 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
         Route::get('/collect/{customer}', [UdharController::class, 'collectForm'])->name('udhar.collect');
         Route::post('/collect/{customer}', [UdharController::class, 'collect'])->name('udhar.collect.store')->middleware('throttle:collect');
         Route::post('/remind/{customer}', [UdharController::class, 'remind'])->name('udhar.remind')->middleware('throttle:remind');
+        Route::post('/reminders/{customer}', [UdharController::class, 'sendWhatsAppReminder'])->name('udhar.reminders.send')->middleware('throttle:30,1');
     });
 
     // Expenses
