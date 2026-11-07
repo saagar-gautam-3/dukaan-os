@@ -5,32 +5,27 @@
         </button>
 
         @if (\App\Tenancy\TenantContext::has())
-            {{-- Full chips at lg and up --}}
-            <div class="d-none d-lg-flex align-items-center gap-2 min-w-0">
-                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 py-2 px-3 text-truncate" style="max-width: 260px;" title="{{ \App\Tenancy\TenantContext::currentShop()->name }}">
-                    <i class="bi bi-shop me-1"></i>{{ \App\Tenancy\TenantContext::currentShop()->name }}
-                </span>
-                <span class="badge bg-light text-muted border py-2 px-2 flex-shrink-0">
-                    {{ \App\Tenancy\TenantContext::currentShop()->business_type }}
-                </span>
-            </div>
-
-            {{-- Compact shop name below lg --}}
+            {{-- Compact shop name below lg (the sidebar shows it from lg up) --}}
             <span class="d-lg-none badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 py-2 px-2 text-truncate min-w-0" style="max-width: 32vw;" title="{{ \App\Tenancy\TenantContext::currentShop()->name }}">
                 <i class="bi bi-shop me-1"></i>{{ \App\Tenancy\TenantContext::currentShop()->name }}
+            </span>
+
+            {{-- Shop-code chip at xl and up only --}}
+            <span class="d-none d-xl-inline-flex badge bg-light text-muted border py-2 px-2 flex-shrink-0">
+                {{ \App\Tenancy\TenantContext::currentShop()->business_type }}
             </span>
         @endif
     </div>
 
     <div class="d-flex align-items-center gap-2 gap-lg-3 flex-shrink-0">
-        <!-- Language Switcher (full at lg and up) -->
-        <div class="btn-group btn-group-sm d-none d-lg-inline-flex" role="group">
+        <!-- Language Switcher (full at xl and up) -->
+        <div class="btn-group btn-group-sm d-none d-xl-inline-flex" role="group">
             <a href="{{ route('locale.switch', 'ne') }}" class="btn {{ app()->getLocale() === 'ne' ? 'btn-primary' : 'btn-outline-secondary' }}" title="नेपाली">नेपाली</a>
             <a href="{{ route('locale.switch', 'en') }}" class="btn {{ app()->getLocale() === 'en' ? 'btn-primary' : 'btn-outline-secondary' }}" title="{{ __('ui.language_english') }}">{{ __('ui.language_english') }}</a>
         </div>
 
-        <!-- Compact language dropdown below lg -->
-        <div class="dropdown d-lg-none">
+        <!-- Compact language dropdown below xl -->
+        <div class="dropdown d-xl-none">
             <button class="btn btn-sm btn-outline-secondary" type="button" id="langMenuCompact" data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('ui.language_english') }}">
                 {{ app()->getLocale() === 'ne' ? 'ने' : 'EN' }}
                 <i class="bi bi-chevron-down small"></i>
@@ -77,14 +72,14 @@
                 </li>
                 @endCanRoute
                 @if (\App\Tenancy\TenantContext::has())
-                <li class="d-lg-none dropdown-header">
+                <li class="d-xl-none dropdown-header">
                     <div class="d-flex align-items-center gap-2">
                         <i class="bi bi-shop"></i>
                         <span class="text-truncate" style="max-width: 200px;">{{ \App\Tenancy\TenantContext::currentShop()->name }}</span>
                     </div>
                     <small class="text-muted">{{ \App\Tenancy\TenantContext::currentShop()->business_type }}</small>
                 </li>
-                <li class="d-lg-none"><hr class="dropdown-divider"></li>
+                <li class="d-xl-none"><hr class="dropdown-divider"></li>
                 @endif
                 @if (can_switch_shop())
                 <li class="d-lg-none">
