@@ -77,7 +77,7 @@ class ProductImportParsingTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
+        $csv = "name,unit,cost_price,selling_price\nItem,{$unit->symbol},5.00,10.00\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])

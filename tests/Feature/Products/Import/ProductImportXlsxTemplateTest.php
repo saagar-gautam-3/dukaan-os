@@ -46,25 +46,31 @@ class ProductImportXlsxTemplateTest extends TestCase
         return [$shop, $user];
     }
 
-    public function test_t1_template_xlsx_returns_200_with_pk_signature(): void
+    protected function downloadTemplateXlsx($user, $shop): string
     {
-        [$shop, $user] = $this->createShopWithOwner();
-
         $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
             ->get(route('products.import.template.xlsx'));
 
-        $response->assertStatus(200);
-        $this->assertStringStartsWith('PK', $response->getContent());
+        $response->assertStatus(200, $response->exception?->getMessage() ?? '');
+
+        return $response->getContent();
+    }
+
+    public function test_t1_template_xlsx_returns_200_with_pk_signature(): void
+    {
+        [$shop, $user] = $this->createShopWithOwner();
+
+        $content = $this->downloadTemplateXlsx($user, $shop);
+
+        $this->assertStringStartsWith('PK', $content);
     }
 
     public function test_t2_headers_match_on_and_off_modes(): void
     {
         [$shop, $user] = $this->createShopWithOwner(true);
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
-        $spreadsheet = IOFactory::load($this->tempFile($response->getContent()));
+        $content = $this->downloadTemplateXlsx($user, $shop);
+        $spreadsheet = IOFactory::load($this->tempFile($content));
         $sheet = $spreadsheet->getActiveSheet();
         $headers = [];
         foreach ($sheet->getRowIterator(1, 1) as $row) {
@@ -75,10 +81,8 @@ class ProductImportXlsxTemplateTest extends TestCase
         $this->assertSame(['name', 'name_ne', 'barcode', 'category', 'unit', 'cost_price', 'selling_price', 'opening_stock', 'reorder_level'], $headers);
 
         [$shop2, $user2] = $this->createShopWithOwner(false);
-        $response2 = $this->actingAs($user2)
-            ->withSession(['current_shop_id' => $shop2->id])
-            ->get(route('products.import.template.xlsx'));
-        $spreadsheet2 = IOFactory::load($this->tempFile($response2->getContent()));
+        $content2 = $this->downloadTemplateXlsx($user2, $shop2);
+        $spreadsheet2 = IOFactory::load($this->tempFile($content2));
         $sheet2 = $spreadsheet2->getActiveSheet();
         $headers2 = [];
         foreach ($sheet2->getRowIterator(1, 1) as $row) {
@@ -94,12 +98,10 @@ class ProductImportXlsxTemplateTest extends TestCase
         Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
         [$shop, $user] = $this->createShopWithOwner(true);
 
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
+        $content = $this->downloadTemplateXlsx($user, $shop);
 
         $zip = new ZipArchive;
-        $tmp = $this->tempFile($response->getContent());
+        $tmp = $this->tempFile($content);
         $this->assertTrue($zip->open($tmp) === true);
         $xml = $zip->getFromName('xl/worksheets/sheet1.xml');
         $zip->close();
@@ -122,12 +124,10 @@ class ProductImportXlsxTemplateTest extends TestCase
         TenantContext::setShop($shop);
         Category::create(['shop_id' => $shop->id, 'name' => 'Grocery']);
 
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
+        $content = $this->downloadTemplateXlsx($user, $shop);
 
         $zip = new ZipArchive;
-        $tmp = $this->tempFile($response->getContent());
+        $tmp = $this->tempFile($content);
         $zip->open($tmp);
         $xml = $zip->getFromName('xl/worksheets/sheet1.xml');
         $zip->close();
@@ -138,11 +138,9 @@ class ProductImportXlsxTemplateTest extends TestCase
     public function test_t5_sku_textlength_only_in_off_mode(): void
     {
         [$shop, $user] = $this->createShopWithOwner(true);
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
+        $content = $this->downloadTemplateXlsx($user, $shop);
         $zip = new ZipArchive;
-        $tmp = $this->tempFile($response->getContent());
+        $tmp = $this->tempFile($content);
         $zip->open($tmp);
         $xmlOn = $zip->getFromName('xl/worksheets/sheet1.xml');
         $zip->close();
@@ -164,11 +162,9 @@ class ProductImportXlsxTemplateTest extends TestCase
         unset($spreadsheetOn);
 
         [$shop2, $user2] = $this->createShopWithOwner(false);
-        $response2 = $this->actingAs($user2)
-            ->withSession(['current_shop_id' => $shop2->id])
-            ->get(route('products.import.template.xlsx'));
+        $content2 = $this->downloadTemplateXlsx($user2, $shop2);
         $zip2 = new ZipArchive;
-        $tmp2 = $this->tempFile($response2->getContent());
+        $tmp2 = $this->tempFile($content2);
         $zip2->open($tmp2);
         $xmlOff = $zip2->getFromName('xl/worksheets/sheet1.xml');
         $zip2->close();
@@ -189,11 +185,9 @@ class ProductImportXlsxTemplateTest extends TestCase
 
         TenantContext::setShop($shop);
 
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
+        $content = $this->downloadTemplateXlsx($user, $shop);
 
-        $spreadsheet = IOFactory::load($this->tempFile($response->getContent()));
+        $spreadsheet = IOFactory::load($this->tempFile($content));
         $lists = $spreadsheet->getSheetByName('Lists');
         $this->assertNotNull($lists);
         $this->assertSame(Worksheet::SHEETSTATE_HIDDEN, $lists->getSheetState());
@@ -228,22 +222,16 @@ class ProductImportXlsxTemplateTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner(true);
 
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
-
-        $response->assertStatus(200);
+        $this->downloadTemplateXlsx($user, $shop);
     }
 
     public function test_t8_required_header_value_stays_raw_but_displays_star(): void
     {
         [$shop, $user] = $this->createShopWithOwner(true);
 
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
+        $content = $this->downloadTemplateXlsx($user, $shop);
 
-        $spreadsheet = IOFactory::load($this->tempFile($response->getContent()));
+        $spreadsheet = IOFactory::load($this->tempFile($content));
         $sheet = $spreadsheet->getActiveSheet();
         $this->assertSame('name', (string) $sheet->getCell('A1')->getValue());
         $this->assertStringContainsString('*', $sheet->getStyle('A1')->getNumberFormat()->getFormatCode());
@@ -255,11 +243,9 @@ class ProductImportXlsxTemplateTest extends TestCase
         [$shop, $user] = $this->createShopWithOwner(true);
         TenantContext::setShop($shop);
 
-        $response = $this->actingAs($user)
-            ->withSession(['current_shop_id' => $shop->id])
-            ->get(route('products.import.template.xlsx'));
+        $content = $this->downloadTemplateXlsx($user, $shop);
 
-        $tmp = $this->tempFile($response->getContent());
+        $tmp = $this->tempFile($content);
         $parsed = $this->readExampleSheet($tmp);
         $result = app(ParseProductImport::class)->execute($parsed, $shop->id);
 

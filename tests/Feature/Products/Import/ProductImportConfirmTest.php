@@ -47,7 +47,7 @@ class ProductImportConfirmTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
+        $csv = "name,unit,cost_price,selling_price\nItem,{$unit->symbol},5.00,10.00\n";
         $file = UploadedFile::fake()->createWithContent('t.csv', $csv);
 
         // CSV relies on the factory Unit's symbol and one valid data row.

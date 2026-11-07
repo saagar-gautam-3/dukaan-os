@@ -55,7 +55,7 @@ class ProductImportPartialImportTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nGood1,pc,10.00\nBad,hgh,hggh\nGood2,pc,20.00\n";
+        $csv = "name,unit,cost_price,selling_price\nGood1,pc,5.00,10.00\nBad,hgh,5.00,hggh\nGood2,pc,5.00,20.00\n";
         $csv = str_replace('pc', $unit->symbol, $csv);
 
         $response = $this->actingAs($user)
@@ -66,7 +66,7 @@ class ProductImportPartialImportTest extends TestCase
         TenantContext::setShop($shop);
         $import = ProductImport::where('shop_id', $shop->id)->firstOrFail();
         $this->assertSame(3, $import->total_rows);
-        $this->assertSame(2, $import->valid_rows);
+        $this->assertSame(2, $import->valid_rows, json_encode($import->errors_json));
         $this->assertSame(1, $import->invalid_rows);
         $entry = $import->errors_json[0] ?? null;
         $this->assertNotNull($entry);
@@ -79,7 +79,7 @@ class ProductImportPartialImportTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nGood1,{$unit->symbol},10.00\nBad,hgh,hggh\nGood2,{$unit->symbol},20.00\n";
+        $csv = "name,unit,cost_price,selling_price\nGood1,{$unit->symbol},5.00,10.00\nBad,hgh,5.00,hggh\nGood2,{$unit->symbol},5.00,20.00\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -92,14 +92,14 @@ class ProductImportPartialImportTest extends TestCase
             ->withSession(['current_shop_id' => $shop->id])
             ->post(route('products.import.confirm', $import));
 
-        $this->assertSame(2, Product::where('shop_id', $shop->id)->count());
+        $this->assertSame(2, Product::where('shop_id', $shop->id)->count(), json_encode($import->errors_json));
     }
 
     public function test_e3_error_xlsx_shape_and_literal_value(): void
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nBad,=cmd(),hggh\n";
+        $csv = "name,unit,cost_price,selling_price\nBad,=cmd(),5.00,hggh\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -157,7 +157,7 @@ class ProductImportPartialImportTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nBad,hgh,hggh\n";
+        $csv = "name,unit,cost_price,selling_price\nBad,hgh,5.00,hggh\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -190,7 +190,7 @@ class ProductImportPartialImportTest extends TestCase
     public function test_e5_all_invalid_offers_no_confirm(): void
     {
         [$shop, $user] = $this->createShopWithOwner();
-        $csv = "name,unit,selling_price\nBad,hgh,hggh\n";
+        $csv = "name,unit,cost_price,selling_price\nBad,hgh,5.00,hggh\n";
 
         $response = $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -206,7 +206,7 @@ class ProductImportPartialImportTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nBad,hgh,hggh\n";
+        $csv = "name,unit,cost_price,selling_price\nBad,hgh,5.00,hggh\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -239,7 +239,7 @@ class ProductImportPartialImportTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nGood,{$unit->symbol},10.00\n";
+        $csv = "name,unit,cost_price,selling_price\nGood,{$unit->symbol},5.00,10.00\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
@@ -265,7 +265,7 @@ class ProductImportPartialImportTest extends TestCase
     {
         [$shop, $user] = $this->createShopWithOwner();
         $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
-        $csv = "name,unit,selling_price\nBad,hgh,hggh\n";
+        $csv = "name,unit,cost_price,selling_price\nBad,hgh,5.00,hggh\n";
 
         $this->actingAs($user)
             ->withSession(['current_shop_id' => $shop->id])
