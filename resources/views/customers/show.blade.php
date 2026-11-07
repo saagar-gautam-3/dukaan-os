@@ -22,12 +22,23 @@
             </a>
             @endcan
             @can('remind', $customer)
-            <form method="POST" action="{{ route('udhar.remind', $customer) }}" class="d-inline" onsubmit="return confirm('{{ __('udhar.send_reminder') }}?');">
+            @php
+                $lastReminder = $customer->reminderLogs()->latest()->first();
+                $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
+                    && \App\Support\Money::compare((string) $customer->balance, '0', 2) > 0;
+            @endphp
+            <form method="POST" action="{{ route('udhar.reminders.send', $customer) }}" class="d-inline" target="_blank">
                 @csrf
-                <button type="submit" class="btn btn-outline-warning">
-                    <i class="bi bi-bell me-1"></i> {{ __('udhar.send_reminder') }}
+                <button type="submit" class="btn btn-outline-success" @disabled(!$canRemind) title="{{ __('udhar.send_reminder') }}">
+                    <i class="bi bi-whatsapp me-1"></i> {{ __('udhar.send_reminder') }}
                 </button>
             </form>
+            @if($lastReminder)
+                <small class="text-muted d-block">{{ __('udhar.last_reminded', ['time' => $lastReminder->created_at->diffForHumans()]) }}</small>
+                @if($lastReminder->created_at->gt(now()->subDay()))
+                    <span class="badge bg-info">{{ __('udhar.reminded_recently') }}</span>
+                @endif
+            @endif
             @endcan
             @can('update', $customer)
             <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-secondary">

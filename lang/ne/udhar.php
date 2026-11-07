@@ -59,4 +59,10 @@ return [
     'bucket_days_90' => '६१ - ९० दिन नाघेको',
     'bucket_over_90' => '९०+ दिन नाघेको',
     'total_due' => 'कुल बाँकी',
+    'reminder_no_outstanding' => 'यस ग्राहकको कुनै बाँकी रकम छैन।',
+    'reminder_no_phone' => 'ग्राहकसँग मान्य मोबाइल नम्बर छैन।',
+    'reminder_whatsapp_message' => ':shop: प्रिय :customer, तपाईंको बाँकी रकम :amount छ।:date कृपया सक्दो चाँडो भुक्तानी गर्नुहोस्।',
+    'reminder_oldest_due' => ' पुरानो म्याद: :date।',
+    'last_reminded' => 'अन्तिम रिमाइन्डर :time',
+    'reminded_recently' => '२४ घण्टाभित्र रिमाइन्ड गरिएको',
 ];

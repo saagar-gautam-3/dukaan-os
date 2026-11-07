@@ -59,4 +59,10 @@ return [
     'bucket_days_90' => '61 - 90 Days',
     'bucket_over_90' => '90+ Days',
     'total_due' => 'Total Due',
+    'reminder_no_outstanding' => 'This customer has no outstanding balance.',
+    'reminder_no_phone' => 'Customer does not have a valid mobile number.',
+    'reminder_whatsapp_message' => ':shop: Dear :customer, your outstanding balance is :amount.:date Please pay at your earliest convenience.',
+    'reminder_oldest_due' => ' Oldest due date: :date.',
+    'last_reminded' => 'Last reminded :time',
+    'reminded_recently' => 'Reminded within 24h',
 ];

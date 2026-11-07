@@ -103,6 +103,18 @@
                                 <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary" title="{{ __('udhar.view_ledger') }}">
                                     <i class="bi bi-journal-text"></i>
                                 </a>
+                                @can('remind', $customer)
+                                @php
+                                    $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
+                                        && \App\Support\Money::compare((string) $customer->balance, '0', 2) > 0;
+                                @endphp
+                                <form method="POST" action="{{ route('udhar.reminders.send', $customer) }}" class="d-inline" target="_blank">
+                                    @csrf
+                                    <button type="submit" class="btn btn-outline-success btn-sm" @disabled(!$canRemind) title="{{ __('udhar.send_reminder') }}">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </button>
+                                </form>
+                                @endcan
                             </div>
                         </td>
                     </tr>
