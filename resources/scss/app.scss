@@ -170,6 +170,13 @@ body.sidebar-open {
     padding: 0.75rem 1.5rem;
     display: flex;
     align-items: center;
+    min-width: 0;
+    gap: 1rem;
+
+    > * {
+        min-width: 0;
+    }
+
     justify-content: space-between;
     min-height: 56px;
     position: sticky;
