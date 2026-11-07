@@ -79,6 +79,7 @@ return [
     'import_sku_required' => 'तपाईंको फाइलमा SKU आवश्यक छ।',
     'sku_required' => 'SKU आवश्यक छ।',
     'import_error_text_too_large' => 'पाठ स्तम्भमा धेरै अङ्क छ।',
+    'import_error_barcode_scientific' => 'बारकोड एक्सेलले बदल्यो; स्तम्भलाई पाठको रूपमा ढाँचा गर्नुहोस् वा एक्सेल टेम्प्लेट प्रयोग गर्नुहोस्।',
     'import_validation_name' => 'नाम १ देखि २५५ अक्षर भित्र हुनुपर्छ।',
     'import_validation_sku' => 'SKU १ देखि १०० अक्षर भित्र हुनुपर्छ।',
     'import_validation_unit' => 'सूचीबाट एकाइ छान्नुहोस्।',
