@@ -131,6 +131,18 @@ class ParseProductImport
             } elseif (mb_strlen($name) > 255) {
                 $add('name', 'name_too_long', 'products.import_error_name_too_long', [], $name);
             }
+            if ($nameNe !== '' && mb_strlen($nameNe) > 255) {
+                $add('name_ne', 'name_ne_too_long', 'products.import_error_name_ne_too_long', [], $nameNe);
+            }
+            if ($sku !== '' && mb_strlen($sku) > 100) {
+                $add('sku', 'sku_too_long', 'products.import_error_sku_too_long', [], $sku);
+            }
+            if ($barcode !== '' && mb_strlen($barcode) > 100) {
+                $add('barcode', 'barcode_too_long', 'products.import_error_barcode_too_long', [], $barcode);
+            }
+            if ($categoryName !== '' && mb_strlen($categoryName) > 255) {
+                $add('category', 'category_too_long', 'products.import_error_category_too_long', [], $categoryName);
+            }
 
             $unit = $units->get($unitKey);
             if ($unit === null) {
@@ -144,7 +156,7 @@ class ParseProductImport
 
             $costPrice = null;
             if ($costStr === '') {
-                $costPrice = '0';
+                $add('cost_price', 'cost_required', 'products.import_error_cost_required', [], $costStr);
             } elseif (! is_numeric($costStr) || stripos($costStr, 'e') !== false) {
                 $add('cost_price', 'cost_number', 'products.import_error_cost_number', [], $costStr);
             } elseif (Money::compare($costStr, '0', 2) < 0) {
