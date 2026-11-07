@@ -27,6 +27,14 @@
                 <span>{{ __('products.add_product') }}</span>
             </a>
             @endcan
+            @can('products.manage')
+            @can('inventory.manage')
+            <a href="{{ route('products.import.create') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-upload"></i>
+                <span>{{ __('products.import_products') }}</span>
+            </a>
+            @endcan
+            @endcan
         </div>
     </div>
 

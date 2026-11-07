@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Actions\Product;
 
 use App\Models\Product;
+use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 
 class CreateProduct
 {
+    public function __construct(protected ResolveProductSku $resolveSku) {}
+
     /**
      * @param  array<string, mixed>  $data
      */
@@ -17,10 +20,13 @@ class CreateProduct
         return DB::transaction(function () use ($data) {
             $threshold = $data['low_stock_threshold'] ?? $data['min_stock_alert'] ?? 0.000;
 
+            $shop = TenantContext::currentShop();
+            $sku = $this->resolveSku->execute($shop, $data['sku'] ?? null);
+
             return Product::create([
                 'name' => $data['name'],
                 'name_ne' => $data['name_ne'] ?? null,
-                'sku' => $data['sku'] ?? null,
+                'sku' => $sku,
                 'barcode' => $data['barcode'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
                 'unit_id' => $data['unit_id'],

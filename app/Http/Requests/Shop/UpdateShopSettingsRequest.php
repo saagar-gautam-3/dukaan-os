@@ -34,6 +34,7 @@ class UpdateShopSettingsRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20', new NepalMobilePhone],
             'pan_number' => ['nullable', 'string', 'max:50'],
+            'sku_auto_generate' => ['nullable', 'boolean'],
         ];
     }
 }

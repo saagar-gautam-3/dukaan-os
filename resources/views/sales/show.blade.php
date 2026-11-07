@@ -89,7 +89,7 @@
                             <tr>
                                 <td>
                                     <div class="fw-semibold">{{ $item->product->name }}</div>
-                                    <small class="text-muted">{{ __('ui.sku_label') }} {{ $item->product->sku }}</small>
+                                    <small class="text-muted">{{ __('ui.sku_label') }} {{ $item->product->sku ?: __('ui.no_sku') }}</small>
                                 </td>
                                 <td class="text-center fw-semibold">
                                     @qty($item->quantity, $item->product->unit?->is_fractional) {{ $item->product->unit?->symbol }}

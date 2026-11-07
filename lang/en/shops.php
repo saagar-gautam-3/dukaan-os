@@ -36,4 +36,6 @@ return [
     'register_new' => 'Register a New Shop',
     'create_title' => 'Register a New Shop',
     'created_success' => 'Shop registered successfully. It is now active.',
+    'sku_auto_generate' => 'Auto-generate SKU',
+    'sku_auto_generate_help' => 'When enabled, SKUs are generated automatically for new products.',
 ];

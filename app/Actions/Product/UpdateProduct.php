@@ -17,10 +17,14 @@ class UpdateProduct
         return DB::transaction(function () use ($product, $data) {
             $threshold = $data['low_stock_threshold'] ?? $data['min_stock_alert'] ?? $product->low_stock_threshold;
 
+            $shop = $product->shop;
+            $auto = (bool) ($shop?->settings['sku_auto_generate'] ?? true);
+            $sku = $auto ? $product->sku : (($data['sku'] ?? '') === '' ? null : $data['sku']);
+
             $product->update([
                 'name' => $data['name'],
                 'name_ne' => $data['name_ne'] ?? $product->name_ne,
-                'sku' => $data['sku'] ?? null,
+                'sku' => $sku,
                 'barcode' => $data['barcode'] ?? null,
                 'category_id' => $data['category_id'] ?? null,
                 'unit_id' => $data['unit_id'],
