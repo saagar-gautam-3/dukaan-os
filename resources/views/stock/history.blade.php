@@ -15,14 +15,20 @@
         </div>
 
         <div class="mt-3 mt-md-0 d-flex gap-2">
+            @canRoute('stock.index')
             <a href="{{ route('stock.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>{{ __('common.back') }}
             </a>
-            @can('inventory.manage')
+            @else
+            <a href="{{ route('products.index') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>{{ __('common.back') }}
+            </a>
+            @endCanRoute
+            @canRoute('stock.adjust')
             <a href="{{ route('stock.adjust') }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-arrow-left-right me-1"></i>{{ __('inventory.adjust_stock') }}
             </a>
-            @endcan
+            @endCanRoute
         </div>
     </div>
 

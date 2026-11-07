@@ -11,11 +11,11 @@
             <p class="text-muted small mb-0">{{ __('ui.customer_directory') }}</p>
         </div>
         <div>
-            @can('create', \App\Models\Customer::class)
+            @canRoute('customers.create')
             <a href="{{ route('customers.create') }}" class="btn btn-primary d-flex align-items-center">
                 <i class="bi bi-person-plus me-1"></i> {{ __('sales.new_customer') }}
             </a>
-            @endcan
+            @endCanRoute
         </div>
     </div>
 
@@ -84,11 +84,11 @@
                                 <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary" title="{{ __('ui.view_details') }}">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                @can('update', $customer)
+                                @canRoute('customers.edit', $customer)
                                 <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-secondary" title="{{ __('ui.edit') }}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                @endcan
+                                @endCanRoute
                             </div>
                         </td>
                     </tr>

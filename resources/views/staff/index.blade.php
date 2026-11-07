@@ -11,9 +11,11 @@
             </h2>
             <p class="text-muted mb-0 small">{{ __('staff.subtitle') }}</p>
         </div>
+        @canRoute('staff.create')
         <a href="{{ route('staff.create') }}" class="btn btn-primary mt-3 mt-md-0">
             <i class="bi bi-person-plus me-1"></i>{{ __('staff.add_staff') }}
         </a>
+        @endCanRoute
     </div>
 
     @if (session('status'))
@@ -52,12 +54,12 @@
                                     <td>{{ $member->role?->name ?? __('staff.unknown_role') }}</td>
                                     <td>{{ $member->created_at?->format('Y-m-d') }}</td>
                                     <td class="text-end pe-3">
-                                        @can('update', $member)
+                                        @canRoute('staff.edit', $member)
                                             <a href="{{ route('staff.edit', $member) }}" class="btn btn-outline-primary" aria-label="{{ __('staff.change_role_for', ['name' => $member->user?->name]) }}">
                                                 <i class="bi bi-person-gear"></i>
                                             </a>
-                                        @endcan
-                                        @can('delete', $member)
+                                        @endCanRoute
+                                        @canRoute('staff.destroy', $member)
                                             <form method="POST" action="{{ route('staff.destroy', $member) }}" class="d-inline" onsubmit="return confirm(@js(__('staff.confirm_remove', ['name' => $member->user?->name])))">
                                                 @csrf
                                                 @method('DELETE')
@@ -65,7 +67,7 @@
                                                     <i class="bi bi-person-x"></i>
                                                 </button>
                                             </form>
-                                        @endcan
+                                        @endCanRoute
                                     </td>
                                 </tr>
                             @endforeach
@@ -87,12 +89,12 @@
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3 pt-2 border-top">
                                 <small class="text-muted">{{ __('staff.joined') }}: {{ $member->created_at?->format('Y-m-d') }}</small>
                                 <div class="d-flex gap-2">
-                                    @can('update', $member)
+                                    @canRoute('staff.edit', $member)
                                         <a href="{{ route('staff.edit', $member) }}" class="btn btn-outline-primary" aria-label="{{ __('staff.change_role_for', ['name' => $member->user?->name]) }}">
                                             <i class="bi bi-person-gear"></i>
                                         </a>
-                                    @endcan
-                                    @can('delete', $member)
+                                    @endCanRoute
+                                    @canRoute('staff.destroy', $member)
                                         <form method="POST" action="{{ route('staff.destroy', $member) }}" onsubmit="return confirm(@js(__('staff.confirm_remove', ['name' => $member->user?->name])))">
                                             @csrf
                                             @method('DELETE')
@@ -100,7 +102,7 @@
                                                 <i class="bi bi-person-x"></i>
                                             </button>
                                         </form>
-                                    @endcan
+                                    @endCanRoute
                                 </div>
                             </div>
                         </article>

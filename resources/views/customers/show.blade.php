@@ -16,12 +16,12 @@
             </div>
         </div>
         <div class="d-flex gap-2">
-            @can('collect', $customer)
+            @canRoute('udhar.collect', $customer)
             <a href="{{ route('udhar.collect', $customer) }}" class="btn btn-success">
                 <i class="bi bi-cash-stack me-1"></i> {{ __('udhar.collect_payment') }}
             </a>
-            @endcan
-            @can('remind', $customer)
+            @endCanRoute
+            @canRoute('udhar.reminders.send', $customer)
             @php
                 $lastReminder = $customer->reminderLogs()->latest()->first();
                 $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
@@ -39,12 +39,12 @@
                     <span class="badge bg-info">{{ __('udhar.reminded_recently') }}</span>
                 @endif
             @endif
-            @endcan
-            @can('update', $customer)
+            @endCanRoute
+            @canRoute('customers.edit', $customer)
             <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-pencil me-1"></i> {{ __('common.edit') }}
             </a>
-            @endcan
+            @endCanRoute
         </div>
     </div>
 
@@ -149,6 +149,7 @@
         <!-- Main Content: Tabs / Sections -->
         <div class="col-lg-8">
             <!-- Open Invoices -->
+            @canRoute('sales.index')
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold">
@@ -208,6 +209,7 @@
                     </table>
                 </div>
             </div>
+            @endCanRoute
 
             <!-- Ledger History (Append-only source of truth) -->
             <div class="card border-0 shadow-sm mb-4">
@@ -285,14 +287,15 @@
             </div>
 
             <!-- Recent Sales History -->
+            @canRoute('sales.index')
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom p-3 d-flex justify-content-between align-items-center">
                     <h5 class="mb-0 fw-bold">{{ __('ui.recent_bills') }}</h5>
-                    @can('sales.create')
+                    @canRoute('pos')
                     <a href="{{ route('pos') }}" class="btn btn-sm btn-primary">
                         <i class="bi bi-plus-lg me-1"></i>{{ __('ui.new_bill') }}
                     </a>
-                    @endcan
+                    @endCanRoute
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -348,6 +351,7 @@
                     </table>
                 </div>
             </div>
+            @endCanRoute
         </div>
     </div>
 </div>

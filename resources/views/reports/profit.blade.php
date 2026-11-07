@@ -6,9 +6,11 @@
 <div class="container-fluid py-3">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <h1 class="h3 fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2"></i>{{ __('reports.profit_report') }}</h1>
+        @canRoute('reports.profit.export')
         <a href="{{ route('reports.profit.export', request()->query()) }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-download me-1"></i> {{ __('reports.export_csv') }}
         </a>
+        @endCanRoute
     </div>
 
     {{-- Date Filters --}}

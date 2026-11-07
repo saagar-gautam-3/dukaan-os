@@ -13,28 +13,30 @@
         </div>
 
         <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+            @canRoute('categories.index')
             <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-tags"></i>
                 <span>{{ __('products.categories') }}</span>
             </a>
+            @endCanRoute
+            @canRoute('units.index')
             <a href="{{ route('units.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-rulers"></i>
                 <span>{{ __('products.units') }}</span>
             </a>
-            @can('products.manage')
+            @endCanRoute
+            @canRoute('products.create')
             <a href="{{ route('products.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-plus-circle"></i>
                 <span>{{ __('products.add_product') }}</span>
             </a>
-            @endcan
-            @can('products.manage')
-            @can('inventory.manage')
+            @endCanRoute
+            @canRoute('products.import.create')
             <a href="{{ route('products.import.create') }}" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-upload"></i>
                 <span>{{ __('products.import_products') }}</span>
             </a>
-            @endcan
-            @endcan
+            @endCanRoute
         </div>
     </div>
 
@@ -129,13 +131,17 @@
                                 </td>
                                 <td class="text-end pe-3">
                                     <div class="btn-group btn-group-sm">
+                                        @canRoute('stock.history', $product)
                                         <a href="{{ route('stock.history', $product) }}" class="btn btn-outline-info" title="{{ __('inventory.stock_movements') }}">
                                             <i class="bi bi-clock-history"></i>
                                         </a>
-                                        @can('products.manage')
+                                        @endCanRoute
+                                        @canRoute('products.edit', $product)
                                         <a href="{{ route('products.edit', $product) }}" class="btn btn-outline-primary" title="{{ __('products.edit_product') }}">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+                                        @endCanRoute
+                                        @canRoute('products.destroy', $product)
                                         <form method="POST" action="{{ route('products.destroy', $product) }}" class="d-inline" onsubmit="return confirm(@json(__('ui.delete_product_confirmation', ['product' => $product->name])))">
                                             @csrf
                                             @method('DELETE')
@@ -143,7 +149,7 @@
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-                                        @endcan
+                                        @endCanRoute
                                     </div>
                                 </td>
                             </tr>
@@ -184,14 +190,16 @@
                                 {{ $product->is_active ? __('products.active') : __('products.inactive') }}
                             </span>
                             <div class="btn-group btn-group-sm">
+                                @canRoute('stock.history', $product)
                                 <a href="{{ route('stock.history', $product) }}" class="btn btn-outline-info btn-sm">
                                     <i class="bi bi-clock-history me-1"></i>{{ __('inventory.stock_movements') }}
                                 </a>
-                                @can('products.manage')
+                                @endCanRoute
+                                @canRoute('products.edit', $product)
                                 <a href="{{ route('products.edit', $product) }}" class="btn btn-outline-primary btn-sm">
                                     <i class="bi bi-pencil"></i>
                                 </a>
-                                @endcan
+                                @endCanRoute
                             </div>
                         </div>
                     </div>

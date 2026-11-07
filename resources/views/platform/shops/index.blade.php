@@ -6,7 +6,9 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h4 mb-0">{{ __('platform.shops') }}</h1>
+        @canRoute('shops.create')
         <a class="btn btn-primary" href="{{ route('shops.create') }}">{{ __('shops.register_new') }}</a>
+        @endCanRoute
     </div>
     <div class="table-responsive">
         <table class="table">
@@ -27,10 +29,12 @@
                     <td>{{ $shop->created_at }}</td>
                     <td>{{ $shop->is_active ? __('common.yes') : __('common.no') }}</td>
                     <td>
+                        @canRoute('platform.shops.toggle')
                         <form method="POST" action="{{ route('platform.shops.toggle', $shop) }}">
                             @csrf
                             <button type="submit" class="btn btn-sm btn-outline-secondary">{{ __('platform.toggle') }}</button>
                         </form>
+                        @endCanRoute
                     </td>
                 </tr>
             @endforeach

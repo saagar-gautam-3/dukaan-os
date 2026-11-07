@@ -18,9 +18,11 @@
             </div>
         </div>
         <div class="d-flex gap-2">
+            @canRoute('udhar.outstanding')
             <a href="{{ route('udhar.outstanding') }}" class="btn btn-outline-primary">
                 <i class="bi bi-journal-bookmark me-1"></i>{{ __('udhar.outstanding') }}
             </a>
+            @endCanRoute
         </div>
     </div>
 
@@ -48,9 +50,13 @@
                     @forelse($customers as $customer)
                     <tr>
                         <td>
+                            @canRoute('customers.show', $customer)
                             <a href="{{ route('customers.show', $customer) }}" class="fw-bold text-decoration-none">
                                 {{ $customer->name }}
                             </a>
+                            @else
+                            <span class="fw-bold">{{ $customer->name }}</span>
+                            @endCanRoute
                         </td>
                         <td>
                             <small class="text-muted">{{ $customer->phone ?: '-' }}</small>
@@ -95,15 +101,17 @@
                         </td>
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
-                                @can('collect', $customer)
+                                @canRoute('udhar.collect', $customer)
                                 <a href="{{ route('udhar.collect', $customer) }}" class="btn btn-success" title="{{ __('udhar.collect_payment') }}">
                                     <i class="bi bi-cash-stack"></i>
                                 </a>
-                                @endcan
+                                @endCanRoute
+                                @canRoute('customers.show', $customer)
                                 <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary" title="{{ __('udhar.view_ledger') }}">
                                     <i class="bi bi-journal-text"></i>
                                 </a>
-                                @can('remind', $customer)
+                                @endCanRoute
+                                @canRoute('udhar.reminders.send', $customer)
                                 @php
                                     $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
                                         && \App\Support\Money::compare((string) $customer->balance, '0', 2) > 0;
@@ -114,7 +122,7 @@
                                         <i class="bi bi-whatsapp"></i>
                                     </button>
                                 </form>
-                                @endcan
+                                @endCanRoute
                             </div>
                         </td>
                     </tr>

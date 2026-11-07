@@ -12,14 +12,14 @@
             <p class="text-muted mb-0 small">{{ __('purchases.subtitle') }}</p>
         </div>
 
-        @can('purchases.manage')
+        @canRoute('purchases.create')
         <div class="mt-3 mt-md-0">
             <a href="{{ route('purchases.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-plus-circle"></i>
                 <span>{{ __('purchases.create_purchase') }}</span>
             </a>
         </div>
-        @endcan
+        @endCanRoute
     </div>
 
     <!-- Filters -->
@@ -114,13 +114,15 @@
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         @if(! $isPosted)
-                                        @can('purchases.manage')
+                                        @canRoute('purchases.post', $purchase)
                                         <form method="POST" action="{{ route('purchases.post', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.post_confirmation') }}')">
                                             @csrf
                                             <button type="submit" class="btn btn-success" title="{{ __('purchases.post_purchase') }}">
                                                 <i class="bi bi-box-arrow-in-down me-1"></i>{{ __('purchases.post_short') }}
                                             </button>
                                         </form>
+                                        @endCanRoute
+                                        @canRoute('purchases.destroy', $purchase)
                                         <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.confirm_delete') }}')">
                                             @csrf
                                             @method('DELETE')
@@ -128,7 +130,7 @@
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-                                        @endcan
+                                        @endCanRoute
                                         @endif
                                     </div>
                                 </td>
@@ -165,14 +167,14 @@
                                 <i class="bi bi-eye me-1"></i>{{ __('ui.view') }}
                             </a>
                             @if(! $isPosted)
-                            @can('purchases.manage')
+                            @canRoute('purchases.post', $purchase)
                             <form method="POST" action="{{ route('purchases.post', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.post_confirmation') }}')">
                                 @csrf
                                 <button type="submit" class="btn btn-success btn-sm">
                                     <i class="bi bi-box-arrow-in-down me-1"></i>{{ __('purchases.post_short') }}
                                 </button>
                             </form>
-                            @endcan
+                            @endCanRoute
                             @endif
                         </div>
                     </div>

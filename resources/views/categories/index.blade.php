@@ -18,6 +18,7 @@
 
     <div class="row g-4">
         <!-- Add Category Form -->
+        @canRoute('categories.store')
         <div class="col-12 col-md-4">
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-header bg-white py-3 border-bottom">
@@ -48,6 +49,7 @@
                 </div>
             </div>
         </div>
+        @endCanRoute
 
         <!-- Categories List -->
         <div class="col-12 col-md-8">
@@ -77,6 +79,7 @@
                                     @foreach($categories as $category)
                                     <tr>
                                         <td class="ps-3">
+                                            @canRoute('categories.update', $category)
                                             <form method="POST" action="{{ route('categories.update', $category) }}" class="d-flex align-items-center gap-2">
                                                 @csrf
                                                 @method('PUT')
@@ -85,6 +88,9 @@
                                                     <i class="bi bi-check-lg"></i>
                                                 </button>
                                             </form>
+                                            @else
+                                            <span class="fw-medium">{{ $category->name }}</span>
+                                            @endCanRoute
                                         </td>
                                         <td><code>{{ $category->slug }}</code></td>
                                         <td class="text-center">
@@ -93,7 +99,7 @@
                                             </span>
                                         </td>
                                         <td class="text-end pe-3">
-                                            @can('products.manage')
+                                            @canRoute('categories.destroy', $category)
                                             <form method="POST" action="{{ route('categories.destroy', $category) }}" class="d-inline" onsubmit="return confirm(@json(__('ui.delete_category_confirmation', ['category' => $category->name])))">
                                                 @csrf
                                                 @method('DELETE')
@@ -101,7 +107,7 @@
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
-                                            @endcan
+                                            @endCanRoute
                                         </td>
                                     </tr>
                                     @endforeach
@@ -121,7 +127,7 @@
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
                                     <code class="small text-muted">{{ $category->slug }}</code>
-                                    @can('products.manage')
+                                    @canRoute('categories.destroy', $category)
                                     <form method="POST" action="{{ route('categories.destroy', $category) }}" class="d-inline" onsubmit="return confirm(@json(__('ui.delete_category_confirmation', ['category' => $category->name])))">
                                         @csrf
                                         @method('DELETE')
@@ -129,7 +135,7 @@
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
-                                    @endcan
+                                    @endCanRoute
                                 </div>
                             </div>
                             @endforeach

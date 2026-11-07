@@ -9,14 +9,16 @@
             <h1 class="h3 fw-bold mb-1">{{ __('expenses.categories') }}</h1>
         </div>
         <div class="d-flex gap-2">
-            @can('create', \App\Models\ExpenseCategory::class)
+            @canRoute('expense-categories.create')
             <a href="{{ route('expense-categories.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i> {{ __('expenses.new_category') }}
             </a>
-            @endcan
+            @endCanRoute
+            @canRoute('expenses.index')
             <a href="{{ route('expenses.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i> {{ __('expenses.expenses') }}
             </a>
+            @endCanRoute
         </div>
     </div>
 
@@ -47,12 +49,12 @@
                             <span class="badge bg-secondary">{{ $cat->expenses_count }}</span>
                         </td>
                         <td class="text-end">
-                            @can('update', $cat)
+                            @canRoute('expense-categories.edit', $cat)
                             <a href="{{ route('expense-categories.edit', $cat) }}" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            @endcan
-                            @can('delete', $cat)
+                            @endCanRoute
+                            @canRoute('expense-categories.destroy', $cat)
                             <form action="{{ route('expense-categories.destroy', $cat) }}" method="POST" class="d-inline"
                                   onsubmit="return confirm('{{ __('common.confirm_delete') }}')">
                                 @csrf @method('DELETE')
@@ -60,7 +62,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
-                            @endcan
+                            @endCanRoute
                         </td>
                     </tr>
                     @empty
