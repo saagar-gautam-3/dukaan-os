@@ -73,13 +73,13 @@
 
                     @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
                     <div class="border rounded p-3 mb-2">
-                        <div class="d-flex justify-content-between mb-1">
+                        <div class="d-flex justify-content-between gap-2 mb-1">
                             <small class="text-muted">{{ __('udhar.credit_limit') }}:</small>
-                            <span class="fw-bold">@npr($customer->credit_limit)</span>
+                            <span class="fw-bold amount-nowrap text-end">@npr($customer->credit_limit)</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between gap-2 mb-2">
                             <small class="text-muted">{{ __('udhar.credit_headroom') }}:</small>
-                            <span class="fw-semibold {{ \App\Support\Money::compare($headroom, '0', 2) < 0 ? 'text-danger' : 'text-success' }}">
+                            <span class="fw-semibold amount-nowrap text-end {{ \App\Support\Money::compare($headroom, '0', 2) < 0 ? 'text-danger' : 'text-success' }}">
                                 @npr($headroom)
                             </span>
                         </div>

@@ -338,8 +338,8 @@ body.sidebar-open {
     &[data-strength='strong'] { color: $success; }
 }
 
-// ── Mobile touch targets (max-width 576px) ────────────────────
-@media (max-width: 576px) {
+// ── Mobile touch targets (max-width 768px) ────────────────────
+@media (max-width: 768px) {
     button,
     a.btn,
     .btn,
@@ -362,4 +362,24 @@ body.sidebar-open {
         min-height: 40px;
         min-width: 40px;
     }
+}
+
+// ── Responsive: keep amounts and identifiers unbroken ─────────
+.amount-nowrap {
+    white-space: nowrap;
+}
+
+table td.text-end,
+.stat-value {
+    white-space: nowrap;
+}
+
+code, kbd {
+    white-space: nowrap;
+}
+
+.app-page h1,
+.app-page h2 {
+    overflow-wrap: break-word;
+    min-width: 0;
 }
