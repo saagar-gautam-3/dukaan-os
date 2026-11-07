@@ -100,6 +100,16 @@ async function main() {
         await page.goto(`${BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
     }
 
+    // Pin the first shop (demo DB shop 1) so the digit rule is deterministic.
+    await page.goto(`${BASE}/shops/picker`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+    const pinned = await page.evaluate(() => {
+        const form = document.querySelector('form[action*="/shops/switch/"]');
+        if (form) { form.submit(); return true; }
+        return false;
+    }).catch(() => false);
+    if (pinned) await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+    await page.goto(`${BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
+
     // --- switch to English locale for the digits check ---
     await page.goto(`${BASE}/locale/en`, { waitUntil: 'domcontentloaded' }).catch(() => {});
     await page.goto(`${BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
@@ -109,6 +119,20 @@ async function main() {
         await browser.close();
         process.exit(2);
     }
+
+    // Read the shop's digit rule from the POS page (server-exposed truth).
+    const expectDevDigits = await page.evaluate(async (posUrl) => {
+        const html = await (await fetch(posUrl)).text();
+        const m = html.match(/useDevanagariDigits\s*=\s*(true|false)/);
+        return m ? m[1] === 'true' : null;
+    }, `${BASE}/pos`);
+    if (expectDevDigits === null) {
+        fail('Could not read useDevanagariDigits flag from the POS page — digits check would be invalid.');
+        await browser.close();
+        process.exit(2);
+    }
+    await page.evaluate((v) => { window.__expectDevDigits = v; }, expectDevDigits);
+    console.log(`Shop digit rule (POS flag): devanagari=${expectDevDigits}`);
 
     // --- discover detail URLs from list pages (first record) ---
     const listUrls = {
@@ -178,7 +202,8 @@ async function main() {
                 continue;
             }
 
-            const metrics = await page.evaluate(() => {
+            const metrics = await page.evaluate(({ expectDev }) => {
+                window.__expectDevDigits = expectDev;
                 const vw = window.innerWidth;
                 const scrollWidth = document.documentElement.scrollWidth;
                 const over = [];
@@ -278,13 +303,18 @@ async function main() {
                     }
                     if (wordBreaks.length >= 8) break;
                 }
-                // (c) Devanagari digits in visible text (en locale, setting off)
+                // (c) Devanagari digits in visible text: judged against the
+                // shop setting exposed by the POS page (useDevanagariDigits),
+                // which mirrors settings.devanagari_digits if set, else locale.
                 const devDigits = [];
-                const seen = document.body ? document.body.innerText || '' : '';
-                const matches = seen.match(/[०-९]+/g) || [];
-                for (const m of [...new Set(matches)].slice(0, 5)) devDigits.push(m);
+                const expectDevFlag = window.__expectDevDigits === true;
+                if (!expectDevFlag) {
+                    const seen = document.body ? document.body.innerText || '' : '';
+                    const matches = seen.match(/[०-९]+/g) || [];
+                    for (const m of [...new Set(matches)].slice(0, 5)) devDigits.push(m);
+                }
                 return { vw, scrollWidth, over, tap, overlaps, wordBreaks, devDigits };
-            });
+            }, { expectDev: expectDevDigits });
 
             const pageScroll = metrics.scrollWidth > metrics.vw;
             results.push({
