@@ -57,7 +57,7 @@
                         <small class="text-muted d-block">{{ __('udhar.credit_limit') }}</small>
                         <span class="fw-semibold">
                             @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0)
-                                {{ __('ui.currency_symbol') }} @npr($customer->credit_limit)
+                                @npr($customer->credit_limit)
                             @else
                                 <span class="text-muted">-</span>
                             @endif
@@ -67,7 +67,7 @@
                     <div class="p-3 bg-light rounded text-center">
                         <small class="text-muted text-uppercase fw-semibold d-block mb-1">{{ __('udhar.balance') }}</small>
                         <div class="h3 fw-bold text-danger mb-0">
-                            {{ __('ui.currency_symbol') }} @npr($balance)
+                            @npr($balance)
                         </div>
                     </div>
                 </div>
@@ -178,8 +178,8 @@
                                                 <span class="text-muted small">-</span>
                                             @endif
                                         </td>
-                                        <td class="text-end">{{ __('ui.currency_symbol') }} @npr($sale->grand_total)</td>
-                                        <td class="text-end fw-semibold text-danger">{{ __('ui.currency_symbol') }} @npr($due)</td>
+                                        <td class="text-end">@npr($sale->grand_total)</td>
+                                        <td class="text-end fw-semibold text-danger">@npr($due)</td>
                                         <td class="text-end">
                                             <div class="input-group input-group-sm">
                                                 <span class="input-group-text">{{ __('ui.currency_symbol') }}</span>
