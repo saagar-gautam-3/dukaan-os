@@ -56,7 +56,7 @@
                             @foreach($products as $product)
                             @php
                                 $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
-                                $minAlert = (string) $product->min_stock_alert;
+                                $minAlert = (string) $product->low_stock_threshold;
                                 $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                             @endphp
                             <tr>
@@ -102,7 +102,7 @@
                     @foreach($products as $product)
                     @php
                         $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
-                        $minAlert = (string) $product->min_stock_alert;
+                        $minAlert = (string) $product->low_stock_threshold;
                                 $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                     @endphp
                     <div class="p-3 border-bottom">
