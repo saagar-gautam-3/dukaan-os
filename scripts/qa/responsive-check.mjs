@@ -7,6 +7,9 @@
  *  (b) no element's right edge exceeds the viewport unless it sits inside an
  *      overflow-x:auto / .table-responsive container
  *  (c) at <= 768px, primary buttons/links have tap-target height >= 40px
+ *  (e) no overlap between topbar / page-header action row children
+ *  (f) no word broken across lines inside .btn/.badge
+ *  (g) no Devanagari digits in visible text (English locale, shop setting off)
  *  (d) saves a screenshot to D:\dukaan-os\qa\out\responsive\<page>-<width>.png
  *
  * Writes summary.md (+ summary-baseline.md when --baseline is passed) and
@@ -97,6 +100,16 @@ async function main() {
         await page.goto(`${BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
     }
 
+    // --- switch to English locale for the digits check ---
+    await page.goto(`${BASE}/locale/en`, { waitUntil: 'domcontentloaded' }).catch(() => {});
+    await page.goto(`${BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
+    const activeLocale = await page.evaluate(() => document.documentElement.lang);
+    if (!String(activeLocale).startsWith('en')) {
+        fail(`Expected English locale after /locale/en, got "${activeLocale}" — digits check would be invalid.`);
+        await browser.close();
+        process.exit(2);
+    }
+
     // --- discover detail URLs from list pages (first record) ---
     const listUrls = {
         'products-index': `${BASE}/products`,
@@ -107,16 +120,21 @@ async function main() {
     const productId = productEdit?.match(/\/products\/([^/]+)\/edit/)?.[1] || '1';
     const customerShow = await firstHref(page, listUrls['customers-index'], '^/customers/[^/"]+$')
         || await firstHref(page, listUrls['customers-index'], '/customers/[^/"]+');
+    const customerId = customerShow?.match(/\/customers\/([^/]+)$/)?.[1] || '1';
     const saleShow = await firstHref(page, listUrls['sales-index'], '/sales/[^/"]+$');
+    const collectUrl = `${BASE}/udhar/collect/${customerId}`;
 
     const PAGES = [
         ['dashboard', `${BASE}/dashboard`],
         ['pos', `${BASE}/pos`],
+        ['pos-cart', `${BASE}/pos`, { cart: 3 }],
         ['products-index', listUrls['products-index']],
         ['products-form', productEdit || `${BASE}/products/create`],
         ['product-import', `${BASE}/products/import`],
         ['customers-index', listUrls['customers-index']],
+        ['customers-create', `${BASE}/customers/create`],
         ['customer-show', customerShow || `${BASE}/customers/1`],
+        ['udhar-collect', collectUrl],
         ['udhar-outstanding', `${BASE}/udhar`],
         ['udhar-ageing', `${BASE}/udhar/ageing`],
         ['sales-index', listUrls['sales-index']],
@@ -132,7 +150,22 @@ async function main() {
 
     const results = []; // {page, width, pageScroll, overflow: [...], tap: ...}
 
-    for (const [name, url] of PAGES) {
+    for (const [name, url, opts] of PAGES) {
+        // Pre-seed POS cart with >=3 items (persisted via sessionStorage).
+        if (opts?.cart) {
+            await page.goto(`${BASE}/pos`, { waitUntil: 'domcontentloaded', timeout: 20000 });
+            await page.waitForTimeout(400);
+            for (let i = 0; i < opts.cart; i++) {
+                const added = await page.evaluate((idx) => {
+                    const cards = document.querySelectorAll('#productGrid .product-item-card');
+                    if (!cards.length) return false;
+                    cards[Math.min(idx, cards.length - 1)].click();
+                    return true;
+                }, i).catch(() => false);
+                if (!added) break;
+                await page.waitForTimeout(150);
+            }
+        }
         for (const width of WIDTHS) {
             await page.setViewportSize({ width, height: HEIGHT });
             let status = 0;
@@ -188,7 +221,69 @@ async function main() {
                         }
                     }
                 }
-                return { vw, scrollWidth, over, tap };
+                // (a) overlap: topbar flex items + page-header action rows
+                const overlaps = [];
+                const intersect = (r1, r2) => {
+                    const w = Math.min(r1.right, r2.right) - Math.max(r1.left, r2.left);
+                    const h = Math.min(r1.bottom, r2.bottom) - Math.max(r1.top, r2.top);
+                    return w > 2 && h > 2;
+                };
+                const textOf = (el) => (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 40);
+                const topbar = document.querySelector('.app-topbar');
+                const rows = [];
+                if (topbar) rows.push({ label: 'topbar', el: topbar });
+                for (const el of document.querySelectorAll('.app-page .d-flex')) {
+                    if (el.querySelector('.btn, a.btn, button.btn') && el.closest('.app-page')) {
+                        rows.push({ label: 'action-row', el });
+                    }
+                }
+                for (const { label, el } of rows) {
+                    const items = [...el.children].filter(visible);
+                    for (let i = 0; i < items.length; i++) {
+                        for (let j = i + 1; j < items.length; j++) {
+                            if (intersect(items[i].getBoundingClientRect(), items[j].getBoundingClientRect())) {
+                                overlaps.push(`${label}: "${textOf(items[i])}" x "${textOf(items[j])}"`);
+                                if (overlaps.length >= 8) break;
+                            }
+                        }
+                        if (overlaps.length >= 8) break;
+                    }
+                    if (overlaps.length >= 8) break;
+                }
+                // (b) word-break inside .btn/.badge (a word split across lines)
+                // Skips ellipsis-truncated text (text-overflow: ellipsis) — a
+                // clipped word is not a wrapped word.
+                const wordBreaks = [];
+                for (const el of document.querySelectorAll('.btn, .badge')) {
+                    if (!visible(el)) continue;
+                    const cs = getComputedStyle(el);
+                    if (cs.textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth) continue;
+                    for (const node of el.childNodes) {
+                        if (node.nodeType !== Node.TEXT_NODE) continue;
+                        const text = node.textContent || '';
+                        let offset = 0;
+                        for (const word of text.split(/\s+/)) {
+                            const at = text.indexOf(word, offset);
+                            if (word.length < 3 || at < 0) { offset = at + word.length; continue; }
+                            const range = document.createRange();
+                            range.setStart(node, at);
+                            range.setEnd(node, at + word.length);
+                            if (range.getClientRects().length > 1) {
+                                wordBreaks.push(`${el.tagName.toLowerCase()}.${(el.className || '').split(/\s+/).slice(0, 2).join('.')}: "${word}"`);
+                                break;
+                            }
+                            offset = at + word.length;
+                        }
+                        if (wordBreaks.length >= 8) break;
+                    }
+                    if (wordBreaks.length >= 8) break;
+                }
+                // (c) Devanagari digits in visible text (en locale, setting off)
+                const devDigits = [];
+                const seen = document.body ? document.body.innerText || '' : '';
+                const matches = seen.match(/[०-९]+/g) || [];
+                for (const m of [...new Set(matches)].slice(0, 5)) devDigits.push(m);
+                return { vw, scrollWidth, over, tap, overlaps, wordBreaks, devDigits };
             });
 
             const pageScroll = metrics.scrollWidth > metrics.vw;
@@ -196,6 +291,8 @@ async function main() {
                 page: name, width, status,
                 pageScroll, scrollWidth: metrics.scrollWidth, vw: metrics.vw,
                 overflow: metrics.over, tap: metrics.tap,
+                overlaps: metrics.overlaps ?? [], wordBreaks: metrics.wordBreaks ?? [],
+                devDigits: metrics.devDigits ?? [],
                 url,
             });
 
@@ -206,18 +303,19 @@ async function main() {
     await browser.close();
 
     // --- summary ---
-    const fails = results.filter((r) => r.error || r.pageScroll || r.overflow.length > 0 || r.tap.length > 0);
+    const fails = results.filter((r) => r.error || r.pageScroll || r.overflow.length > 0 || r.tap.length > 0
+        || r.overlaps.length > 0 || r.wordBreaks.length > 0 || r.devDigits.length > 0);
     const lines = [];
     lines.push('# Responsive check summary');
     lines.push('');
     lines.push(`Base URL: ${BASE}`);
     lines.push(`Generated: ${new Date().toISOString()}`);
     lines.push('');
-    lines.push('| Page | Width | HTTP | Page scroll-x | Off-viewport elements | Tap targets <40px (≤768) |');
-    lines.push('|------|-------|------|---------------|------------------------|---------------------------|');
+    lines.push('| Page | Width | HTTP | Page scroll-x | Off-viewport elements | Tap targets <40px (≤768) | Overlaps | Word-breaks | Dev digits |');
+    lines.push('|------|-------|------|---------------|------------------------|---------------------------|----------|-------------|----------|');
     for (const r of results) {
         const scroll = r.error ? 'ERR' : r.pageScroll ? `YES (scrollWidth=${r.scrollWidth})` : 'no';
-        lines.push(`| ${r.page} | ${r.width} | ${r.status ?? '-'} | ${scroll} | ${r.overflow?.length ?? r.error ?? 0} | ${r.tap?.length ?? 0} |`);
+        lines.push(`| ${r.page} | ${r.width} | ${r.status ?? '-'} | ${scroll} | ${r.overflow?.length ?? r.error ?? 0} | ${r.tap?.length ?? 0} | ${r.overlaps?.length ?? 0} | ${r.wordBreaks?.length ?? 0} | ${r.devDigits?.length ?? 0} |`);
     }
     lines.push('');
     lines.push('## Off-viewport elements (detail)');
@@ -234,6 +332,27 @@ async function main() {
     }
     if (!any) lines.push('None.');
     lines.push('');
+    lines.push('## Overlaps (detail)');
+    any = false;
+    for (const r of results) {
+        if (r.overlaps?.length) { any = true; lines.push(`### ${r.page} @ ${r.width}`); for (const o of r.overlaps) lines.push(`- ${o}`); }
+    }
+    if (!any) lines.push('None.');
+    lines.push('');
+    lines.push('## Word-breaks in buttons/badges (detail)');
+    any = false;
+    for (const r of results) {
+        if (r.wordBreaks?.length) { any = true; lines.push(`### ${r.page} @ ${r.width}`); for (const o of r.wordBreaks) lines.push(`- ${o}`); }
+    }
+    if (!any) lines.push('None.');
+    lines.push('');
+    lines.push('## Devanagari digits (en locale, setting off) (detail)');
+    any = false;
+    for (const r of results) {
+        if (r.devDigits?.length) { any = true; lines.push(`### ${r.page} @ ${r.width}: ${r.devDigits.join(', ')}`); }
+    }
+    if (!any) lines.push('None.');
+    lines.push('');
     lines.push(`## Counts`);
     const byWidth = {};
     for (const w of WIDTHS) {
@@ -242,11 +361,14 @@ async function main() {
             scroll: rs.filter((r) => r.pageScroll).length,
             overflow: rs.filter((r) => r.overflow?.length).length,
             tap: rs.filter((r) => r.tap?.length).length,
+            overlap: rs.filter((r) => r.overlaps?.length).length,
+            word: rs.filter((r) => r.wordBreaks?.length).length,
+            digits: rs.filter((r) => r.devDigits?.length).length,
             errors: rs.filter((r) => r.error).length,
         };
     }
     for (const w of WIDTHS) {
-        lines.push(`- ${w}px: page-scroll=${byWidth[w].scroll} overflow-pages=${byWidth[w].overflow} tap-pages=${byWidth[w].tap} errors=${byWidth[w].errors}`);
+        lines.push(`- ${w}px: page-scroll=${byWidth[w].scroll} overflow-pages=${byWidth[w].overflow} tap-pages=${byWidth[w].tap} overlap-pages=${byWidth[w].overlap} word-pages=${byWidth[w].word} digit-pages=${byWidth[w].digits} errors=${byWidth[w].errors}`);
     }
     lines.push(`- **Total failures:** ${fails.length} / ${results.length} checks`);
     lines.push('');
