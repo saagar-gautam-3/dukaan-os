@@ -14,6 +14,7 @@ use App\Services\RbacService;
 use App\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Tests\TestCase;
 use ZipArchive;
@@ -119,10 +120,27 @@ class ProductImportPartialImportTest extends TestCase
         $xml = $zip->getFromName('xl/worksheets/sheet1.xml');
         $zip->close();
 
-        $this->assertStringContainsString('=cmd()', $response->getContent() === '' ? '' : $response->getContent());
-        // check header row via reader
+        // The malicious value must be stored as a literal string, never a formula.
         $spreadsheet = IOFactory::load($tmp);
         $sheet = $spreadsheet->getActiveSheet();
+        $maliciousCell = $sheet->getCell('F2');
+        $this->assertSame('=cmd()', (string) $maliciousCell->getValue());
+        $this->assertSame(DataType::TYPE_STRING, $maliciousCell->getDataType());
+
+        // In the raw sheet XML the cell must be a string cell (t="s" or t="inlineStr")
+        // and must not contain a <f> formula element.
+        $this->assertNotNull($xml);
+        preg_match('/<c\\b[^>]*r="F2"[^>]*>.*?<\\/c>/s', $xml, $cellMatch);
+        $this->assertNotEmpty($cellMatch, 'cell F2 not found in sheet xml');
+        $cellXml = $cellMatch[0];
+        $this->assertTrue(
+            str_contains($cellXml, 't="s"') || str_contains($cellXml, 't="inlineStr"'),
+            'cell F2 is not a string cell'
+        );
+        $this->assertFalse(str_contains($cellXml, '<f'), 'cell F2 contains a formula element');
+        $this->assertFalse(str_contains($cellXml, '<f>'), 'cell F2 contains a formula element');
+
+        // check header row via reader
         $headers = [];
         foreach ($sheet->getRowIterator(1, 1) as $row) {
             foreach ($row->getCellIterator() as $cell) {
