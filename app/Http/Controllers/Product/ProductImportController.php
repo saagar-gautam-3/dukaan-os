@@ -22,6 +22,7 @@ use Illuminate\View\View;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
+use PhpOffice\PhpSpreadsheet\RichText\RichText;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -294,7 +295,9 @@ class ProductImportController extends Controller
             ];
             $vKey = $validationKeys[$h] ?? 'import_validation_number';
             $text = __('products.'.$vKey, [], 'en').' / '.__('products.'.$vKey, [], 'ne');
-            $sheet->getComment($letter.'1')->setText($text);
+            $richText = new RichText;
+            $richText->createTextRun($text);
+            $sheet->getComment($letter.'1')->setText($richText);
         }
 
         // Column letters keyed by header name (sku mode aware).
