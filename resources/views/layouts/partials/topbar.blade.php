@@ -24,14 +24,16 @@
         </div>
 
         <!-- Shop Switcher Link -->
-        <a href="{{ route('shops.picker') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" title="{{ __('common.switch_shop') }}">
-            <i class="bi bi-arrow-repeat"></i>
-            <span class="d-none d-md-inline">{{ __('common.switch_shop') }}</span>
-        </a>
-
-        @if (auth()->user()->is_platform_admin)
-            <a href="{{ route('platform.shops.index') }}" class="btn btn-sm btn-outline-primary">{{ __('common.platform_shops') }}</a>
+        @if (can_switch_shop())
+            <a href="{{ route('shops.picker') }}" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" title="{{ __('common.switch_shop') }}">
+                <i class="bi bi-arrow-repeat"></i>
+                <span class="d-none d-md-inline">{{ __('common.switch_shop') }}</span>
+            </a>
         @endif
+
+        @canRoute('platform.shops.index')
+            <a href="{{ route('platform.shops.index') }}" class="btn btn-sm btn-outline-primary">{{ __('common.platform_shops') }}</a>
+        @endCanRoute
 
         <!-- User Dropdown -->
         <div class="dropdown">
@@ -45,16 +47,20 @@
                     <small class="text-muted">{{ auth()->user()->email }}</small>
                 </li>
                 <li><hr class="dropdown-divider"></li>
+                @canRoute('settings.shop')
                 <li>
                     <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('settings.shop') }}">
                         <i class="bi bi-gear"></i>{{ __('common.nav.settings') }}
                     </a>
                 </li>
+                @endCanRoute
+                @if (can_switch_shop())
                 <li>
                     <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('shops.picker') }}">
                         <i class="bi bi-shop"></i>{{ __('common.switch_shop') }}
                     </a>
                 </li>
+                @endif
                 <li><hr class="dropdown-divider"></li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
