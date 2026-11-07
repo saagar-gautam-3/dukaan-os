@@ -110,6 +110,7 @@ final class RoutePermissionMap
         'purchases.destroy' => ['permissions' => ['purchases.manage'], 'ability' => 'delete'],
 
         // Reports.
+        'reports.daily-summary' => ['permissions' => ['reports.view']],
         'reports.profit' => ['permissions' => ['reports.profit.view']],
         'reports.profit.export' => ['permissions' => ['reports.export']],
         'reports.stock' => ['permissions' => ['reports.view']],

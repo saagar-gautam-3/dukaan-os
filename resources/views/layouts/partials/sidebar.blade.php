@@ -94,6 +94,13 @@
         </a>
         @endCanRoute
 
+        @canRoute('reports.daily-summary')
+        <a href="{{ route('reports.daily-summary') }}" class="nav-link {{ request()->routeIs('reports.daily-summary') ? 'active' : '' }}">
+            <i class="bi bi-speedometer2"></i>
+            <span>{{ __('daily.title') }}</span>
+        </a>
+        @endCanRoute
+
         @canRoute('reports.profit')
         <a href="{{ route('reports.profit') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
             <i class="bi bi-graph-up"></i>
