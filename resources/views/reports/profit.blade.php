@@ -77,6 +77,7 @@
     {{-- Detail Table --}}
     <div class="card border-0 shadow-sm" style="max-width:500px">
         <div class="card-header bg-white fw-semibold">{{ __('reports.profit_report') }} — {{ $summary['sale_count'] }} {{ __('reports.sale_count') }}</div>
+        <div class="table-responsive">
         <table class="table mb-0">
             <tbody>
                 @foreach([
@@ -102,6 +103,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 @endsection
