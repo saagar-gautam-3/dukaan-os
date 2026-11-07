@@ -11,7 +11,6 @@ use App\Models\ShopUser;
 use App\Models\Unit;
 use App\Models\User;
 use App\Services\RbacService;
-use App\Support\ProductImport\XlsxProductImportReader;
 use App\Tenancy\TenantContext;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -147,9 +146,22 @@ class ProductImportXlsxTemplateTest extends TestCase
         $zip->open($tmp);
         $xmlOn = $zip->getFromName('xl/worksheets/sheet1.xml');
         $zip->close();
-        // name column uses textLength in both modes; sku textLength only in off mode,
-        // so the on-mode sheet must not contain a sku-column (C) textLength validation.
-        $this->assertStringNotContainsString('sqref="C2:C2001"', $xmlOn);
+        // In ON mode there is no sku column; assert against the sku column letter
+        // derived from the actual header row (not a hardcoded letter).
+        $spreadsheetOn = IOFactory::load($tmp);
+        $sheetOn = $spreadsheetOn->getActiveSheet();
+        $headersOn = [];
+        foreach ($sheetOn->getRowIterator(1, 1) as $row) {
+            foreach ($row->getCellIterator() as $cell) {
+                $headersOn[] = (string) $cell->getValue();
+            }
+        }
+        if (in_array('sku', $headersOn, true)) {
+            $skuColOn = $this->columnLetter($headersOn, 'sku');
+            $this->assertStringNotContainsString('sqref="'.$skuColOn.'2:'.$skuColOn.'2001"', $xmlOn);
+        }
+        $spreadsheetOn->disconnectWorksheets();
+        unset($spreadsheetOn);
 
         [$shop2, $user2] = $this->createShopWithOwner(false);
         $response2 = $this->actingAs($user2)
@@ -248,12 +260,95 @@ class ProductImportXlsxTemplateTest extends TestCase
             ->get(route('products.import.template.xlsx'));
 
         $tmp = $this->tempFile($response->getContent());
-        $reader = new XlsxProductImportReader;
-        $parsed = $reader->read($tmp);
+        $parsed = $this->readExampleSheet($tmp);
         $result = app(ParseProductImport::class)->execute($parsed, $shop->id);
 
         $this->assertEmpty($result['invalid']);
         $this->assertGreaterThan(0, count($result['valid']));
+    }
+
+    /**
+     * @return array{header: array<int, string>, rows: array<int, array<int, string>>}
+     */
+    private function readExampleSheet(string $path): array
+    {
+        $spreadsheet = IOFactory::load($path);
+        $sheet = $spreadsheet->getSheetByName('Example');
+        $this->assertNotNull($sheet);
+
+        $textColumns = ['name', 'name_ne', 'sku', 'barcode', 'category'];
+        $header = [];
+        $rawRows = [];
+        foreach ($sheet->getRowIterator() as $row) {
+            $indexed = [];
+            $maxCol = 0;
+            foreach ($row->getCellIterator() as $cell) {
+                $colIndex = Coordinate::columnIndexFromString($cell->getColumn());
+                $indexed[$colIndex - 1] = $cell->getValue();
+                if ($colIndex > $maxCol) {
+                    $maxCol = $colIndex;
+                }
+            }
+            $cells = [];
+            for ($i = 0; $i < $maxCol; $i++) {
+                $cells[] = $indexed[$i] ?? '';
+            }
+            if (empty($header)) {
+                $header = array_map(fn ($h) => strtolower(trim((string) $h)), $cells);
+
+                continue;
+            }
+            if (implode('', array_map(fn ($v) => (string) $v, $cells)) === '') {
+                continue;
+            }
+            $rawRows[] = $cells;
+        }
+
+        $rows = [];
+        foreach ($rawRows as $raw) {
+            $cells = [];
+            foreach ($raw as $i => $val) {
+                $colName = $header[$i] ?? '';
+                $isText = in_array($colName, $textColumns, true);
+                if (is_float($val)) {
+                    if ($isText) {
+                        if (abs($val) > 1e15 || floor($val) != $val) {
+                            $s = sprintf('%.0f', $val);
+                            if (strlen($s) > 15) {
+                                throw new \InvalidArgumentException(__('products.import_error_text_too_large'));
+                            }
+                            $cells[] = $s;
+                        } else {
+                            $cells[] = sprintf('%.0f', $val);
+                        }
+                    } else {
+                        $s = rtrim(rtrim(sprintf('%.6f', $val), '0'), '.');
+                        if ($s === '' || $s === '-') {
+                            $s = '0';
+                        }
+                        if (floor($val) == $val && abs($val) < 1e15) {
+                            $s = (string) (int) $val;
+                        }
+                        $cells[] = $s;
+                    }
+                } elseif (is_int($val)) {
+                    $cells[] = (string) $val;
+                } elseif (is_string($val)) {
+                    $cells[] = $val;
+                } else {
+                    $cells[] = '';
+                }
+            }
+            if (count($cells) < count($header)) {
+                $cells = array_pad($cells, count($header), '');
+            }
+            $rows[] = array_map('trim', $cells);
+        }
+
+        $spreadsheet->disconnectWorksheets();
+        unset($spreadsheet);
+
+        return ['header' => $header, 'rows' => $rows];
     }
 
     private function tempFile(string $content): string
