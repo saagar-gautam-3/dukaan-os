@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\ProductImport;
 
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
 
 class XlsxProductImportReader implements ProductImportReader
@@ -27,9 +28,18 @@ class XlsxProductImportReader implements ProductImportReader
         $header = [];
         $rawRows = [];
         foreach ($sheet->getRowIterator() as $row) {
-            $cells = [];
+            $indexed = [];
+            $maxCol = 0;
             foreach ($row->getCellIterator() as $cell) {
-                $cells[] = $cell->getValue();
+                $colIndex = Coordinate::columnIndexFromString($cell->getColumn());
+                $indexed[$colIndex - 1] = $cell->getValue();
+                if ($colIndex > $maxCol) {
+                    $maxCol = $colIndex;
+                }
+            }
+            $cells = [];
+            for ($i = 0; $i < $maxCol; $i++) {
+                $cells[] = $indexed[$i] ?? '';
             }
             if (empty($header)) {
                 $header = array_map(fn ($h) => strtolower(trim((string) $h)), $cells);

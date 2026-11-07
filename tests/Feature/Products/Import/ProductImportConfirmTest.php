@@ -46,7 +46,7 @@ class ProductImportConfirmTest extends TestCase
     public function test_c4_second_confirm_is_noop(): void
     {
         [$shop, $user] = $this->createShopWithOwner();
-        $unit = Unit::factory()->create();
+        $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
         $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
         $file = UploadedFile::fake()->createWithContent('t.csv', $csv);
 

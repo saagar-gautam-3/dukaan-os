@@ -92,7 +92,7 @@ class ProductImportXlsxTemplateTest extends TestCase
 
     public function test_t3_raw_xml_has_unit_list_and_selling_price_decimal_validation(): void
     {
-        Unit::factory()->create(['symbol' => 'pc']);
+        Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
         [$shop, $user] = $this->createShopWithOwner(true);
 
         $response = $this->actingAs($user)
@@ -147,7 +147,9 @@ class ProductImportXlsxTemplateTest extends TestCase
         $zip->open($tmp);
         $xmlOn = $zip->getFromName('xl/worksheets/sheet1.xml');
         $zip->close();
-        $this->assertStringNotContainsString('type="textLength"', $xmlOn);
+        // name column uses textLength in both modes; sku textLength only in off mode,
+        // so the on-mode sheet must not contain a sku-column (C) textLength validation.
+        $this->assertStringNotContainsString('sqref="C2:C2001"', $xmlOn);
 
         [$shop2, $user2] = $this->createShopWithOwner(false);
         $response2 = $this->actingAs($user2)
@@ -163,7 +165,7 @@ class ProductImportXlsxTemplateTest extends TestCase
 
     public function test_t6_lists_sheet_hidden_with_unit_symbols_and_shop_categories(): void
     {
-        Unit::factory()->create(['symbol' => 'pc']);
+        Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
         [$shop, $user] = $this->createShopWithOwner(true);
         TenantContext::setShop($shop);
         Category::create(['shop_id' => $shop->id, 'name' => 'Grocery']);

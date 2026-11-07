@@ -76,7 +76,7 @@ class ProductImportParsingTest extends TestCase
     public function test_p10_preview_creates_no_products(): void
     {
         [$shop, $user] = $this->createShopWithOwner();
-        $unit = Unit::factory()->create();
+        $unit = Unit::firstOrCreate(['symbol' => 'pc'], ['name' => 'Piece', 'is_fractional' => false]);
         $csv = "name,unit,selling_price\nItem,{$unit->symbol},10.00\n";
 
         $this->actingAs($user)
