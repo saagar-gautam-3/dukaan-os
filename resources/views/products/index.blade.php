@@ -12,7 +12,7 @@
             <p class="text-muted mb-0 small">{{ __('products.subtitle') }}</p>
         </div>
 
-        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+        <div class="action-row mt-3 mt-md-0 d-flex flex-wrap gap-2">
             @canRoute('categories.index')
             <a href="{{ route('categories.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-tags"></i>

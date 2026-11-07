@@ -12,7 +12,7 @@
             <p class="text-muted mb-0 small">{{ __('inventory.subtitle') }}</p>
         </div>
 
-        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+        <div class="action-row mt-3 mt-md-0 d-flex flex-wrap gap-2">
             @canRoute('stock.alerts')
             <a href="{{ route('stock.alerts') }}" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-exclamation-triangle"></i>

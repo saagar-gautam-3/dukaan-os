@@ -164,7 +164,7 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-end gap-2 mb-4">
+        <div class="action-row d-flex justify-content-end gap-2 mb-4">
             <a href="{{ route('purchases.index') }}" class="btn btn-outline-secondary">{{ __('common.cancel') }}</a>
             <button type="submit" class="btn btn-primary px-4 py-2">
                 <i class="bi bi-check-circle me-1"></i>{{ __('purchases.save_purchase_draft') }}

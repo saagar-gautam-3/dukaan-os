@@ -86,7 +86,7 @@
                     <textarea name="reason" class="form-control" rows="3" placeholder="{{ __('sales.return_reason_placeholder') }}"></textarea>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
+                <div class="action-row d-flex justify-content-end gap-2">
                     <a href="{{ route('sales.show', $sale) }}" class="btn btn-outline-secondary">{{ __('common.cancel') }}</a>
                     <button type="submit" class="btn btn-danger fw-bold">
                         <i class="bi bi-arrow-return-left me-1"></i> {{ __('sales.process_return') }}

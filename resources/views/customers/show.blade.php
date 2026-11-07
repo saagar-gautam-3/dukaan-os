@@ -15,7 +15,7 @@
                 <small class="text-muted">{{ __('ui.customer_since', ['date' => $customer->created_at->format('M Y')]) }}</small>
             </div>
         </div>
-        <div class="d-flex gap-2">
+        <div class="action-row d-flex gap-2">
             @canRoute('udhar.collect', $customer)
             <a href="{{ route('udhar.collect', $customer) }}" class="btn btn-success">
                 <i class="bi bi-cash-stack me-1"></i> {{ __('udhar.collect_payment') }}

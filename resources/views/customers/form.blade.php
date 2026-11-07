@@ -89,7 +89,7 @@
                         <div></div>
                     @endisset
 
-                    <div class="d-flex gap-2">
+                    <div class="action-row d-flex gap-2">
                         <a href="{{ isset($customer) ? route('customers.show', $customer) : route('customers.index') }}" class="btn btn-outline-secondary">{{ __('common.cancel') }}</a>
                         <button type="submit" class="btn btn-primary fw-semibold">
                             <i class="bi bi-save me-1"></i> {{ isset($customer) ? __('ui.update_customer') : __('ui.save_customer') }}

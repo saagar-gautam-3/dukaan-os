@@ -96,7 +96,7 @@
                     </div>
                 </div>
 
-                <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                <div class="action-row mt-4 pt-3 border-top d-flex justify-content-end gap-2">
                     <a href="{{ route('suppliers.index') }}" class="btn btn-outline-secondary">{{ __('common.cancel') }}</a>
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="bi bi-check-circle me-1"></i>{{ isset($supplier) ? __('common.save') : __('common.save') }}

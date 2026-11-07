@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <div class="d-flex gap-2">
+        <div class="action-row d-flex gap-2">
             @if($sale->isPosted())
                 @canRoute('sales.invoice', $sale)
                 <a href="{{ route('sales.invoice', $sale) }}" target="_blank" class="btn btn-outline-dark">

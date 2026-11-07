@@ -215,7 +215,7 @@
                 </div>
 
                 <!-- Submit Button -->
-                <div class="d-flex justify-content-end gap-2">
+                <div class="action-row d-flex justify-content-end gap-2">
                     <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary">
                         {{ __('common.cancel') }}
                     </a>

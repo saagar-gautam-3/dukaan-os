@@ -108,7 +108,7 @@
                     @enderror
                 </div>
 
-                <div class="d-flex gap-2">
+                <div class="action-row d-flex gap-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle me-1"></i>
                         {{ isset($expense) ? __('common.save_changes') : __('expenses.new_expense') }}

@@ -10,7 +10,7 @@
             <h1 class="h3 fw-bold mb-1">{{ __('sales.all_sales') }}</h1>
             <p class="text-muted small mb-0">{{ __('sales.sales') }} {{ __('sales.transactions_desc') }}</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="action-row d-flex gap-2">
             @canRoute('pos')
             <a href="{{ route('pos') }}" class="btn btn-primary d-flex align-items-center">
                 <i class="bi bi-calculator me-1"></i> {{ __('sales.pos_title') }}

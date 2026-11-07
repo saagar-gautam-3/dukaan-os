@@ -146,7 +146,7 @@
                     </div>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <div class="action-row d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                     <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
                         {{ __('common.cancel') }}
                     </a>

@@ -23,7 +23,7 @@
             </p>
         </div>
 
-        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+        <div class="action-row mt-3 mt-md-0 d-flex flex-wrap gap-2">
             <a href="{{ route('purchases.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>{{ __('common.back') }}
             </a>
