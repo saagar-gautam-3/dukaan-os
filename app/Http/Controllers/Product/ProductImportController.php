@@ -246,7 +246,7 @@ class ProductImportController extends Controller
         }
         $headers = array_merge($headers, ['barcode', 'category', 'unit', 'cost_price', 'selling_price', 'opening_stock', 'reorder_level']);
 
-        $required = ['name', 'unit', 'selling_price'];
+        $required = ['name', 'unit', 'cost_price', 'selling_price'];
         if (! $autoSku) {
             $required[] = 'sku';
         }
@@ -271,6 +271,32 @@ class ProductImportController extends Controller
             }
         }
 
+        // Column widths: never cut a header; wider for long text columns.
+        foreach ($headers as $i => $h) {
+            $letter = Coordinate::stringFromColumnIndex($i + 1);
+            $width = in_array($h, ['name', 'name_ne'], true) ? 26 : 16;
+            $sheet->getColumnDimension($letter)->setWidth(max(14, $width));
+        }
+
+        // Header cell comments on required columns (English + Nepali).
+        foreach ($required as $h) {
+            $idx = array_search($h, $headers, true);
+            if ($idx === false) {
+                continue;
+            }
+            $letter = Coordinate::stringFromColumnIndex($idx + 1);
+            $validationKeys = [
+                'name' => 'import_validation_name',
+                'unit' => 'import_validation_unit',
+                'cost_price' => 'import_validation_number',
+                'selling_price' => 'import_validation_number',
+                'sku' => 'import_validation_sku',
+            ];
+            $vKey = $validationKeys[$h] ?? 'import_validation_number';
+            $text = __('products.'.$vKey, [], 'en').' / '.__('products.'.$vKey, [], 'ne');
+            $sheet->getComment($letter.'1')->setText($text);
+        }
+
         // Column letters keyed by header name (sku mode aware).
         $col = [];
         foreach ($headers as $i => $h) {
@@ -291,6 +317,7 @@ class ProductImportController extends Controller
             ->setAllowBlank(false)
             ->setShowErrorMessage(true)
             ->setErrorStyle(DataValidation::STYLE_STOP)
+            ->setShowDropDown(true)
             ->setErrorTitle(__('products.import_validation_name'))
             ->setError(__('products.import_validation_name'));
         $sheet->setDataValidation($col['name'].'2:'.$col['name'].'2001', $v);
@@ -305,6 +332,7 @@ class ProductImportController extends Controller
                 ->setAllowBlank(false)
                 ->setShowErrorMessage(true)
                 ->setErrorStyle(DataValidation::STYLE_STOP)
+                ->setShowDropDown(true)
                 ->setErrorTitle(__('products.import_validation_sku'))
                 ->setError(__('products.import_validation_sku'));
             $sheet->setDataValidation($col['sku'].'2:'.$col['sku'].'2001', $v);
@@ -348,9 +376,10 @@ class ProductImportController extends Controller
                 ->setOperator(DataValidation::OPERATOR_BETWEEN)
                 ->setFormula1('0')
                 ->setFormula2('999999999.99')
-                ->setAllowBlank($numHeader !== 'selling_price')
+                ->setAllowBlank(! in_array($numHeader, ['selling_price', 'cost_price'], true))
                 ->setShowErrorMessage(true)
                 ->setErrorStyle(DataValidation::STYLE_STOP)
+                ->setShowDropDown(true)
                 ->setErrorTitle(__('products.import_validation_number'))
                 ->setError(__('products.import_validation_number'));
             $sheet->setDataValidation($col[$numHeader].'2:'.$col[$numHeader].'2001', $v);
@@ -376,16 +405,28 @@ class ProductImportController extends Controller
         $example->setCellValue('H2', '5');
         $example->setCellValue('I2', '2');
 
+        $example->setCellValue('A3', 'नमुना वस्तु');
+        $example->setCellValue('B3', 'नमुना');
+        $example->setCellValue('C3', '1234567890');
+        $example->setCellValue('D3', 'किराना');
+        $example->setCellValue('E3', $u2);
+        $example->setCellValue('F3', '20.50');
+        $example->setCellValue('G3', '30.00');
+        $example->setCellValue('H3', '0');
+        $example->setCellValue('I3', '1');
+
         $instr = $spreadsheet->createSheet();
         $instr->setTitle('Instructions');
-        $instr->setCellValue('A1', 'Required: name, unit, selling_price'.($autoSku ? '' : ', sku'));
-        $instr->setCellValue('A2', 'Limits: 2 MB, 2000 rows.');
-        $instr->setCellValue('A3', 'Save as .xlsx. Do not rename headers.');
-        $instr->setCellValue('A4', 'Excel cannot enforce blank cells; server validates again.');
-        $instr->setCellValue('A5', 'For barcodes use the Excel template; CSV opened in Excel can corrupt long numbers.');
-        $instr->setCellValue('A6', '* = required column.');
-        $r = 8;
-        $instr->setCellValue('A'.$r, 'Units (accepted symbol = name):');
+        $instr->setCellValue('A1', __('products.import_instructions_required', ['columns' => implode(', ', $required)]));
+        $instr->setCellValue('A2', __('products.import_instructions_star'));
+        $instr->setCellValue('A3', __('products.import_instructions_limits'));
+        $instr->setCellValue('A4', __('products.import_instructions_save'));
+        $instr->setCellValue('A5', __('products.import_instructions_blank'));
+        $instr->setCellValue('A6', __('products.import_instructions_barcode'));
+        $instr->setCellValue('A7', __('products.import_instructions_categories'));
+        $instr->setCellValue('A8', __('products.import_instructions_dropdown'));
+        $r = 10;
+        $instr->setCellValue('A'.$r, __('products.import_instructions_units'));
         $r++;
         foreach (Unit::all() as $u) {
             $instr->setCellValue('A'.$r, ($u->symbol ?? '').' = '.($u->name ?? ''));
