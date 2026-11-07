@@ -156,6 +156,23 @@ class ProfitReportService
     }
 
     /**
+     * Resolve one local day in the shop's timezone to a UTC [from, to) range.
+     * Used by the daily summary; mirrors resolveDateRange day semantics.
+     *
+     * @return array{from: Carbon, to: Carbon}
+     */
+    public function dayRange(string $shopTimezone, ?string $date = null): array
+    {
+        $tz = $shopTimezone ?: 'Asia/Kathmandu';
+        $day = $date !== null ? Carbon::parse($date, $tz) : Carbon::now($tz);
+
+        return [
+            'from' => $day->copy()->startOfDay()->utc(),
+            'to' => $day->copy()->startOfDay()->addDay()->utc(),
+        ];
+    }
+
+    /**
      * Resolve a named range (today|this_week|this_month|custom) to a UTC [from, to] pair
      * using the shop's timezone so that day boundaries are correct.
      *
