@@ -16,11 +16,11 @@
             <a href="{{ route('stock.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>{{ __('common.back') }}
             </a>
-            @can('purchases.manage')
+            @canRoute('purchases.create')
             <a href="{{ route('purchases.create') }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-cart-plus me-1"></i>{{ __('purchases.create_purchase') }}
             </a>
-            @endcan
+            @endCanRoute
         </div>
     </div>
 
@@ -84,11 +84,11 @@
                                         <a href="{{ route('stock.history', $product) }}" class="btn btn-outline-info" title="{{ __('inventory.history_btn') }}">
                                             <i class="bi bi-clock-history"></i>
                                         </a>
-                                        @can('purchases.manage')
+                                        @canRoute('purchases.create')
                                         <a href="{{ route('purchases.create') }}" class="btn btn-primary" title="{{ __('inventory.reorder_btn') }}">
                                             <i class="bi bi-cart-plus me-1"></i>{{ __('inventory.reorder_btn') }}
                                         </a>
-                                        @endcan
+                                        @endCanRoute
                                     </div>
                                 </td>
                             </tr>
@@ -121,9 +121,9 @@
                             </span>
                             <div class="btn-group btn-group-sm">
                                 <a href="{{ route('stock.history', $product) }}" class="btn btn-outline-info btn-sm">{{ __('inventory.history_btn') }}</a>
-                                @can('purchases.manage')
+                                @canRoute('purchases.create')
                                 <a href="{{ route('purchases.create') }}" class="btn btn-primary btn-sm">{{ __('inventory.reorder_btn') }}</a>
-                                @endcan
+                                @endCanRoute
                             </div>
                         </div>
                     </div>

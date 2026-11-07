@@ -13,16 +13,18 @@
         </div>
 
         <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+            @canRoute('stock.alerts')
             <a href="{{ route('stock.alerts') }}" class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-exclamation-triangle"></i>
                 <span>{{ __('inventory.low_stock_alerts') }}</span>
             </a>
-            @can('inventory.manage')
+            @endCanRoute
+            @canRoute('stock.adjust')
             <a href="{{ route('stock.adjust') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-arrow-left-right"></i>
                 <span>{{ __('inventory.adjust_stock') }}</span>
             </a>
-            @endcan
+            @endCanRoute
         </div>
     </div>
 
@@ -125,9 +127,11 @@
                                     @endif
                                 </td>
                                 <td class="text-end pe-3">
+                                    @canRoute('stock.history', $balance->product)
                                     <a href="{{ route('stock.history', $balance->product) }}" class="btn btn-outline-info btn-sm">
                                         <i class="bi bi-clock-history me-1"></i>{{ __('inventory.view_history') }}
                                     </a>
+                                    @endCanRoute
                                 </td>
                             </tr>
                             @endforeach
@@ -156,9 +160,11 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
                             <small class="text-muted">{{ __('inventory.threshold_label') }} {{ \App\Support\Money::compare($minAlert, '0', 3) > 0 ? format_quantity($minAlert, $balance->product->unit?->is_fractional) : __('inventory.threshold_none') }}</small>
+                            @canRoute('stock.history', $balance->product)
                             <a href="{{ route('stock.history', $balance->product) }}" class="btn btn-outline-info btn-sm py-0">
                                 <i class="bi bi-clock-history me-1"></i>{{ __('inventory.history_btn') }}
                             </a>
+                            @endCanRoute
                         </div>
                     </div>
                     @endforeach

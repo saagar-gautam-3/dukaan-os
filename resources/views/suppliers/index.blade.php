@@ -12,14 +12,14 @@
             <p class="text-muted mb-0 small">{{ __('suppliers.subtitle') }}</p>
         </div>
 
-        @can('suppliers.manage')
+        @canRoute('suppliers.create')
         <div class="mt-3 mt-md-0">
             <a href="{{ route('suppliers.create') }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-plus-circle"></i>
                 <span>{{ __('suppliers.add_supplier') }}</span>
             </a>
         </div>
-        @endcan
+        @endCanRoute
     </div>
 
     <!-- Search -->
@@ -90,11 +90,13 @@
                                 <td><code>{{ $supplier->pan_vat ?: '—' }}</code></td>
                                 <td class="small text-muted">{{ $supplier->address ?: '—' }}</td>
                                 <td class="text-end pe-3">
-                                    @can('suppliers.manage')
                                     <div class="btn-group btn-group-sm">
+                                        @canRoute('suppliers.edit', $supplier)
                                         <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-primary" title="{{ __('ui.edit') }}">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+                                        @endCanRoute
+                                        @canRoute('suppliers.destroy', $supplier)
                                         <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" class="d-inline" onsubmit="return confirm(@js(__('suppliers.confirm_delete', ['name' => $supplier->name])))">
                                             @csrf
                                             @method('DELETE')
@@ -102,8 +104,8 @@
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
+                                        @endCanRoute
                                     </div>
-                                    @endcan
                                 </td>
                             </tr>
                             @endforeach
@@ -133,11 +135,11 @@
                             @endif
                         </div>
                         <div class="d-flex justify-content-end gap-1 pt-1 border-top">
-                            @can('suppliers.manage')
+                            @canRoute('suppliers.edit', $supplier)
                             <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil me-1"></i>{{ __('ui.edit') }}
                             </a>
-                            @endcan
+                            @endCanRoute
                         </div>
                     </div>
                     @endforeach

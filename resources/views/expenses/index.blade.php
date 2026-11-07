@@ -10,16 +10,16 @@
             <p class="text-muted small mb-0">{{ __('expenses.total_expenses') }}: @npr($expenses->sum('amount'))</p>
         </div>
         <div class="d-flex gap-2">
-            @can('create', \App\Models\Expense::class)
+            @canRoute('expenses.create')
             <a href="{{ route('expenses.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i> {{ __('expenses.new_expense') }}
             </a>
-            @endcan
-            @can('create', \App\Models\ExpenseCategory::class)
+            @endCanRoute
+            @canRoute('expense-categories.index')
             <a href="{{ route('expense-categories.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-tags me-1"></i> {{ __('expenses.categories') }}
             </a>
-            @endcan
+            @endCanRoute
         </div>
     </div>
 
@@ -92,12 +92,12 @@
                         </td>
                         <td class="text-end fw-semibold">@npr($expense->amount)</td>
                         <td class="text-end">
-                            @can('update', $expense)
+                            @canRoute('expenses.edit', $expense)
                             <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            @endcan
-                            @can('delete', $expense)
+                            @endCanRoute
+                            @canRoute('expenses.destroy', $expense)
                             <form action="{{ route('expenses.destroy', $expense) }}" method="POST" class="d-inline"
                                   onsubmit="return confirm('{{ __('common.confirm_delete') }}')">
                                 @csrf @method('DELETE')
@@ -105,7 +105,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
-                            @endcan
+                            @endCanRoute
                         </td>
                     </tr>
                     @empty

@@ -6,6 +6,7 @@ use App\Support\BikramSambat;
 use App\Support\FiscalYear;
 use App\Support\NepaliNumber;
 use App\Support\NepaliPhone;
+use App\Support\RoutePermissionMap;
 use Carbon\CarbonInterface;
 
 if (! function_exists('format_npr')) {
@@ -47,6 +48,35 @@ if (! function_exists('nepal_fiscal_year')) {
     function nepal_fiscal_year(CarbonInterface|string|null $date = null): string
     {
         return FiscalYear::forDate($date);
+    }
+}
+
+if (! function_exists('can_route')) {
+    /**
+     * Whether the current user may use the named route (mirrors controller authorization).
+     */
+    function can_route(string $routeName, mixed $model = null): bool
+    {
+        return RoutePermissionMap::allows($routeName, $model);
+    }
+}
+
+if (! function_exists('can_switch_shop')) {
+    /**
+     * Show shop switching UI only when the user belongs to more than one active shop.
+     */
+    function can_switch_shop(): bool
+    {
+        $user = auth()->user();
+
+        if ($user === null) {
+            return false;
+        }
+
+        // Mirror QueryActiveMemberships: only active memberships of active shops count.
+        return $user->activeShopUsers()
+            ->whereHas('shop', fn ($query) => $query->where('is_active', true))
+            ->count() > 1;
     }
 }
 

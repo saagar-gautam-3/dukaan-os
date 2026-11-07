@@ -8,7 +8,7 @@
         <div>
             <h1 class="h3 fw-bold mb-1"><i class="bi bi-cash-coin me-2"></i>{{ __('cash.sessions_history') }}</h1>
         </div>
-        @can('create', \App\Models\CashSession::class)
+        @canRoute('cash.open')
         @if(!$currentSession)
         <a href="#openModal" data-bs-toggle="modal" data-bs-target="#openModal" class="btn btn-success">
             <i class="bi bi-unlock me-1"></i> {{ __('cash.open_session') }}
@@ -18,7 +18,7 @@
             <i class="bi bi-cash-stack me-1"></i> {{ __('cash.session_detail') }}
         </a>
         @endif
-        @endcan
+        @endCanRoute
     </div>
 
     @foreach(['success','error'] as $msg)
@@ -99,6 +99,7 @@
 </div>
 
 {{-- Open Session Modal --}}
+@canRoute('cash.open')
 <div class="modal fade" id="openModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -132,5 +133,6 @@
         </div>
     </div>
 </div>
+@endCanRoute
 @endsection
 

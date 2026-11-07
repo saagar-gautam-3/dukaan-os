@@ -47,7 +47,7 @@
                 </div>
 
                 <!-- Customer Picker -->
-                <div class="p-3 bg-light border-bottom">
+                <div class="p-3 bg-light border-bottom {{ can_route('pos.customers') ? '' : 'd-none' }}">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text bg-white"><i class="bi bi-person text-muted"></i></span>
                         <input type="text" id="customerSearchInput" class="form-control bg-white" 

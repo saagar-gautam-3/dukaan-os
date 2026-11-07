@@ -13,12 +13,16 @@
             <p class="text-muted mb-0">{{ __('udhar.subtitle') }}</p>
         </div>
         <div class="d-flex gap-2">
+            @canRoute('udhar.ageing')
             <a href="{{ route('udhar.ageing') }}" class="btn btn-outline-primary">
                 <i class="bi bi-bar-chart-steps me-1"></i>{{ __('udhar.ageing') }}
             </a>
+            @endCanRoute
+            @canRoute('customers.index')
             <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-people me-1"></i>{{ __('udhar.all_customers') }}
             </a>
+            @endCanRoute
         </div>
     </div>
 
@@ -54,9 +58,13 @@
                     <div class="text-muted small text-uppercase fw-semibold mb-1">
                         {{ __('udhar.ageing') }}
                     </div>
+                    @canRoute('udhar.ageing')
                     <a href="{{ route('udhar.ageing') }}" class="text-decoration-none fw-semibold">
                         {{ __('udhar.ageing') }} <i class="bi bi-arrow-right ms-1"></i>
                     </a>
+                    @else
+                    <span class="fw-semibold">{{ __('udhar.ageing') }}</span>
+                    @endCanRoute
                 </div>
             </div>
         </div>
@@ -112,9 +120,13 @@
                     @forelse($customers as $customer)
                     <tr>
                         <td>
+                            @canRoute('customers.show', $customer)
                             <a href="{{ route('customers.show', $customer) }}" class="fw-bold text-decoration-none">
                                 {{ $customer->name }}
                             </a>
+                            @else
+                            <span class="fw-bold">{{ $customer->name }}</span>
+                            @endCanRoute
                             @if(\App\Support\Money::compare((string) $customer->credit_limit, '0', 2) > 0 && \App\Support\Money::compare((string) $customer->balance, (string) $customer->credit_limit, 2) >= 0)
                                 <span class="badge bg-danger ms-1" title="{{ __('udhar.credit_limit_exceeded_notice') }}">
                                     <i class="bi bi-exclamation-triangle"></i> {{ __('udhar.credit_limit') }}
@@ -142,15 +154,17 @@
                         </td>
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">
-                                @can('collect', $customer)
+                                @canRoute('udhar.collect', $customer)
                                 <a href="{{ route('udhar.collect', $customer) }}" class="btn btn-success" title="{{ __('udhar.collect_payment') }}">
                                     <i class="bi bi-cash-stack me-1"></i>{{ __('udhar.collect') }}
                                 </a>
-                                @endcan
+                                @endCanRoute
+                                @canRoute('customers.show', $customer)
                                 <a href="{{ route('customers.show', $customer) }}" class="btn btn-outline-secondary" title="{{ __('udhar.view_ledger') }}">
                                     <i class="bi bi-journal-text"></i>
                                 </a>
-                                @can('remind', $customer)
+                                @endCanRoute
+                                @canRoute('udhar.reminders.send', $customer)
                                 @php
                                     $lastReminder = $customer->reminderLogs()->latest()->first();
                                     $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
@@ -168,7 +182,7 @@
                                         <span class="badge bg-info">{{ __('udhar.reminded_recently') }}</span>
                                     @endif
                                 @endif
-                                @endcan
+                                @endCanRoute
                             </div>
                         </td>
                     </tr>

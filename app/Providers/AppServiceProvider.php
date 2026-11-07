@@ -115,6 +115,14 @@ class AppServiceProvider extends ServiceProvider
             TenantContext::reset();
         });
 
+        Blade::directive('canRoute', function (string $expression): string {
+            return "<?php if (\App\Support\RoutePermissionMap::allows({$expression})): ?>";
+        });
+
+        Blade::directive('endCanRoute', function (): string {
+            return '<?php endif; ?>';
+        });
+
         Blade::directive('npr', function (string $expression): string {
             return "<?php echo \App\Support\NepaliNumber::formatNpr({$expression}); ?>";
         });

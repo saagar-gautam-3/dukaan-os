@@ -16,21 +16,29 @@
             </p>
         </div>
 
+        @if (can_route('pos') || can_route('settings.shop'))
         <div class="mt-3 mt-md-0 d-flex gap-2">
-            <a href="#" class="btn btn-primary d-flex align-items-center gap-1">
+            @canRoute('pos')
+            <a href="{{ route('pos') }}" class="btn btn-primary d-flex align-items-center gap-1">
                 <i class="bi bi-cart-plus"></i>
                 <span>{{ __('dashboard.new_sale') }}</span>
             </a>
+            @endCanRoute
+            @canRoute('settings.shop')
             <a href="{{ route('settings.shop') }}" class="btn btn-outline-secondary d-flex align-items-center gap-1">
                 <i class="bi bi-gear"></i>
                 <span class="d-none d-sm-inline">{{ __('common.nav.settings') }}</span>
             </a>
+            @endCanRoute
         </div>
+        @endif
     </div>
 
     <!-- Stat Cards -->
+    @if (can_route('sales.index') || can_route('cash.index') || can_route('udhar.outstanding') || can_route('stock.alerts'))
     <div class="row g-3 mb-4">
         <!-- Today's Sales -->
+        @canRoute('sales.index')
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="stat-card stat-card--sales h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -41,8 +49,10 @@
                 <small class="text-muted">{{ __('dashboard.bills_today', ['count' => 0]) }}</small>
             </div>
         </div>
+        @endCanRoute
 
         <!-- Cash in Hand -->
+        @canRoute('cash.index')
         <div class="col-12 col-sm-6 col-xl-3">
             <div class="stat-card stat-card--cash h-100">
                 <div class="d-flex justify-content-between align-items-center mb-2">
@@ -53,8 +63,10 @@
                 <small class="text-muted">{{ __('dashboard.drawer_active') }}</small>
             </div>
         </div>
+        @endCanRoute
 
         <!-- Udhar Dues -->
+        @canRoute('udhar.outstanding')
         <div class="col-12 col-sm-6 col-xl-3">
             <a href="{{ route('udhar.outstanding') }}" class="text-decoration-none">
                 <div class="stat-card stat-card--udhar h-100">
@@ -67,8 +79,10 @@
                 </div>
             </a>
         </div>
+        @endCanRoute
 
         <!-- Low Stock Alert -->
+        @canRoute('stock.alerts')
         <div class="col-12 col-sm-6 col-xl-3">
             <a href="{{ route('stock.alerts') }}" class="text-decoration-none">
                 <div class="stat-card stat-card--stock h-100 {{ $lowStockCount > 0 ? 'border-warning' : '' }}">
@@ -83,9 +97,12 @@
                 </div>
             </a>
         </div>
+        @endCanRoute
     </div>
+    @endif
 
     <!-- Quick Actions -->
+    @if (can_route('pos') || can_route('udhar.outstanding') || can_route('products.create') || can_route('expenses.create'))
     <div class="card shadow-sm border-0 rounded-3 mb-4">
         <div class="card-header bg-white border-0 py-3">
             <h5 class="fw-bold mb-0 text-dark">
@@ -94,6 +111,7 @@
         </div>
         <div class="card-body pt-0">
             <div class="row g-2">
+                @canRoute('pos')
                 <div class="col-6 col-md-3">
                     <a href="{{ route('pos') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-cart-plus fs-4 text-primary"></i>
@@ -103,6 +121,8 @@
                         </div>
                     </a>
                 </div>
+                @endCanRoute
+                @canRoute('udhar.outstanding')
                 <div class="col-6 col-md-3">
                     <a href="{{ route('udhar.outstanding') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-wallet2 fs-4 text-success"></i>
@@ -112,6 +132,8 @@
                         </div>
                     </a>
                 </div>
+                @endCanRoute
+                @canRoute('products.create')
                 <div class="col-6 col-md-3">
                     <a href="{{ route('products.create') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-box-seam fs-4 text-info"></i>
@@ -121,8 +143,10 @@
                         </div>
                     </a>
                 </div>
+                @endCanRoute
+                @canRoute('expenses.create')
                 <div class="col-6 col-md-3">
-                    <a href="#" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
+                    <a href="{{ route('expenses.create') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
                         <i class="bi bi-cash fs-4 text-danger"></i>
                         <div>
                             <div class="fw-semibold text-dark">{{ __('dashboard.record_expense') }}</div>
@@ -130,9 +154,11 @@
                         </div>
                     </a>
                 </div>
+                @endCanRoute
             </div>
         </div>
     </div>
+    @endif
 
     <!-- Recent Activity Placeholder -->
     <div class="card shadow-sm border-0 rounded-3">

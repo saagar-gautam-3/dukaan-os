@@ -27,31 +27,35 @@
 
         <div class="d-flex gap-2">
             @if($sale->isPosted())
+                @canRoute('sales.invoice', $sale)
                 <a href="{{ route('sales.invoice', $sale) }}" target="_blank" class="btn btn-outline-dark">
                     <i class="bi bi-printer me-1"></i> {{ __('sales.print_invoice') }}
                 </a>
+                @endCanRoute
+                @canRoute('sales.thermal', $sale)
                 <a href="{{ route('sales.thermal', $sale) }}" target="_blank" class="btn btn-outline-dark">
                     <i class="bi bi-receipt me-1"></i> {{ __('sales.thermal_print') }}
                 </a>
-                @can('return', $sale)
+                @endCanRoute
+                @canRoute('sales.return', $sale)
                 <a href="{{ route('sales.return', $sale) }}" class="btn btn-outline-warning">
                     <i class="bi bi-arrow-return-left me-1"></i> {{ __('sales.return_sale') }}
                 </a>
-                @endcan
+                @endCanRoute
             @elseif($sale->isDraft())
-                @can('post', $sale)
+                @canRoute('sales.post', $sale)
                 <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#postSaleModal">
                     <i class="bi bi-check2-circle me-1"></i> {{ __('sales.post_sale') }}
                 </button>
-                @endcan
-                @can('delete', $sale)
+                @endCanRoute
+                @canRoute('sales.cancel', $sale)
                 <form action="{{ route('sales.cancel', $sale) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ __('sales.confirm_cancel') }}');">
                     @csrf
                     <button type="submit" class="btn btn-outline-danger">
                         <i class="bi bi-x-circle me-1"></i> {{ __('sales.cancel_draft') }}
                     </button>
                 </form>
-                @endcan
+                @endCanRoute
             @endif
         </div>
     </div>
@@ -77,9 +81,9 @@
                                 <th>{{ __('sales.item_col') }}</th>
                                 <th class="text-center">{{ __('sales.qty') }}</th>
                                 <th class="text-end">{{ __('sales.price') }}</th>
-                                @can('reports.view')
+                                @canRoute('reports.stock')
                                 <th class="text-end text-muted">{{ __('sales.cost_snapshot') }}</th>
-                                @endcan
+                                @endCanRoute
                                 <th class="text-end">{{ __('sales.discount') }}</th>
                                 <th class="text-end">{{ __('sales.line_total') }}</th>
                             </tr>
@@ -97,11 +101,11 @@
                                 <td class="text-end">
                                     @npr($item->unit_price)
                                 </td>
-                                @can('reports.view')
+                                @canRoute('reports.stock')
                                 <td class="text-end text-muted small">
                                     @npr($item->unit_cost)
                                 </td>
-                                @endcan
+                                @endCanRoute
                                 <td class="text-end text-muted">
                                     @npr($item->discount)
                                 </td>
@@ -244,9 +248,11 @@
                         @if($sale->customer->address)
                             <p class="mb-2 text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ $sale->customer->address }}</p>
                         @endif
+                        @canRoute('customers.show', $sale->customer)
                         <a href="{{ route('customers.show', $sale->customer) }}" class="btn btn-sm btn-outline-primary">
                             {{ __('sales.view_customer_ledger') }}
                         </a>
+                        @endCanRoute
                     @else
                         <p class="mb-0 text-muted fst-italic">{{ __('sales.walk_in') }}</p>
                     @endif
@@ -257,7 +263,7 @@
 </div>
 
 <!-- Post Draft Modal -->
-@if($sale->isDraft())
+@if($sale->isDraft() && can_route('sales.post', $sale))
 <div class="modal fade" id="postSaleModal" tabindex="-1">
     <div class="modal-dialog">
         <form action="{{ route('sales.post', $sale) }}" method="POST">

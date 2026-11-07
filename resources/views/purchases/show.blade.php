@@ -28,13 +28,15 @@
                 <i class="bi bi-arrow-left me-1"></i>{{ __('common.back') }}
             </a>
             @if(! $purchase->isPosted())
-                @can('purchases.manage')
+                @canRoute('purchases.post', $purchase)
                 <form method="POST" action="{{ route('purchases.post', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.post_confirmation') }}')">
                     @csrf
                     <button type="submit" class="btn btn-success btn-sm px-3">
                         <i class="bi bi-box-arrow-in-down me-1"></i>{{ __('purchases.post_purchase') }}
                     </button>
                 </form>
+                @endCanRoute
+                @canRoute('purchases.destroy', $purchase)
                 <form method="POST" action="{{ route('purchases.destroy', $purchase) }}" class="d-inline" onsubmit="return confirm('{{ __('purchases.confirm_delete') }}')">
                     @csrf
                     @method('DELETE')
@@ -42,7 +44,7 @@
                         <i class="bi bi-trash me-1"></i>{{ __('purchases.delete_draft') }}
                     </button>
                 </form>
-                @endcan
+                @endCanRoute
             @endif
         </div>
     </div>

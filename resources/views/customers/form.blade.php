@@ -77,14 +77,14 @@
 
                 <div class="d-flex justify-content-between align-items-center">
                     @isset($customer)
-                        @can('delete', $customer)
+                        @canRoute('customers.destroy', $customer)
                         <button type="button" class="btn btn-outline-danger" 
                                 onclick="if(confirm(@js(__('ui.delete_customer_confirmation')))) document.getElementById('deleteCustomerForm').submit();">
                             <i class="bi bi-trash3 me-1"></i>{{ __('common.delete') }}
                         </button>
                         @else
                         <div></div>
-                        @endcan
+                        @endCanRoute
                     @else
                         <div></div>
                     @endisset
@@ -99,12 +99,12 @@
             </form>
 
             @isset($customer)
-                @can('delete', $customer)
+                @canRoute('customers.destroy', $customer)
                 <form id="deleteCustomerForm" action="{{ route('customers.destroy', $customer) }}" method="POST" class="d-none">
                     @csrf
                     @method('DELETE')
                 </form>
-                @endcan
+                @endCanRoute
             @endisset
         </div>
     </div>

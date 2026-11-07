@@ -11,11 +11,11 @@
             <p class="text-muted small mb-0">{{ __('sales.sales') }} {{ __('sales.transactions_desc') }}</p>
         </div>
         <div class="d-flex gap-2">
-            @can('sales.create')
+            @canRoute('pos')
             <a href="{{ route('pos') }}" class="btn btn-primary d-flex align-items-center">
                 <i class="bi bi-calculator me-1"></i> {{ __('sales.pos_title') }}
             </a>
-            @endcan
+            @endCanRoute
         </div>
     </div>
 
@@ -78,9 +78,13 @@
                         </td>
                         <td>
                             @if($sale->customer)
+                                @canRoute('customers.show', $sale->customer)
                                 <a href="{{ route('customers.show', $sale->customer) }}" class="text-dark text-decoration-none fw-semibold">
                                     {{ $sale->customer->name }}
                                 </a>
+                                @else
+                                <span class="text-dark fw-semibold">{{ $sale->customer->name }}</span>
+                                @endCanRoute
                                 @if($sale->customer->phone)
                                 <div class="small text-muted">{{ $sale->customer->phone }}</div>
                                 @endif
@@ -127,9 +131,11 @@
                                     <i class="bi bi-eye"></i>
                                 </a>
                                 @if($sale->isPosted())
+                                @canRoute('sales.invoice', $sale)
                                 <a href="{{ route('sales.invoice', $sale) }}" class="btn btn-outline-secondary" target="_blank" title="{{ __('sales.a4_invoice') }}">
                                     <i class="bi bi-printer"></i>
                                 </a>
+                                @endCanRoute
                                 @endif
                             </div>
                         </td>

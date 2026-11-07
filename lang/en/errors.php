@@ -67,4 +67,7 @@ return [
     'cannot_reverse_reversal' => 'Cannot reverse an existing reversal movement.',
     'insufficient_stock_exception' => 'Insufficient stock for product #:id (:name). Available: :available, requested: :requested.',
     'invalid_decimal_string' => 'Value must be a decimal string.',
+    'forbidden_title' => 'You do not have access to this page',
+    'forbidden_message' => 'Your role does not allow this action. If you need access, ask your shop owner to update your permissions.',
+    'back_to_dashboard' => 'Back to dashboard',
 ];

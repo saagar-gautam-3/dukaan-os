@@ -113,7 +113,7 @@
 
     {{-- Close Session --}}
     @if($cashSession->isOpen())
-    @can('close', $cashSession)
+    @canRoute('cash.close', $cashSession)
     <div class="card border-0 shadow-sm border-top border-warning" style="max-width:480px">
         <div class="card-body p-4">
             <h5 class="fw-bold mb-3">{{ __('cash.close_session') }}</h5>
@@ -139,7 +139,7 @@
             </form>
         </div>
     </div>
-    @endcan
+    @endCanRoute
     @endif
 </div>
 @endsection
