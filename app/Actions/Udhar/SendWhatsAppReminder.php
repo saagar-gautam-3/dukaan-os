@@ -57,7 +57,6 @@ final class SendWhatsAppReminder
             $log = ReminderLog::create([
                 'shop_id' => $shop->id,
                 'customer_id' => $customer->id,
-                'user_id' => $userId,
                 'sent_by' => $userId,
                 'channel' => 'whatsapp',
                 'status' => 'opened',

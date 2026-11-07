@@ -20,7 +20,6 @@ class ReminderLog extends Model
 
     protected $fillable = [
         'customer_id',
-        'user_id',
         'channel',
         'status',
         'amount',

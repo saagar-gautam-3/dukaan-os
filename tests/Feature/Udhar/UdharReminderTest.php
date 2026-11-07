@@ -108,11 +108,14 @@ class UdharReminderTest extends TestCase
             ->post(route('udhar.reminders.send', $customer));
 
         $log = ReminderLog::where('shop_id', $shop->id)->firstOrFail();
+        $this->assertSame($shop->id, $log->shop_id);
         $this->assertSame($customer->id, $log->customer_id);
-        $this->assertSame($user->id, $log->user_id);
+        $this->assertSame($user->id, $log->sent_by);
         $this->assertSame('whatsapp', $log->channel);
         $this->assertSame('opened', $log->status);
         $this->assertSame('100.00', (string) $log->amount);
+        $this->assertSame('98****0001', $log->phone_masked);
+        $this->assertNotEmpty($log->message);
     }
 
     public function test_u3_zero_outstanding_does_not_redirect_or_log(): void
