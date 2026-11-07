@@ -63,6 +63,8 @@ return [
     'close' => 'Close',
     'toggle_sidebar' => 'Toggle sidebar',
     'delete' => 'Delete',
+    'edit' => 'Edit',
+    'total' => 'Total',
     'yes' => 'Yes',
     'no' => 'No',
 ];

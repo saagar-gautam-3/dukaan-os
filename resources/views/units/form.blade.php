@@ -38,7 +38,7 @@
                    name="is_fractional" id="is_fractional{{ isset($unit) ? '_'.$unit->id : '' }}" value="1"
                    {{ old('is_fractional', $unit->is_fractional ?? false) ? 'checked' : '' }}>
             <label class="form-check-label fw-semibold" for="is_fractional{{ isset($unit) ? '_'.$unit->id : '' }}">
-                {{ __('products.unit_is_fractional') }}
+                {{ __('products.is_fractional') }}
             </label>
         </div>
     </div>

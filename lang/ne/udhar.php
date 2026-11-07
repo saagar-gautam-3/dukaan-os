@@ -40,6 +40,8 @@ return [
     'entry_type' => 'कारोबार प्रकार',
     'date' => 'मिति',
     'send_reminder' => 'ताकेता पठाउनुहोस्',
+    'collect' => 'उठाउ',
+    'reminder_message_preview' => 'भुक्तानी स्मरण',
     'reminder_sent' => 'ग्राहकलाई ताकेता सफलतापूर्वक पठाइयो।',
     'reminder_queued' => 'ताकेता कतारमा राखियो।',
     'payment_collected' => 'रु :amount भुक्तानी सफलतापूर्वक असुली गरियो।',

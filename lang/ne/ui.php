@@ -129,4 +129,5 @@ return [
     'password_strength_medium' => 'मध्यम',
     'password_strength_strong' => 'बलियो',
     'password_generated' => 'पासवर्ड बनाइयो',
+    'clear' => 'सफा',
 ];

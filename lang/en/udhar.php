@@ -40,6 +40,8 @@ return [
     'entry_type' => 'Transaction Type',
     'date' => 'Date',
     'send_reminder' => 'Send Reminder',
+    'collect' => 'Collect',
+    'reminder_message_preview' => 'Payment reminder',
     'reminder_sent' => 'Reminder notification sent successfully to customer.',
     'reminder_queued' => 'Reminder has been queued.',
     'payment_collected' => 'Payment of NPR :amount collected successfully.',
