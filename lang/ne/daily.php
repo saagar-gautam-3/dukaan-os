@@ -34,6 +34,7 @@ return [
     'today' => 'आज',
     'previous_day' => 'अघिल्लो दिन',
     'next_day' => 'भोलिको दिन',
+    'no_activity' => 'ऄसतिन कैनै ंतितिदि तऴ्ता कैतिथै।',
     'back_to_profit' => 'नाफा प्रतिवेदन',
     'share_whatsapp' => 'WhatsApp मा साझा गर्नुहोस्',
     'whatsapp_template' => "दैनिक सारांश — :shop (:date)\nबिल: :bills | खुद बिक्री: :net_sales\nनगद: :cash\nउधार दिएको: :udhar_given\nउठेको: :udhar_collected\nखर्च: :expenses\nकम मौज्दातका सामान: :low_stock",

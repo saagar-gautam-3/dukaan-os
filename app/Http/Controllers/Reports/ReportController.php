@@ -11,6 +11,7 @@ use App\Http\Requests\Reports\ProfitReportRequest;
 use App\Models\Shop;
 use App\Services\CashReportService;
 use App\Services\ProfitReportService;
+use App\Support\NepaliNumber;
 use App\Tenancy\TenantContext;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
@@ -92,15 +93,17 @@ class ReportController extends Controller
             return view('reports.daily-summary', [
                 'summary' => null,
                 'date' => Carbon::now($timezone)->toDateString(),
+                'emptyDay' => false,
+                'heading' => self::humanDate(Carbon::now($timezone)->toDateString()),
                 'prevDate' => null,
                 'nextDate' => null,
                 'shop' => $shop,
                 'strings' => [
-                    'sales' => can_route('sales.view'),
-                    'expenses' => can_route('expenses.view'),
-                    'udhar' => can_route('udhar.view'),
-                    'cash' => can_route('cash.view'),
-                    'stock' => can_route('inventory.view'),
+                    'sales' => can_route('sales.index'),
+                    'expenses' => can_route('expenses.index'),
+                    'udhar' => can_route('udhar.outstanding'),
+                    'cash' => can_route('cash.index'),
+                    'stock' => can_route('stock.index'),
                 ],
                 'whatsappUrl' => null,
                 'error' => __('common.error_generic'),
@@ -111,23 +114,43 @@ class ReportController extends Controller
         $parsed = Carbon::parse($date);
 
         $strings = [
-            'sales' => can_route('sales.view'),
-            'expenses' => can_route('expenses.view'),
-            'udhar' => can_route('udhar.view'),
-            'cash' => can_route('cash.view'),
-            'stock' => can_route('inventory.view'),
+            'sales' => can_route('sales.index'),
+            'expenses' => can_route('expenses.index'),
+            'udhar' => can_route('udhar.outstanding'),
+            'cash' => can_route('cash.index'),
+            'stock' => can_route('stock.index'),
         ];
+
+        $emptyDay = ($summary['sales']['bill_count'] === 0
+            && $summary['sales']['returns_count'] === 0
+            && $summary['expenses']['total'] === '0.00'
+            && $summary['purchases']['total'] === '0.00');
 
         return view('reports.daily-summary', [
             'summary' => $summary,
             'date' => $date,
+            'heading' => self::humanDate($parsed->toDateString(), $timezone),
             'prevDate' => $parsed->copy()->subDay()->toDateString(),
             'nextDate' => $parsed->copy()->addDay()->toDateString(),
+            'emptyDay' => $emptyDay,
             'shop' => $shop,
             'strings' => $strings,
             'whatsappUrl' => $this->whatsappUrl($shop, $summary, $date, $strings),
             'error' => null,
         ]);
+    }
+
+    private static function humanDate(string $date, ?string $timezone = null): string
+    {
+        $formatted = Carbon::parse($date, $timezone ?? 'Asia/Kathmandu')
+            ->locale(app()->getLocale())
+            ->isoFormat('dddd, D MMM YYYY');
+
+        if (NepaliNumber::shouldDisplayDevanagari(app()->getLocale())) {
+            return NepaliNumber::toDevanagari($formatted);
+        }
+
+        return $formatted;
     }
 
     private function whatsappUrl(Shop $shop, array $summary, string $date, array $strings): string

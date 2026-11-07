@@ -34,6 +34,7 @@ return [
     'today' => 'Today',
     'previous_day' => 'Previous day',
     'next_day' => 'Next day',
+    'no_activity' => 'No activity recorded for this day.',
     'back_to_profit' => 'Profit report',
     'share_whatsapp' => 'Share on WhatsApp',
     'whatsapp_template' => "Daily Summary — :shop (:date)\nBills: :bills | Net sales: :net_sales\nCash: :cash\nUdhar given: :udhar_given\nCollected: :udhar_collected\nExpenses: :expenses\nLow stock items: :low_stock",

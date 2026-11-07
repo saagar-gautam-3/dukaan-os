@@ -27,6 +27,7 @@ return [
     'role' => 'Role',
     'actions' => 'Actions',
     'save' => 'Save',
+    'go' => 'Show',
     'cancel' => 'Cancel',
     'back' => 'Back',
     'language' => 'Language',

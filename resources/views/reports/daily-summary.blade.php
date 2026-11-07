@@ -10,26 +10,32 @@
                 <i class="bi bi-speedometer2 me-2"></i>{{ __('daily.title') }}
             </h2>
             <p class="text-muted mb-0 small">{{ __('daily.subtitle') }}</p>
+            <p class="fw-semibold mb-0 mt-1 text-dark">{{ $heading ?? '' }}</p>
         </div>
 
-        <div class="action-row d-flex gap-2 mt-3 mt-md-0">
-            <form method="GET" action="{{ route('reports.daily-summary') }}" class="d-flex gap-2 align-items-center flex-wrap">
-                <button type="submit" name="date" value="{{ $prevDate }}" class="btn btn-outline-secondary btn-sm" title="{{ __('daily.previous_day') }}">
+        <div class="mt-3 mt-md-0 d-flex flex-column align-items-stretch align-items-md-end gap-2">
+            <form method="GET" action="{{ route('reports.daily-summary') }}" class="d-flex align-items-center gap-2" id="dailyDateForm">
+                <button type="submit" name="date" value="{{ $prevDate }}" class="btn btn-outline-secondary" title="{{ __('daily.previous_day') }}" aria-label="{{ __('daily.previous_day') }}">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                <input type="date" name="date" value="{{ $date }}" max="{{ $date }}" class="form-control form-control-sm">
-                <button type="submit" name="date" value="{{ $nextDate }}" class="btn btn-outline-secondary btn-sm" title="{{ __('daily.next_day') }}" @disabled($nextDate > $date)>
+                <input type="date" name="date" id="dailyDateInput" value="{{ $date }}" max="{{ $date }}" class="form-control" aria-label="{{ __('daily.title') }}">
+                <button type="submit" name="date" value="{{ $nextDate }}" class="btn btn-outline-secondary" title="{{ __('daily.next_day') }}" aria-label="{{ __('daily.next_day') }}" @disabled($date === \Carbon\Carbon::now($shop?->timezone ?? 'Asia/Kathmandu')->toDateString())>
                     <i class="bi bi-chevron-right"></i>
                 </button>
-                <a href="{{ route('reports.daily-summary') }}" class="btn btn-outline-primary btn-sm">
+                <a href="{{ route('reports.daily-summary') }}" class="btn btn-outline-primary">
                     {{ __('daily.today') }}
                 </a>
+                <noscript>
+                    <button type="submit" class="btn btn-primary">{{ __('common.go') }}</button>
+                </noscript>
+            </form>
+            <div class="action-row d-flex gap-2 justify-content-md-end">
                 @if($whatsappUrl)
                 <a href="{{ $whatsappUrl }}" target="_blank" rel="noopener" class="btn btn-success btn-sm">
                     <i class="bi bi-whatsapp me-1"></i>{{ __('daily.share_whatsapp') }}
                 </a>
                 @endif
-            </form>
+            </div>
         </div>
     </div>
 
@@ -37,6 +43,13 @@
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ $error }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{{ __('common.close') }}"></button>
+        </div>
+    @endif
+
+    @if($emptyDay ?? false)
+        <div class="alert alert-info d-flex align-items-center gap-2" role="status">
+            <i class="bi bi-info-circle"></i>
+            <span>{{ __('daily.no_activity') }}</span>
         </div>
     @endif
 
@@ -248,4 +261,22 @@
         </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var input = document.getElementById('dailyDateInput');
+        var form = document.getElementById('dailyDateForm');
+        if (!input || !form) {
+            return;
+        }
+        input.addEventListener('change', function () {
+            var today = input.max || input.value;
+            if (input.value) {
+                form.submit();
+            }
+        });
+    });
+</script>
+@endpush
 @endsection
