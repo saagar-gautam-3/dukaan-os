@@ -8,7 +8,7 @@
         <div>
             <h1 class="h3 fw-bold mb-1">{{ __('expenses.categories') }}</h1>
         </div>
-        <div class="d-flex gap-2">
+        <div class="action-row d-flex gap-2">
             @canRoute('expense-categories.create')
             <a href="{{ route('expense-categories.create') }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i> {{ __('expenses.new_category') }}

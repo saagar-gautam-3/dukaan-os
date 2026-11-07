@@ -17,7 +17,7 @@
                 <small class="text-muted">{{ __('udhar.subtitle') }}</small>
             </div>
         </div>
-        <div class="d-flex gap-2">
+        <div class="action-row d-flex gap-2">
             @canRoute('udhar.outstanding')
             <a href="{{ route('udhar.outstanding') }}" class="btn btn-outline-primary">
                 <i class="bi bi-journal-bookmark me-1"></i>{{ __('udhar.outstanding') }}

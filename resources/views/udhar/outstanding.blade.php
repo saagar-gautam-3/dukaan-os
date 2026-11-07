@@ -12,7 +12,7 @@
             </h1>
             <p class="text-muted mb-0">{{ __('udhar.subtitle') }}</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="action-row d-flex gap-2">
             @canRoute('udhar.ageing')
             <a href="{{ route('udhar.ageing') }}" class="btn btn-outline-primary">
                 <i class="bi bi-bar-chart-steps me-1"></i>{{ __('udhar.ageing') }}

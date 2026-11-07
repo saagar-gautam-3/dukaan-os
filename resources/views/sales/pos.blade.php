@@ -165,6 +165,38 @@
 @push('scripts')
 <script>
     const currencySymbol = @json(__('ui.currency_symbol'));
+    const useDevanagariDigits = @json(\App\Support\NepaliNumber::shouldDisplayDevanagari());
+    const DEV_DIGITS = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+
+    // Number formatting mirrors the server rule (NepaliNumber):
+    // South-Asian (lakh/crore) grouping, Devanagari digits only when the
+    // shop setting devanagari_digits is on (fallback: locale).
+    function formatGrouped(decimal) {
+        let raw = String(decimal ?? '0').trim().replace(/,/g, '');
+        const negative = raw.startsWith('-');
+        if (negative) raw = raw.slice(1);
+        let [intPart, decPart = ''] = raw.split('.');
+        intPart = (intPart || '0').replace(/^0+(?=\d)/, '') || '0';
+        decPart = (decPart + '00').slice(0, 2);
+        let grouped;
+        if (intPart.length <= 3) {
+            grouped = intPart;
+        } else {
+            const lastThree = intPart.slice(-3);
+            const remaining = intPart.slice(0, -3);
+            grouped = remaining.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + lastThree;
+        }
+        let out = `${grouped}.${decPart}`;
+        if (negative && out !== '0.00') out = '-' + out;
+        if (useDevanagariDigits) {
+            out = out.replace(/[0-9]/g, (d) => DEV_DIGITS[Number(d)]);
+        }
+        return out;
+    }
+
+    function formatNprShared(decimal) {
+        return `${currencySymbol} ${formatGrouped(decimal)}`;
+    }
     const noSkuText = @json(__('ui.no_sku'));
     const noPhoneText = @json(__('ui.no_phone'));
     const itemCountText = @json(__('ui.items_count', ['count' => ':count']));
@@ -354,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="card h-100 border text-start p-2 shadow-sm product-item-card ${!inStock ? 'opacity-50' : 'cursor-pointer'}" 
                      style="transition: transform 0.15s, box-shadow 0.15s;">
                     <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;">${p.sku || noSkuText}</span>
+                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;" title="${p.sku || noSkuText}">${p.sku || noSkuText}</span>
                         <small class="badge ${stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">
                             ${p.track_stock ? stock + ' ' + (p.unit || '') : 'Non-stock'}
                         </small>
@@ -364,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${p.name_ne}</div>` : ''}
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="fw-bold text-primary">${currencySymbol} ${price}</span>
+                        <span class="fw-bold text-primary amount-nowrap">${currencySymbol} ${formatGrouped(price)}</span>
                         <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
                             <i class="bi bi-plus-lg"></i>
                         </button>
@@ -440,8 +472,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (projectedBalance > limitCents) {
             creditLimitWarningText.textContent = creditLimitWarningTemplate
-                .replace(':limit', scaledString(limitCents, 2))
-                .replace(':balance', scaledString(projectedBalance, 2));
+                .replace(':limit', formatGrouped(scaledString(limitCents, 2)))
+                .replace(':balance', formatGrouped(scaledString(projectedBalance, 2)));
             creditLimitWarningBadge.classList.remove('d-none');
         } else {
             creditLimitWarningBadge.classList.add('d-none');
@@ -522,8 +554,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         <button class="btn btn-outline-secondary px-2 btn-qty-plus" type="button">+</button>
                     </div>
                 </td>
-                <td class="text-end py-2 small">${currencySymbol} ${item.price}</td>
-                <td class="text-end py-2 fw-bold text-dark small">${currencySymbol} ${scaledString(lineTotal, 2)}</td>
+                <td class="text-end py-2 small amount-nowrap">${currencySymbol} ${formatGrouped(item.price)}</td>
+                <td class="text-end py-2 fw-bold text-dark small amount-nowrap">${currencySymbol} ${formatGrouped(scaledString(lineTotal, 2))}</td>
                 <td class="text-end py-2">
                     <button class="btn btn-sm btn-link text-danger p-0 btn-remove-item" type="button">
                         <i class="bi bi-x-circle-fill"></i>
@@ -575,8 +607,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateTotals() {
         const total = cartTotalCents();
 
-        subtotalDisplay.textContent = currencySymbol + ' ' + scaledString(total, 2);
-        grandTotalDisplay.textContent = currencySymbol + ' ' + scaledString(total, 2);
+        subtotalDisplay.textContent = formatNprShared(scaledString(total, 2));
+        grandTotalDisplay.textContent = formatNprShared(scaledString(total, 2));
 
         // Auto-fill paid amount with grand total if not manually edited or method is cash
         if (!amountPaidInput.dataset.manual) {
@@ -595,7 +627,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const total = cartTotalCents();
         const paid = scaledInteger(amountPaidInput.value, 2);
         const change = paid > total ? paid - total : 0n;
-        changeDisplay.textContent = currencySymbol + ' ' + scaledString(change, 2);
+        changeDisplay.textContent = formatNprShared(scaledString(change, 2));
         checkCreditLimit();
     }
 

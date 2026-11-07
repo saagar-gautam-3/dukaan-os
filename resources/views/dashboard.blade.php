@@ -12,12 +12,12 @@
             </h2>
             <p class="text-muted mb-0 small">
                 {{ __('dashboard.overview') }} &mdash; <span class="fw-medium text-dark">{{ $shop->name }}</span>
-                <span class="badge bg-secondary-subtle text-secondary ms-1">{{ $membership?->role?->name ?? __('ui.staff') }}</span>
+                <span class="badge bg-secondary-subtle text-secondary ms-1 d-none d-sm-inline-block">{{ $membership?->role?->name ?? __('ui.staff') }}</span>
             </p>
         </div>
 
         @if (can_route('pos') || can_route('settings.shop'))
-        <div class="mt-3 mt-md-0 d-flex gap-2">
+        <div class="action-row mt-3 mt-md-0 d-flex gap-2">
             @canRoute('pos')
             <a href="{{ route('pos') }}" class="btn btn-primary d-flex align-items-center gap-1">
                 <i class="bi bi-cart-plus"></i>
@@ -114,10 +114,10 @@
                 @canRoute('pos')
                 <div class="col-6 col-md-3">
                     <a href="{{ route('pos') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
-                        <i class="bi bi-cart-plus fs-4 text-primary"></i>
-                        <div>
-                            <div class="fw-semibold text-dark">{{ __('dashboard.new_sale') }}</div>
-                            <small class="text-muted">{{ __('dashboard.pos_billing') }}</small>
+                        <i class="bi bi-cart-plus fs-4 text-primary flex-shrink-0"></i>
+                        <div class="min-w-0 flex-grow-1">
+                            <div class="fw-semibold text-dark" title="{{ __('dashboard.new_sale') }}">{{ __('dashboard.new_sale') }}</div>
+                            <small class="text-muted" title="{{ __('dashboard.pos_billing') }}">{{ __('dashboard.pos_billing') }}</small>
                         </div>
                     </a>
                 </div>
@@ -125,10 +125,10 @@
                 @canRoute('udhar.outstanding')
                 <div class="col-6 col-md-3">
                     <a href="{{ route('udhar.outstanding') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
-                        <i class="bi bi-wallet2 fs-4 text-success"></i>
-                        <div>
-                            <div class="fw-semibold text-dark">{{ __('dashboard.receive_udhar') }}</div>
-                            <small class="text-muted">{{ __('dashboard.customer_khata') }}</small>
+                        <i class="bi bi-wallet2 fs-4 text-success flex-shrink-0"></i>
+                        <div class="min-w-0 flex-grow-1">
+                            <div class="fw-semibold text-dark" title="{{ __('dashboard.receive_udhar') }}">{{ __('dashboard.receive_udhar') }}</div>
+                            <small class="text-muted" title="{{ __('dashboard.customer_khata') }}">{{ __('dashboard.customer_khata') }}</small>
                         </div>
                     </a>
                 </div>
@@ -136,10 +136,10 @@
                 @canRoute('products.create')
                 <div class="col-6 col-md-3">
                     <a href="{{ route('products.create') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
-                        <i class="bi bi-box-seam fs-4 text-info"></i>
-                        <div>
-                            <div class="fw-semibold text-dark">{{ __('dashboard.add_product') }}</div>
-                            <small class="text-muted">{{ __('dashboard.inventory_catalog') }}</small>
+                        <i class="bi bi-box-seam fs-4 text-info flex-shrink-0"></i>
+                        <div class="min-w-0 flex-grow-1">
+                            <div class="fw-semibold text-dark" title="{{ __('dashboard.add_product') }}">{{ __('dashboard.add_product') }}</div>
+                            <small class="text-muted" title="{{ __('dashboard.inventory_catalog') }}">{{ __('dashboard.inventory_catalog') }}</small>
                         </div>
                     </a>
                 </div>
@@ -147,10 +147,10 @@
                 @canRoute('expenses.create')
                 <div class="col-6 col-md-3">
                     <a href="{{ route('expenses.create') }}" class="btn btn-light border w-100 py-3 text-start d-flex align-items-center gap-2">
-                        <i class="bi bi-cash fs-4 text-danger"></i>
-                        <div>
-                            <div class="fw-semibold text-dark">{{ __('dashboard.record_expense') }}</div>
-                            <small class="text-muted">{{ __('dashboard.shop_outflow') }}</small>
+                        <i class="bi bi-cash fs-4 text-danger flex-shrink-0"></i>
+                        <div class="min-w-0 flex-grow-1">
+                            <div class="fw-semibold text-dark" title="{{ __('dashboard.record_expense') }}">{{ __('dashboard.record_expense') }}</div>
+                            <small class="text-muted" title="{{ __('dashboard.shop_outflow') }}">{{ __('dashboard.shop_outflow') }}</small>
                         </div>
                     </a>
                 </div>

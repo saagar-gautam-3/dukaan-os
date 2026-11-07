@@ -12,7 +12,7 @@
             <p class="text-muted mb-0 small">{{ __('inventory.low_stock_desc') }}</p>
         </div>
 
-        <div class="mt-3 mt-md-0 d-flex gap-2">
+        <div class="action-row mt-3 mt-md-0 d-flex gap-2">
             <a href="{{ route('stock.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>{{ __('common.back') }}
             </a>

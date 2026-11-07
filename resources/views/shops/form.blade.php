@@ -109,7 +109,7 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-2">
+                        <div class="action-row d-flex justify-content-end gap-2">
                             <button type="submit" class="btn btn-primary px-4">
                                 <i class="bi bi-check-lg me-1"></i>{{ __('shops.save_settings') }}
                             </button>

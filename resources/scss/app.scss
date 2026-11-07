@@ -170,6 +170,13 @@ body.sidebar-open {
     padding: 0.75rem 1.5rem;
     display: flex;
     align-items: center;
+    min-width: 0;
+    gap: 1rem;
+
+    > * {
+        min-width: 0;
+    }
+
     justify-content: space-between;
     min-height: 56px;
     position: sticky;
@@ -182,6 +189,9 @@ body.sidebar-open {
     padding: 1.5rem;
     flex: 1 1 auto;
     min-width: 0;
+    width: 100%;
+    max-width: 1600px;
+    margin-inline: auto;
 }
 
 // ── 6. Mobile: collapsible sidebar ─────────────────────────
@@ -331,8 +341,8 @@ body.sidebar-open {
     &[data-strength='strong'] { color: $success; }
 }
 
-// ── Mobile touch targets (max-width 576px) ────────────────────
-@media (max-width: 576px) {
+// ── Mobile touch targets (max-width 768px) ────────────────────
+@media (max-width: 768px) {
     button,
     a.btn,
     .btn,
@@ -355,4 +365,57 @@ body.sidebar-open {
         min-height: 40px;
         min-width: 40px;
     }
+}
+
+// Buttons and badges must never wrap a single word letter-by-letter.
+.btn,
+.badge {
+    white-space: nowrap;
+}
+
+// Flex children inside buttons (e.g. quick-action cards) must be allowed
+// to wrap text lines instead of forcing the button wider than its column.
+.btn .min-w-0 {
+    white-space: normal;
+}
+
+// ── Shared action row (form footers + page-header actions) ───
+// Wraps with a gap, and below sm stacks full-width so "Cancel" can
+// never break letter-by-letter in a two-button row.
+.action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+@media (max-width: 575.98px) {
+    .action-row {
+        flex-direction: column;
+    }
+
+    .action-row > .btn,
+    .action-row > a.btn,
+    .action-row > button.btn {
+        width: 100%;
+    }
+}
+
+// ── Responsive: keep amounts and identifiers unbroken ─────────
+.amount-nowrap {
+    white-space: nowrap;
+}
+
+table td.text-end,
+.stat-value {
+    white-space: nowrap;
+}
+
+code, kbd {
+    white-space: nowrap;
+}
+
+.app-page h1,
+.app-page h2 {
+    overflow-wrap: break-word;
+    min-width: 0;
 }
