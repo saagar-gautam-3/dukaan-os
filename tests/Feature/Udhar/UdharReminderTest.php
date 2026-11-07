@@ -63,7 +63,9 @@ class UdharReminderTest extends TestCase
 
     public function test_u1_happy_path_redirects_to_exact_wa_me_url(): void
     {
+        app()->setLocale('ne');
         [$shop, $user] = $this->createShopWithOwner();
+        $user->update(['locale' => 'ne']);
         $customer = $this->createCustomerWithBalance($shop);
 
         $amountText = NepaliNumber::formatNpr('100.00');
