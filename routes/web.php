@@ -167,6 +167,7 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
 
     // Reports
     Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/daily-summary', [ReportController::class, 'dailySummary'])->name('daily-summary');
         Route::get('/profit', [ReportController::class, 'profitSummary'])->name('profit');
         Route::get('/profit/export', [ReportController::class, 'exportCsv'])->name('profit.export');
         Route::get('/stock', [ReportController::class, 'stockValuation'])->name('stock');

@@ -6,6 +6,7 @@ namespace App\Support;
 
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Single source of truth for the permission each named tenant route needs.
@@ -110,6 +111,7 @@ final class RoutePermissionMap
         'purchases.destroy' => ['permissions' => ['purchases.manage'], 'ability' => 'delete'],
 
         // Reports.
+        'reports.daily-summary' => ['permissions' => ['reports.view']],
         'reports.profit' => ['permissions' => ['reports.profit.view']],
         'reports.profit.export' => ['permissions' => ['reports.export']],
         'reports.stock' => ['permissions' => ['reports.view']],
@@ -191,7 +193,17 @@ final class RoutePermissionMap
         $entry = self::ROUTES[$routeName] ?? null;
         $user = auth()->user();
 
-        if ($entry === null || $user === null) {
+        if ($entry === null) {
+            if (! app()->environment('production')) {
+                Log::warning('can_route() called with an unmapped route name.', [
+                    'route' => $routeName,
+                ]);
+            }
+
+            return false;
+        }
+
+        if ($user === null) {
             return false;
         }
 

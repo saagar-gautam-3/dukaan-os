@@ -101,6 +101,42 @@
     </div>
     @endif
 
+    <!-- Today at a glance -->
+    @canRoute('reports.daily-summary')
+    @if($daily !== null)
+    <div class="card shadow-sm border-0 rounded-3 mb-4">
+        <div class="card-header bg-white border-0 py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h5 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-speedometer2 text-primary me-2"></i>{{ __('daily.title') }}
+            </h5>
+            <a href="{{ route('reports.daily-summary') }}" class="btn btn-outline-primary btn-sm">
+                {{ __('daily.title') }}<i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card-body pt-0 small">
+            <div class="row g-3 text-center">
+                <div class="col-6 col-md-3">
+                    <small class="text-muted text-uppercase">{{ __('daily.net_sales') }}</small>
+                    <div class="h5 fw-bold text-primary mb-0 amount-nowrap">@npr($daily['sales']['net_sales'])</div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <small class="text-muted text-uppercase">{{ __('daily.cash') }}</small>
+                    <div class="h5 fw-bold text-success mb-0 amount-nowrap">@npr($daily['cash']['net'])</div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <small class="text-muted text-uppercase">{{ __('daily.udhar_collected') }}</small>
+                    <div class="h5 fw-bold mb-0 amount-nowrap">@npr($daily['udhar']['collected'])</div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <small class="text-muted text-uppercase">{{ __('daily.low_stock_count') }}</small>
+                    <div class="h5 fw-bold mb-0">@qty($daily['stock']['low_stock_count'])</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    @endCanRoute
+
     <!-- Quick Actions -->
     @if (can_route('pos') || can_route('udhar.outstanding') || can_route('products.create') || can_route('expenses.create'))
     <div class="card shadow-sm border-0 rounded-3 mb-4">

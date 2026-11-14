@@ -38,6 +38,32 @@
                     <p class="mb-0 text-muted">{{ __('inventory.no_alerts') }}</p>
                 </div>
             @else
+                @php
+                    $groups = $products->groupBy(fn ($product) => $product->preferred_supplier?->id ?? 0);
+                @endphp
+                @foreach($groups as $supplierId => $items)
+                    @php
+                        $supplier = $items->first()->preferred_supplier;
+                        $canOrder = ($supplier !== null) && \App\Support\NepaliPhone::isValidMobile($supplier->phone);
+                        $orderItems = collect();
+                        foreach ($items as $item) {
+                            $orderItems->push($item->name.' x '.\App\Support\NepaliNumber::formatQuantity($item->suggested_qty, $item->unit?->is_fractional));
+                        }
+                        $orderMessage = __('inventory.order_message').$orderItems->implode(', ');
+                    @endphp
+                    <div class="p-3 border-bottom bg-light">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                            <div class="fw-bold text-dark">
+                                <i class="bi bi-truck me-1"></i>
+                                {{ $supplier?->name ?? __('inventory.no_supplier_known') }}
+                            </div>
+                            @if($canOrder && (can_route('suppliers.index') || can_route('purchases.create')))
+                            <a href="https://wa.me/977{{ \App\Support\NepaliPhone::normalize($supplier->phone) }}?text={{ urlencode($orderMessage) }}" target="_blank" rel="noopener" class="btn btn-success btn-sm">
+                                <i class="bi bi-whatsapp me-1"></i>{{ __('inventory.order_whatsapp') }}
+                            </a>
+                            @endif
+                        </div>
+                    </div>
                 <!-- Desktop Table -->
                 <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover align-middle mb-0">
@@ -48,15 +74,16 @@
                                 <th class="text-end">{{ __('products.selling_price') }}</th>
                                 <th class="text-center">{{ __('inventory.current_quantity') }}</th>
                                 <th class="text-center">{{ __('inventory.min_alert') }}</th>
+                                <th class="text-center">{{ __('inventory.suggested_qty') }}</th>
                                 <th class="text-center">{{ __('inventory.status') }}</th>
                                 <th class="text-end pe-3">{{ __('products.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($products as $product)
+                            @foreach($items as $product)
                             @php
-                                $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
-                                $minAlert = (string) $product->min_stock_alert;
+                                $stock = $product->current_stock ?? '0.000';
+                                $minAlert = (string) $product->low_stock_threshold;
                                 $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                             @endphp
                             <tr>
@@ -73,6 +100,9 @@
                                 </td>
                                 <td class="text-center text-muted fw-semibold">
                                     @qty($minAlert, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
+                                </td>
+                                <td class="text-center fw-bold">
+                                    @qty($product->suggested_qty, $product->unit?->is_fractional) {{ $product->unit?->symbol }}
                                 </td>
                                 <td class="text-center">
                                     <span class="badge {{ $isOut ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-dark' }}">
@@ -99,11 +129,11 @@
 
                 <!-- Mobile Cards -->
                 <div class="d-md-none divide-y">
-                    @foreach($products as $product)
+                    @foreach($items as $product)
                     @php
-                        $stock = $product->stockBalances->reduce(fn (string $sum, $balance): string => \App\Support\Money::add($sum, (string) $balance->quantity, 3), '0.000');
-                        $minAlert = (string) $product->min_stock_alert;
-                                $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
+                        $stock = $product->current_stock ?? '0.000';
+                        $minAlert = (string) $product->low_stock_threshold;
+                        $isOut = \App\Support\Money::compare($stock, '0', 3) <= 0;
                     @endphp
                     <div class="p-3 border-bottom">
                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -119,6 +149,10 @@
                             <span class="badge {{ $isOut ? 'bg-danger-subtle text-danger' : 'bg-warning-subtle text-dark' }}">
                                 {{ $isOut ? __('inventory.out_of_stock') : __('inventory.low_stock') }}
                             </span>
+                            <span class="fw-semibold small">{{ __('inventory.suggested_qty') }}: @qty($product->suggested_qty, $product->unit?->is_fractional) {{ $product->unit?->symbol }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="small text-muted">{{ __('inventory.supplier') }}: {{ $product->preferred_supplier?->name ?? __('inventory.no_supplier_known') }}</span>
                             <div class="btn-group btn-group-sm">
                                 <a href="{{ route('stock.history', $product) }}" class="btn btn-outline-info btn-sm">{{ __('inventory.history_btn') }}</a>
                                 @canRoute('purchases.create')
@@ -129,6 +163,7 @@
                     </div>
                     @endforeach
                 </div>
+                @endforeach
             @endif
         </div>
     </div>

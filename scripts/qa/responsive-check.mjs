@@ -147,9 +147,14 @@ async function main() {
     const customerId = customerShow?.match(/\/customers\/([^/]+)$/)?.[1] || '1';
     const saleShow = await firstHref(page, listUrls['sales-index'], '/sales/[^/"]+$');
     const collectUrl = `${BASE}/udhar/collect/${customerId}`;
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
     const PAGES = [
         ['dashboard', `${BASE}/dashboard`],
+        ['daily-summary-today', `${BASE}/reports/daily-summary`],
+        ['daily-summary-past', `${BASE}/reports/daily-summary?date=${yesterday}`],
+        ['daily-summary-with-data', `${BASE}/reports/daily-summary?date=2026-11-07`],
+        ['daily-summary-empty', `${BASE}/reports/daily-summary?date=2025-01-01`],
         ['pos', `${BASE}/pos`],
         ['pos-cart', `${BASE}/pos`, { cart: 3 }],
         ['products-index', listUrls['products-index']],
@@ -165,6 +170,7 @@ async function main() {
         ['sales-show', saleShow || `${BASE}/sales/1`],
         ['purchases-index', `${BASE}/purchases`],
         ['stock', `${BASE}/stock`],
+        ['stock-alerts', `${BASE}/stock/alerts`],
         ['expenses', `${BASE}/expenses`],
         ['reports-index', `${BASE}/reports/profit`],
         ['staff-index', `${BASE}/staff`],

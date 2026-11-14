@@ -145,7 +145,7 @@ final class NoForbiddenUiTest extends TestCase
         $this->actingAs($cashier)->withSession(['current_shop_id' => $shop->id]);
         $cashierSidebar = $this->sidebarLinks((string) $this->get(route('dashboard'))->assertOk()->getContent());
 
-        $forbiddenForCashier = ['staff.index', 'settings.shop', 'reports.profit', 'reports.stock'];
+        $forbiddenForCashier = ['staff.index', 'settings.shop', 'reports.profit', 'reports.stock', 'reports.daily-summary'];
         foreach ($forbiddenForCashier as $routeName) {
             $this->assertNotContains(
                 route($routeName),
@@ -172,6 +172,7 @@ final class NoForbiddenUiTest extends TestCase
             'purchases.index',
             'suppliers.index',
             'expenses.index',
+            'reports.daily-summary',
             'reports.profit',
             'cash.index',
             'staff.index',
@@ -284,6 +285,7 @@ final class NoForbiddenUiTest extends TestCase
             ['expenses.create', []],
             ['expense-categories.index', []],
             ['expense-categories.create', []],
+            ['reports.daily-summary', []],
             ['reports.profit', []],
             ['reports.stock', []],
             ['staff.index', []],
