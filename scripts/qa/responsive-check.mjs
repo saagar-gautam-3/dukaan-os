@@ -153,6 +153,8 @@ async function main() {
         ['dashboard', `${BASE}/dashboard`],
         ['daily-summary-today', `${BASE}/reports/daily-summary`],
         ['daily-summary-past', `${BASE}/reports/daily-summary?date=${yesterday}`],
+        ['daily-summary-with-data', `${BASE}/reports/daily-summary?date=2026-11-07`],
+        ['daily-summary-empty', `${BASE}/reports/daily-summary?date=2025-01-01`],
         ['pos', `${BASE}/pos`],
         ['pos-cart', `${BASE}/pos`, { cart: 3 }],
         ['products-index', listUrls['products-index']],
