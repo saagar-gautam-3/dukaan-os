@@ -363,6 +363,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .catch(err => console.error(err));
     }
 
+    // Escape every server-supplied string before it is interpolated into HTML.
+    // POS templates are built with innerHTML, so product/customer text must be
+    // treated as untrusted (stored XSS payloads would otherwise execute).
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     function renderProductGrid(products) {
         productGrid.innerHTML = '';
         if (products.length === 0) {
@@ -386,14 +398,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="card h-100 border text-start p-2 shadow-sm product-item-card ${!inStock ? 'opacity-50' : 'cursor-pointer'}" 
                      style="transition: transform 0.15s, box-shadow 0.15s;">
                     <div class="d-flex justify-content-between align-items-start mb-1">
-                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;" title="${p.sku || noSkuText}">${p.sku || noSkuText}</span>
+                        <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;" title="${escapeHtml(p.sku || noSkuText)}">${escapeHtml(p.sku || noSkuText)}</span>
                         <small class="badge ${stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">
-                            ${p.track_stock ? stock + ' ' + (p.unit || '') : 'Non-stock'}
+                            ${p.track_stock ? escapeHtml(stock) + ' ' + escapeHtml(p.unit || '') : 'Non-stock'}
                         </small>
                     </div>
-                    <div class="fw-bold text-dark text-truncate mb-1" title="${p.name}">
-                        ${p.name}
-                        ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${p.name_ne}</div>` : ''}
+                    <div class="fw-bold text-dark text-truncate mb-1" title="${escapeHtml(p.name)}">
+                        ${escapeHtml(p.name)}
+                        ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${escapeHtml(p.name_ne)}</div>` : ''}
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
                         <span class="fw-bold text-primary amount-nowrap">${currencySymbol} ${formatGrouped(price)}</span>
@@ -435,7 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             const a = document.createElement('a');
                             a.href = '#';
                             a.className = 'list-group-item list-group-item-action small py-2';
-                            a.innerHTML = `<strong>${c.name}</strong> <span class="text-muted">(${c.phone || noPhoneText})</span>`;
+                            a.innerHTML = `<strong>${escapeHtml(c.name)}</strong> <span class="text-muted">(${escapeHtml(c.phone || noPhoneText)})</span>`;
                             a.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 selectCustomer(c);
@@ -545,7 +557,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             row.innerHTML = `
                 <td class="py-2">
-                    <div class="fw-semibold text-truncate small" style="max-width: 140px;" title="${item.name}">${item.name}</div>
+                    <div class="fw-semibold text-truncate small" style="max-width: 140px;" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
                 </td>
                 <td class="py-2">
                     <div class="input-group input-group-sm">
