@@ -67,6 +67,11 @@ async function main() {
     const browser = await chromium.launch();
     const context = await browser.newContext({ viewport: { width: 1440, height: HEIGHT } });
     const page = await context.newPage();
+    // Guest-only pages (login, register, reset-password) redirect to the
+    // dashboard for a signed-in session, so they run in a separate anonymous
+    // context at the same viewports.
+    const guestContext = await browser.newContext({ viewport: { width: 1440, height: HEIGHT } });
+    const guestPage = await guestContext.newPage();
 
     // --- login ---
     const loginResp = await page.goto(`${BASE}/login`, { waitUntil: 'domcontentloaded' });
@@ -174,13 +179,18 @@ async function main() {
         ['expenses', `${BASE}/expenses`],
         ['reports-index', `${BASE}/reports/profit`],
         ['staff-index', `${BASE}/staff`],
+        ['staff-create', `${BASE}/staff/create`],
         ['shop-settings', `${BASE}/settings/shop`],
         ['shop-picker', `${BASE}/shops/picker`],
+        ['login', `${BASE}/login`, { guest: true }],
+        ['register', `${BASE}/register`, { guest: true }],
+        ['reset-password', `${BASE}/reset-password/qa-responsive-probe?email=qa%40example.test`, { guest: true }],
     ];
 
     const results = []; // {page, width, pageScroll, overflow: [...], tap: ...}
 
     for (const [name, url, opts] of PAGES) {
+        const runner = opts?.guest ? guestPage : page;
         // Pre-seed POS cart with >=3 items (persisted via sessionStorage).
         if (opts?.cart) {
             await page.goto(`${BASE}/pos`, { waitUntil: 'domcontentloaded', timeout: 20000 });
@@ -197,18 +207,18 @@ async function main() {
             }
         }
         for (const width of WIDTHS) {
-            await page.setViewportSize({ width, height: HEIGHT });
+            await runner.setViewportSize({ width, height: HEIGHT });
             let status = 0;
             try {
-                const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+                const resp = await runner.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
                 status = resp?.status() ?? 0;
-                await page.waitForTimeout(150);
+                await runner.waitForTimeout(150);
             } catch (e) {
                 results.push({ page: name, width, error: `navigation: ${String(e).split('\n')[0]}` });
                 continue;
             }
 
-            const metrics = await page.evaluate(({ expectDev }) => {
+            const metrics = await runner.evaluate(({ expectDev }) => {
                 window.__expectDevDigits = expectDev;
                 const vw = window.innerWidth;
                 const scrollWidth = document.documentElement.scrollWidth;
@@ -332,7 +342,7 @@ async function main() {
                 url,
             });
 
-            await page.screenshot({ path: path.join(OUT, `${name}-${width}.png`), fullPage: false }).catch(() => {});
+            await runner.screenshot({ path: path.join(OUT, `${name}-${width}.png`), fullPage: false }).catch(() => {});
         }
     }
 
