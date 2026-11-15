@@ -391,6 +391,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const stock = String(p.stock || '0.000');
             const price = String(p.price || '0.00');
             const inStock = !p.track_stock || scaledInteger(stock, 3) > 0n;
+            // Build the label raw, then escape it once at the interpolation site.
+            const stockLabel = p.track_stock ? stock + ' ' + (p.unit || '') : 'Non-stock';
+            const nameNe = String(p.name_ne || '');
 
             const card = document.createElement('div');
             card.className = 'col-sm-6 col-md-4 col-6';
@@ -400,16 +403,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     <div class="d-flex justify-content-between align-items-start mb-1">
                         <span class="badge bg-light text-dark text-truncate" style="max-width: 100px;" title="${escapeHtml(p.sku || noSkuText)}">${escapeHtml(p.sku || noSkuText)}</span>
                         <small class="badge ${stock > 0 ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}">
-                            ${p.track_stock ? escapeHtml(stock) + ' ' + escapeHtml(p.unit || '') : 'Non-stock'}
+                            ${escapeHtml(stockLabel)}
                         </small>
                     </div>
                     <div class="fw-bold text-dark text-truncate mb-1" title="${escapeHtml(p.name)}">
                         ${escapeHtml(p.name)}
-                        ${p.name_ne ? `<div class="small text-muted fw-normal text-truncate">${escapeHtml(p.name_ne)}</div>` : ''}
+                        <div class="small text-muted fw-normal text-truncate ${nameNe === '' ? 'd-none' : ''}">${escapeHtml(nameNe)}</div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mt-auto">
                         <span class="fw-bold text-primary amount-nowrap">${currencySymbol} ${formatGrouped(price)}</span>
-                        <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${!inStock ? 'disabled' : ''}>
+                        <button type="button" class="btn btn-sm btn-primary py-0 px-2 add-to-cart-btn" ${escapeHtml(!inStock ? 'disabled' : '')}>
                             <i class="bi bi-plus-lg"></i>
                         </button>
                     </div>
@@ -562,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td class="py-2">
                     <div class="input-group input-group-sm">
                         <button class="btn btn-outline-secondary px-2 btn-qty-minus" type="button">-</button>
-                        <input type="number" step="0.001" min="0.001" class="form-control text-center p-0 item-qty-input" value="${item.quantity}">
+                        <input type="number" step="0.001" min="0.001" class="form-control text-center p-0 item-qty-input" value="${escapeHtml(String(item.quantity))}">
                         <button class="btn btn-outline-secondary px-2 btn-qty-plus" type="button">+</button>
                     </div>
                 </td>
@@ -667,9 +670,9 @@ document.addEventListener('DOMContentLoaded', function () {
         formItemsContainer.innerHTML = '';
         cart.forEach((item, idx) => {
             formItemsContainer.innerHTML += `
-                <input type="hidden" name="items[${idx}][product_id]" value="${item.product_id}">
-                <input type="hidden" name="items[${idx}][quantity]" value="${item.quantity}">
-                <input type="hidden" name="items[${idx}][unit_price]" value="${item.price}">
+                <input type="hidden" name="items[${escapeHtml(String(idx))}][product_id]" value="${escapeHtml(String(item.product_id))}">
+                <input type="hidden" name="items[${escapeHtml(String(idx))}][quantity]" value="${escapeHtml(String(item.quantity))}">
+                <input type="hidden" name="items[${escapeHtml(String(idx))}][unit_price]" value="${escapeHtml(String(item.price))}">
             `;
         });
 
