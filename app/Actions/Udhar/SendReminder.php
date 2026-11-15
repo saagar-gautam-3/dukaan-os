@@ -6,6 +6,7 @@ namespace App\Actions\Udhar;
 
 use App\Models\Customer;
 use App\Models\ReminderLog;
+use App\Support\ReminderMessageBuilder;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 
@@ -36,7 +37,7 @@ class SendReminder
         $phoneMasked = ReminderLog::maskPhone($customer->phone);
 
         // Build message preview (no sensitive financial details logged)
-        $messagePreview = $options['message'] ?? __('udhar.reminder_message_preview');
+        $messagePreview = $options['message'] ?? ReminderMessageBuilder::forCustomer($customer);
 
         return DB::transaction(function () use ($shop, $customer, $channel, $sentBy, $phoneMasked, $messagePreview, $options) {
             // Stub channel: just log it; future: dispatch a queued job per channel
@@ -64,6 +65,7 @@ class SendReminder
     private function dispatchChannel(string $channel, Customer $customer, string $message): string
     {
         return match ($channel) {
+            'auto' => 'queued_no_channel', // No delivery channel configured; nothing was sent.
             'stub' => 'sent', // No-op; future: dispatch queued job
             default => 'sent',
         };
