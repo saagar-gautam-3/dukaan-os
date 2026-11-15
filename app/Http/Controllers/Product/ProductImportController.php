@@ -136,6 +136,10 @@ class ProductImportController extends Controller
     {
         $this->authorize('view', $productImport);
 
+        if ($this->importFileExpired($productImport)) {
+            return response(__('products.import_file_expired'), 404);
+        }
+
         $out = "\xEF\xBB\xBF";
         $f = fopen('php://temp', 'w');
         fputcsv($f, ['line', 'reason']);
@@ -159,6 +163,10 @@ class ProductImportController extends Controller
     public function errorsXlsx(ProductImport $productImport)
     {
         $this->authorize('view', $productImport);
+
+        if ($this->importFileExpired($productImport)) {
+            return response(__('products.import_file_expired'), 404);
+        }
 
         $shop = Shop::findOrFail($productImport->shop_id);
         $autoSku = (bool) ($shop->settings['sku_auto_generate'] ?? true);
@@ -467,6 +475,15 @@ class ProductImportController extends Controller
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Content-Disposition' => 'attachment; filename="dukaan-products-template.xlsx"',
         ]);
+    }
+
+    private function importFileExpired(ProductImport $productImport): bool
+    {
+        if ($productImport->stored_path === null || $productImport->stored_path === '') {
+            return true;
+        }
+
+        return ! is_file(storage_path('app/'.$productImport->stored_path));
     }
 
     public function template()
