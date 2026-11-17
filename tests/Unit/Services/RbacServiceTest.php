@@ -35,4 +35,17 @@ final class RbacServiceTest extends TestCase
         $this->assertSame([$targetShop->id], $roles->pluck('shop_id')->unique()->values()->all());
         $this->assertSame($activeShop->id, TenantContext::getShopId());
     }
+
+    public function test_default_roles_can_be_seeded_twice_without_duplicate_or_error(): void
+    {
+        $shop = Shop::factory()->create();
+
+        app(RbacService::class)->createDefaultRolesForShop($shop);
+        app(RbacService::class)->createDefaultRolesForShop($shop);
+
+        $roles = Role::withoutGlobalScopes()->where('shop_id', $shop->id)->get();
+
+        $this->assertSame(5, $roles->count());
+        $this->assertSame(5, $roles->pluck('name')->unique()->count());
+    }
 }

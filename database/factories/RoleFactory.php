@@ -24,7 +24,15 @@ class RoleFactory extends Factory
     {
         return [
             'shop_id' => Shop::factory(),
-            'name' => fake()->unique()->jobTitle(),
+            'name' => (static function (): string {
+                $defaultRoleNames = ['Shop Owner', 'Manager', 'Cashier', 'Inventory Staff', 'Accountant'];
+
+                do {
+                    $name = fake()->unique()->jobTitle();
+                } while (in_array($name, $defaultRoleNames, true));
+
+                return $name;
+            })(),
             'guard_name' => 'web',
         ];
     }
