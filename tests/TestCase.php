@@ -7,9 +7,15 @@ use RuntimeException;
 
 abstract class TestCase extends BaseTestCase
 {
-    /**
-     * Guard against running the test suite against a non-test database.
-     */
+    public static function assertSafeTestEnvironment(string $env, string $database): void
+    {
+        if ($env !== 'testing' || $database !== 'dukaan_os_test') {
+            throw new RuntimeException(
+                "Refusing to run tests: APP_ENV=[{$env}], DB=[{$database}]. Open a fresh PowerShell, run Remove-Item Env:APP_ENV, then retry."
+            );
+        }
+    }
+
     public static function assertTestDatabase(string $database): void
     {
         if (! str_ends_with($database, '_test')) {
@@ -24,7 +30,7 @@ abstract class TestCase extends BaseTestCase
         $connection = config('database.default');
         $database = (string) config("database.connections.{$connection}.database");
 
-        self::assertTestDatabase($database);
+        self::assertSafeTestEnvironment((string) config('app.env'), $database);
 
         return $app;
     }

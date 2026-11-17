@@ -49,7 +49,7 @@ class SendReminder
                 'channel' => $channel,
                 'status' => $status,
                 'phone_masked' => $phoneMasked,
-                'message_preview' => substr($messagePreview, 0, 100),
+                'message_preview' => mb_substr($messagePreview, 0, 100),
                 'reference_type' => $options['reference_type'] ?? null,
                 'reference_id' => $options['reference_id'] ?? null,
                 'failure_reason' => null,
