@@ -175,7 +175,9 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
 });
 
 // Platform admin (audited, no impersonation)
-Route::middleware(['auth', 'platform.admin'])->prefix('platform')->name('platform.')->group(function () {
+Route::middleware(['auth', 'verified', 'platform.admin'])->prefix('platform')->name('platform.')->group(function () {
     Route::get('/shops', [PlatformShopController::class, 'index'])->name('shops.index');
-    Route::post('/shops/{shop}/toggle', [PlatformShopController::class, 'toggle'])->name('shops.toggle');
+    Route::get('/shops/{shop}/suspend', [PlatformShopController::class, 'suspendForm'])->name('shops.suspend');
+    Route::post('/shops/{shop}/suspend', [PlatformShopController::class, 'suspend'])->name('shops.suspend.store')->middleware('throttle:10,1');
+    Route::post('/shops/{shop}/reactivate', [PlatformShopController::class, 'reactivate'])->name('shops.reactivate')->middleware('throttle:10,1');
 });

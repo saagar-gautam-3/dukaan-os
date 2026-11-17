@@ -8,6 +8,7 @@ use App\Traits\Auditable;
 use Database\Factories\ShopFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -37,7 +38,22 @@ class Shop extends Model
         return [
             'settings' => 'array',
             'is_active' => 'boolean',
+            'suspended_at' => 'datetime',
         ];
+    }
+
+    public function suspendedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'suspended_by');
+    }
+
+    public function ownerUser(): HasOne
+    {
+        return $this->hasOne(ShopUser::class)
+            ->whereHas('role', static function ($query): void {
+                $query->where('name', 'Shop Owner');
+            })
+            ->oldest('id');
     }
 
     public function users(): BelongsToMany

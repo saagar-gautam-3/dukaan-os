@@ -71,6 +71,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Expense::class, ExpensePolicy::class);
         Gate::policy(CashSession::class, CashSessionPolicy::class);
 
+        Gate::define('platform.manage', static function (User $user): bool {
+            return $user->isPlatformAdmin();
+        });
+
         RateLimiter::for('register', fn (Request $request) => Limit::perMinute(5)->by($request->ip()));
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(5)
             ->by($request->ip())
