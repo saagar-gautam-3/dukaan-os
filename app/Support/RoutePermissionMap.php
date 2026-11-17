@@ -158,9 +158,11 @@ final class RoutePermissionMap
 
         // Platform operator area (never tenant scoped).
         'platform.shops.index' => ['platform' => true],
+        'platform.shops.show' => ['platform' => true],
         'platform.shops.suspend' => ['platform' => true],
         'platform.shops.suspend.store' => ['platform' => true],
         'platform.shops.reactivate' => ['platform' => true],
+        'platform.audit.index' => ['platform' => true],
     ];
 
     /**

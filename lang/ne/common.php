@@ -22,6 +22,7 @@ return [
     'navigation' => 'मुख्य नेभिगेसन',
     'close_sidebar' => 'साइडबार बन्द गर्नुहोस्',
     'platform_shops' => 'प्लेटफर्मका पसलहरू',
+    'platform_audit' => 'प्लेटफर्म अडिट',
     'logout' => 'लगआउट',
     'current_shop' => 'चालू पसल',
     'role' => 'भूमिका',

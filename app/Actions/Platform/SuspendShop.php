@@ -7,6 +7,7 @@ namespace App\Actions\Platform;
 use App\Models\Shop;
 use App\Models\User;
 use App\Support\AuditTrail;
+use App\Support\PlatformAuditEvents;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -42,7 +43,7 @@ class SuspendShop
             $shop->suspended_reason = $reason;
             $shop->saveQuietly();
 
-            AuditTrail::record($shop, $actor->id, 'platform.shop_suspended', $oldValues, [
+            AuditTrail::record($shop, $actor->id, PlatformAuditEvents::SHOP_SUSPENDED, $oldValues, [
                 'shop_id' => $shop->id,
                 'shop_name' => $shop->name,
                 'reason' => $reason,

@@ -39,7 +39,7 @@
             <tbody>
                 @forelse ($shops as $shop)
                     <tr>
-                        <td>{{ $shop->name }}</td>
+                        <td><a href="{{ route('platform.shops.show', $shop) }}">{{ $shop->name }}</a></td>
                         <td>{{ $shop->ownerUser?->user?->email ?? '-' }}</td>
                         <td>{{ $shop->created_at }}</td>
                         <td>

@@ -8,9 +8,15 @@ use App\Actions\Platform\ReactivateShop;
 use App\Actions\Platform\SuspendShop;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Platform\SuspendShopRequest;
+use App\Models\AuditLog;
 use App\Models\Shop;
+use App\Models\User;
+use App\Services\Platform\PlatformShopInsights;
+use App\Support\AuditTrail;
+use App\Support\PlatformAuditEvents;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class PlatformShopController extends Controller
@@ -70,5 +76,53 @@ class PlatformShopController extends Controller
 
         return redirect()->route('platform.shops.index')
             ->with('status', __('platform.shop_reactivated'));
+    }
+
+    public function show(Shop $shop, PlatformShopInsights $insights): View
+    {
+        $this->authorize('platform.manage');
+
+        $shop->load(['ownerUser.user:id,name,email']);
+
+        $this->recordViewAudit($shop, request()->user());
+
+        $platformAudits = AuditLog::query()
+            ->where('auditable_type', $shop->getMorphClass())
+            ->where('auditable_id', $shop->id)
+            ->whereIn('event', PlatformAuditEvents::SHOP_HISTORY)
+            ->with('user:id,name,email')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        return view('platform.shops.show', [
+            'shop' => $shop,
+            'insights' => $insights->for($shop),
+            'platformAudits' => $platformAudits,
+        ]);
+    }
+
+    private function recordViewAudit(Shop $shop, ?User $admin): void
+    {
+        if ($admin === null) {
+            return;
+        }
+
+        $recent = AuditLog::query()
+            ->where('event', PlatformAuditEvents::SHOP_VIEWED)
+            ->where('user_id', $admin->id)
+            ->where('auditable_type', $shop->getMorphClass())
+            ->where('auditable_id', $shop->id)
+            ->where('created_at', '>=', Carbon::now()->subMinutes(60))
+            ->exists();
+
+        if ($recent) {
+            return;
+        }
+
+        AuditTrail::record($shop, $admin->id, PlatformAuditEvents::SHOP_VIEWED, null, [
+            'shop_id' => $shop->id,
+            'shop_name' => $shop->name,
+        ]);
     }
 }

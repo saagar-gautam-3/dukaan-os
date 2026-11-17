@@ -130,9 +130,16 @@
         @endCanRoute
 
         @canRoute('platform.shops.index')
-        <a href="{{ route('platform.shops.index') }}" class="nav-link {{ request()->routeIs('platform.*') ? 'active' : '' }}">
+        <a href="{{ route('platform.shops.index') }}" class="nav-link {{ request()->routeIs('platform.shops.*') ? 'active' : '' }}">
             <i class="bi bi-building"></i>
             <span>{{ __('common.platform_shops') }}</span>
+        </a>
+        @endCanRoute
+
+        @canRoute('platform.audit.index')
+        <a href="{{ route('platform.audit.index') }}" class="nav-link {{ request()->routeIs('platform.audit.*') ? 'active' : '' }}">
+            <i class="bi bi-journal-text"></i>
+            <span>{{ __('common.platform_audit') }}</span>
         </a>
         @endCanRoute
 
