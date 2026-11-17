@@ -71,6 +71,7 @@ return [
     'import_error_read' => 'फाइल पढ्न सकिएन।',
     'import_error_encoding' => 'फाइल UTF-8 मा हुनुपर्छ।',
     'import_error_empty' => 'खाली फाइल।',
+    'import_file_expired' => '?? ???? ?????? ????? ?????? ? ? ?? ?????? ????',
     'import_error_missing_column' => 'आवश्यक स्तम्भ छुट्यो: :column।',
     'import_error_too_many_rows' => 'धेरै पङ्क्तिहरू (अधिकतम :max)।',
     'import_download_xlsx' => 'Excel टेम्प्लेट डाउनलोड',

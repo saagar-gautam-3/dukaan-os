@@ -80,6 +80,7 @@ return [
     'import_error_read' => 'Unable to read file.',
     'import_error_encoding' => 'File must be UTF-8 encoded.',
     'import_error_empty' => 'Empty file.',
+    'import_file_expired' => 'This import file has expired and is no longer available.',
     'import_error_missing_column' => 'Missing required column: :column.',
     'import_error_too_many_rows' => 'Too many rows (max :max).',
     'import_error_text_too_large' => 'Text column contains too many digits.',

@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('udhar:send-due-reminders')->daily();
+Schedule::command('imports:prune')->daily();
