@@ -395,6 +395,11 @@ class PlatformDetailAuditTest extends TestCase
             ->assertSee('<td>audit-b@example.test</td>', false)
             ->assertDontSee('<td>Policy violation alpha</td>', false)
             ->assertDontSee('<td>Audit Alpha</td>', false);
+
+        $this->get(route('platform.audit.index', ['from' => '2026-13-99', 'to' => 'not-a-date']))
+            ->assertOk()
+            ->assertSee('<td>Policy violation alpha</td>', false)
+            ->assertSee('<td>Audit Beta</td>', false);
     }
 
     public function test_audit_viewer_is_paginated_newest_first(): void

@@ -12,6 +12,7 @@ use App\Support\PlatformAuditEvents;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
+use Throwable;
 
 class PlatformAuditController extends Controller
 {
@@ -42,12 +43,14 @@ class PlatformAuditController extends Controller
             $query->where('event', $event);
         }
 
-        if ($this->isDate($from)) {
-            $query->where('created_at', '>=', Carbon::parse($from, 'Asia/Kathmandu')->startOfDay()->utc());
+        $fromDate = $this->parseDate($from);
+        if ($fromDate !== null) {
+            $query->where('created_at', '>=', $fromDate->copy()->startOfDay()->utc());
         }
 
-        if ($this->isDate($to)) {
-            $query->where('created_at', '<=', Carbon::parse($to, 'Asia/Kathmandu')->endOfDay()->utc());
+        $toDate = $this->parseDate($to);
+        if ($toDate !== null) {
+            $query->where('created_at', '<=', $toDate->copy()->endOfDay()->utc());
         }
 
         $logs = $query->latest('created_at')->paginate(50)->withQueryString();
@@ -74,8 +77,18 @@ class PlatformAuditController extends Controller
         ]);
     }
 
-    private function isDate(mixed $value): bool
+    private function parseDate(mixed $value): ?Carbon
     {
-        return is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) === 1;
+        if (! is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
+            return null;
+        }
+
+        try {
+            $date = Carbon::createFromFormat('!Y-m-d', $value, 'Asia/Kathmandu');
+        } catch (Throwable) {
+            return null;
+        }
+
+        return $date !== false && $date->format('Y-m-d') === $value ? $date : null;
     }
 }
