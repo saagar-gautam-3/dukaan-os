@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'tenant_context_missing' => 'Tenant context missing or unauthorized.',
-    'shop_deactivated' => 'This shop has been deactivated.',
+    'shop_deactivated' => 'This shop account is suspended. Contact support.',
     'shop_access_revoked' => 'Access to this shop is revoked or inactive.',
     'shop_switch_unauthorized' => 'Unauthorized shop switch.',
     'collection_amount_positive' => 'Collection amount must be greater than zero.',

@@ -33,6 +33,8 @@ class PlatformCreateAdmin extends Command
             'is_platform_admin' => true,
         ]);
 
+        $user->forceFill(['email_verified_at' => now()])->saveQuietly();
+
         $this->info("Platform admin created: {$user->email}");
 
         return self::SUCCESS;

@@ -117,19 +117,11 @@ class RbacService
             $roles = [];
 
             foreach ($roleDefinitions as $roleName => $permissionNames) {
-                /** @var Role|null $role */
-                $role = Role::withoutGlobalScopes()
-                    ->where('shop_id', $shop->id)
-                    ->where('name', $roleName)
-                    ->first();
-
-                if ($role === null) {
-                    $role = new Role;
-                    $role->shop_id = $shop->id;
-                    $role->name = $roleName;
-                    $role->guard_name = 'web';
-                    $role->save();
-                }
+                /** @var Role $role */
+                $role = Role::withoutGlobalScopes()->firstOrCreate(
+                    ['shop_id' => $shop->id, 'name' => $roleName],
+                    ['guard_name' => 'web']
+                );
 
                 $permissionIds = collect($permissionNames)
                     ->map(fn (string $name) => $allPermissions->get($name)?->id)
