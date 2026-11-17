@@ -170,7 +170,9 @@ class F2RouteCoverageTest extends TestCase
     {
         $exceptions = [
             'platform.shops.index' => 'Platform operator only; not tenant-scoped.',
-            'platform.shops.toggle' => 'Platform operator only; not tenant-scoped.',
+            'platform.shops.suspend' => 'Platform operator only; not tenant-scoped.',
+            'platform.shops.suspend.store' => 'Platform operator only; not tenant-scoped.',
+            'platform.shops.reactivate' => 'Platform operator only; not tenant-scoped.',
         ];
 
         foreach (array_keys($exceptions) as $name) {

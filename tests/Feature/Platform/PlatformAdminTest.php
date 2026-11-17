@@ -36,9 +36,9 @@ class PlatformAdminTest extends TestCase
         $this->get('/platform/shops')->assertStatus(403);
     }
 
-    public function test_platform_admin_allowed_and_toggle_writes_audit(): void
+    public function test_platform_admin_allowed_and_suspend_writes_audit(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true]);
+        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
         $shop = Shop::factory()->create(['is_active' => true]);
         $this->actingAs($admin);
 
@@ -47,18 +47,21 @@ class PlatformAdminTest extends TestCase
         $response->assertOk();
         $this->assertStringNotContainsString('sales', $response->getContent());
 
-        $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
+        $this->get(route('platform.shops.suspend', $shop))->assertOk();
+        $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'Policy violation tested'])
+            ->assertRedirect();
         $this->assertSame($before + 1, AuditLog::count());
         $this->assertFalse($shop->fresh()->is_active);
+        $this->assertNotNull($shop->fresh()->suspended_at);
 
-        // reactivation restores access
-        $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
+        $this->post(route('platform.shops.reactivate', $shop))->assertRedirect();
         $this->assertTrue($shop->fresh()->is_active);
+        $this->assertNull($shop->fresh()->suspended_at);
     }
 
     public function test_platform_index_exposes_counts_only(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true]);
+        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
         Shop::factory()->create(['name' => 'Secret Shop']);
         $this->actingAs($admin);
 
@@ -80,11 +83,12 @@ class PlatformAdminTest extends TestCase
         $user = User::where('email', 'operator@example.com')->first();
         $this->assertNotNull($user);
         $this->assertTrue($user->is_platform_admin);
+        $this->assertNotNull($user->email_verified_at);
     }
 
     public function test_reactivation_restores_access(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true]);
+        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
         $shop = Shop::factory()->create(['is_active' => true]);
         TenantContext::setShop($shop);
         $rbac = app(RbacService::class);
@@ -99,8 +103,9 @@ class PlatformAdminTest extends TestCase
 
         $this->actingAs($admin);
         $before = AuditLog::count();
-        $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
-        $this->post(route('platform.shops.toggle', $shop))->assertRedirect();
+        $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'Temporarily suspended for testing'])
+            ->assertRedirect();
+        $this->post(route('platform.shops.reactivate', $shop))->assertRedirect();
         $this->assertSame($before + 2, AuditLog::count());
 
         $this->actingAs($user);
@@ -111,7 +116,7 @@ class PlatformAdminTest extends TestCase
 
     public function test_deactivated_shop_blocks_users(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true]);
+        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
         $shop = Shop::factory()->create(['is_active' => true]);
         TenantContext::setShop($shop);
         $rbac = app(RbacService::class);
@@ -125,7 +130,7 @@ class PlatformAdminTest extends TestCase
         ]);
 
         $this->actingAs($admin);
-        $this->post(route('platform.shops.toggle', $shop));
+        $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'Temporarily suspended for testing']);
 
         $this->actingAs($user);
         TenantContext::setShop($shop);
