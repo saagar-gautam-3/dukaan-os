@@ -166,7 +166,7 @@
                                 @endCanRoute
                                 @canRoute('udhar.reminders.send', $customer)
                                 @php
-                                    $lastReminder = $customer->reminderLogs()->latest()->first();
+                                    $lastReminder = $customer->reminderLogs()->where('status', 'opened')->latest()->first();
                                     $canRemind = $customer->phone && \App\Support\NepaliPhone::isValidMobile($customer->phone)
                                         && \App\Support\Money::compare((string) $customer->balance, '0', 2) > 0;
                                 @endphp

@@ -8,8 +8,8 @@ use App\Models\Customer;
 use App\Models\ReminderLog;
 use App\Support\AuditTrail;
 use App\Support\Money;
-use App\Support\NepaliNumber;
 use App\Support\NepaliPhone;
+use App\Support\ReminderMessageBuilder;
 use App\Tenancy\TenantContext;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -36,22 +36,7 @@ final class SendWhatsAppReminder
 
         $shop = TenantContext::shop();
 
-        $oldestSale = $customer->openSales()->first();
-        $dateSuffix = '';
-        if ($oldestSale !== null) {
-            $referenceDate = $oldestSale->due_date ?? $oldestSale->posted_at;
-            if ($referenceDate !== null) {
-                $dateSuffix = __('udhar.reminder_oldest_due', ['date' => $referenceDate->format('d M Y')]);
-            }
-        }
-
-        $amountText = NepaliNumber::formatNpr($balance);
-        $message = __('udhar.reminder_whatsapp_message', [
-            'shop' => $shop->name,
-            'customer' => $customer->name,
-            'amount' => $amountText,
-            'date' => $dateSuffix,
-        ]);
+        $message = ReminderMessageBuilder::forCustomer($customer);
 
         $log = DB::transaction(function () use ($shop, $customer, $userId, $balance, $message, $normalizedPhone) {
             $log = ReminderLog::create([

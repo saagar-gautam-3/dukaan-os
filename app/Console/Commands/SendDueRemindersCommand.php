@@ -6,9 +6,11 @@ namespace App\Console\Commands;
 
 use App\Enums\SaleStatus;
 use App\Jobs\SendReminderJob;
+use App\Models\Customer;
 use App\Models\ReminderLog;
 use App\Models\Sale;
 use App\Models\Shop;
+use App\Support\ReminderMessageBuilder;
 use App\Tenancy\TenantContext;
 use Illuminate\Console\Command;
 
@@ -20,7 +22,8 @@ final class SendDueRemindersCommand extends Command
      * @var string
      */
     protected $signature = 'udhar:send-due-reminders
-                            {--shop= : Specific shop ID (defaults to all shops)}';
+                            {--shop= : Specific shop ID (defaults to all shops)}
+                            {--dry-run : List who would be reminded without dispatching}';
 
     /**
      * The console command description.
@@ -32,6 +35,7 @@ final class SendDueRemindersCommand extends Command
     public function handle(): int
     {
         $specificShopId = $this->option('shop');
+        $dryRun = (bool) $this->option('dry-run');
 
         $shops = $specificShopId !== null
             ? Shop::where('id', (int) $specificShopId)->get()
@@ -46,11 +50,11 @@ final class SendDueRemindersCommand extends Command
         $totalDispatched = 0;
 
         foreach ($shops as $shop) {
-            TenantContext::runAs($shop, function (Shop $shop) use (&$totalDispatched): void {
+            TenantContext::runAs($shop, function (Shop $shop) use (&$totalDispatched, $dryRun): void {
                 $settings = $shop->settings ?? [];
 
-                // Respect per-shop setting: default enabled unless explicitly disabled
-                if (isset($settings['auto_reminders_enabled']) && ! $settings['auto_reminders_enabled']) {
+                // Opt-in only: automatic reminders are OFF unless explicitly enabled.
+                if (($settings['auto_reminders_enabled'] ?? false) !== true) {
                     $this->line("  [SKIP] Shop #{$shop->id} has automatic reminders disabled.");
 
                     return;
@@ -81,11 +85,22 @@ final class SendDueRemindersCommand extends Command
                         continue;
                     }
 
+                    if ($dryRun) {
+                        $this->line("  [DRY-RUN] Shop #{$shop->id} would remind customer #{$customerId}.");
+                        $totalDispatched++;
+
+                        continue;
+                    }
+
+                    $customer = Customer::findOrFail((int) $customerId);
+                    $message = ReminderMessageBuilder::forCustomer($customer);
+
                     SendReminderJob::dispatch(
                         $shop->id,
                         (int) $customerId,
                         null,
-                        __('udhar.reminder_message_preview'),
+                        $message,
+                        'auto',
                     );
 
                     $totalDispatched++;
@@ -93,7 +108,11 @@ final class SendDueRemindersCommand extends Command
             });
         }
 
-        $this->info("Dispatched {$totalDispatched} reminder job(s) across shops.");
+        if ($dryRun) {
+            $this->info("Dry run: {$totalDispatched} reminder(s) would be dispatched.");
+        } else {
+            $this->info("Dispatched {$totalDispatched} reminder job(s) across shops.");
+        }
 
         return self::SUCCESS;
     }

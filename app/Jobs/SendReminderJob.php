@@ -20,6 +20,7 @@ final class SendReminderJob implements ShouldQueue
         public readonly int $customerId,
         public readonly ?int $sentBy = null,
         public readonly ?string $customMessage = null,
+        public readonly string $channel = 'stub',
     ) {}
 
     public function handle(SendReminder $sendReminder): void
@@ -32,6 +33,7 @@ final class SendReminderJob implements ShouldQueue
             $sendReminder->handle($customer, [
                 'sent_by' => $this->sentBy,
                 'message' => $this->customMessage,
+                'channel' => $this->channel,
             ]);
         });
     }
