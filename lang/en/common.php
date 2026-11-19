@@ -22,6 +22,7 @@ return [
     'navigation' => 'Main navigation',
     'close_sidebar' => 'Close sidebar',
     'platform_shops' => 'Platform shops',
+    'platform_audit' => 'Platform audit',
     'logout' => 'Log Out',
     'current_shop' => 'Current Shop',
     'role' => 'Role',

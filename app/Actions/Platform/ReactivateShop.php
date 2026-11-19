@@ -7,6 +7,7 @@ namespace App\Actions\Platform;
 use App\Models\Shop;
 use App\Models\User;
 use App\Support\AuditTrail;
+use App\Support\PlatformAuditEvents;
 use Illuminate\Support\Facades\DB;
 
 class ReactivateShop
@@ -27,7 +28,7 @@ class ReactivateShop
             $shop->suspended_reason = null;
             $shop->saveQuietly();
 
-            AuditTrail::record($shop, $actor->id, 'platform.shop_reactivated', $oldValues, [
+            AuditTrail::record($shop, $actor->id, PlatformAuditEvents::SHOP_REACTIVATED, $oldValues, [
                 'shop_id' => $shop->id,
                 'shop_name' => $shop->name,
                 'reason' => null,

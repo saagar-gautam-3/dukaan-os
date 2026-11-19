@@ -11,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Inventory\PurchaseController;
 use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\SupplierController;
+use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformShopController;
 use App\Http\Controllers\Product\CategoryController;
 use App\Http\Controllers\Product\ProductController;
@@ -177,7 +178,10 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
 // Platform admin (audited, no impersonation)
 Route::middleware(['auth', 'verified', 'platform.admin'])->prefix('platform')->name('platform.')->group(function () {
     Route::get('/shops', [PlatformShopController::class, 'index'])->name('shops.index');
+    Route::get('/shops/{shop}', [PlatformShopController::class, 'show'])->name('shops.show')->middleware('throttle:60,1');
     Route::get('/shops/{shop}/suspend', [PlatformShopController::class, 'suspendForm'])->name('shops.suspend');
     Route::post('/shops/{shop}/suspend', [PlatformShopController::class, 'suspend'])->name('shops.suspend.store')->middleware('throttle:10,1');
     Route::post('/shops/{shop}/reactivate', [PlatformShopController::class, 'reactivate'])->name('shops.reactivate')->middleware('throttle:10,1');
+
+    Route::get('/audit', [PlatformAuditController::class, 'index'])->name('audit.index')->middleware('throttle:60,1');
 });
