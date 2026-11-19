@@ -81,7 +81,7 @@ trait Auditable
     {
         return property_exists($this, 'auditExcluded')
             ? $this->auditExcluded
-            : ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes', 'updated_at'];
+            : ['password', 'remember_token', 'two_factor_secret', 'two_factor_recovery_codes', 'two_factor_last_step', 'updated_at'];
     }
 
     /**

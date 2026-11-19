@@ -37,6 +37,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'remember_token',
         'two_factor_secret',
         'two_factor_recovery_codes',
+        'two_factor_last_step',
         'updated_at',
         'permissions_version',
     ];
@@ -53,7 +54,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'permissions_version' => 'integer',
             'is_platform_admin' => 'boolean',
+            'two_factor_secret' => 'encrypted',
+            'two_factor_confirmed_at' => 'datetime',
+            'two_factor_recovery_codes' => 'array',
+            'two_factor_last_step' => 'integer',
         ];
+    }
+
+    public function hasPlatformTwoFactorConfirmed(): bool
+    {
+        return $this->isPlatformAdmin() && $this->two_factor_confirmed_at !== null && filled($this->two_factor_secret);
     }
 
     public function shops(): BelongsToMany
