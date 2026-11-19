@@ -19,7 +19,7 @@ class PlatformListTest extends TestCase
 
     private function admin(): User
     {
-        return User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
+        return $this->actingAsPlatformAdmin();
     }
 
     public function test_search_by_name_slug_and_owner_email(): void
@@ -38,7 +38,7 @@ class PlatformListTest extends TestCase
         ]);
         TenantContext::reset();
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $this->get(route('platform.shops.index', ['q' => 'Findable']))->assertSee('Findable Shop');
         $this->get(route('platform.shops.index', ['q' => 'findable-shop']))->assertSee('Findable Shop');
         $this->get(route('platform.shops.index', ['q' => 'owner@findable.test']))->assertSee('Findable Shop');
@@ -50,7 +50,7 @@ class PlatformListTest extends TestCase
         Shop::factory()->create(['name' => 'Active Shop', 'is_active' => true]);
         Shop::factory()->create(['name' => 'Suspended Shop', 'is_active' => false]);
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $this->get(route('platform.shops.index', ['status' => 'active']))->assertSee('Active Shop')->assertDontSee('Suspended Shop');
         $this->get(route('platform.shops.index', ['status' => 'suspended']))->assertSee('Suspended Shop')->assertDontSee('Active Shop');
     }
@@ -62,7 +62,7 @@ class PlatformListTest extends TestCase
             Shop::factory()->create(['name' => "Shop {$i}"]);
         }
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $response = $this->get(route('platform.shops.index', ['q' => 'Shop', 'page' => 2]));
         $response->assertOk();
         $this->assertStringContainsString('q=Shop', $response->getContent());
@@ -87,7 +87,7 @@ class PlatformListTest extends TestCase
             TenantContext::reset();
         }
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $queries = 0;
         DB::listen(function () use (&$queries): void {
             $queries++;
@@ -99,7 +99,7 @@ class PlatformListTest extends TestCase
     public function test_empty_state(): void
     {
         $admin = $this->admin();
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $this->get(route('platform.shops.index', ['q' => 'zzzz-no-match']))
             ->assertOk()
             ->assertSee(__('platform.empty'));

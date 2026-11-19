@@ -16,14 +16,14 @@ class PlatformSuspendTest extends TestCase
 
     private function admin(): User
     {
-        return User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
+        return $this->actingAsPlatformAdmin();
     }
 
     public function test_suspend_reason_validation(): void
     {
         $admin = $this->admin();
         $shop = Shop::factory()->create(['is_active' => true]);
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
 
         $this->post(route('platform.shops.suspend.store', $shop), ['reason' => ''])->assertSessionHasErrors('reason');
         $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'abcd'])->assertSessionHasErrors('reason');
@@ -34,7 +34,7 @@ class PlatformSuspendTest extends TestCase
     {
         $admin = $this->admin();
         $shop = Shop::factory()->create(['is_active' => true]);
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
 
         $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'First suspension reason'])
             ->assertRedirect();
@@ -46,7 +46,7 @@ class PlatformSuspendTest extends TestCase
     {
         $admin = $this->admin();
         $shop = Shop::factory()->create(['is_active' => true, 'name' => 'Audit Shop']);
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
 
         $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'Fraud suspected'])
             ->assertRedirect();
@@ -68,7 +68,7 @@ class PlatformSuspendTest extends TestCase
         $shop->suspended_reason = 'Temp';
         $shop->save();
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $this->post(route('platform.shops.reactivate', $shop))->assertRedirect();
 
         $fresh = $shop->fresh();

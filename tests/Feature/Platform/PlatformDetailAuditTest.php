@@ -34,12 +34,14 @@ class PlatformDetailAuditTest extends TestCase
 
     private function admin(?string $email = null): User
     {
-        return User::factory()->create([
+        $user = User::factory()->create([
             'is_platform_admin' => true,
             'email_verified_at' => now(),
             'email' => $email ?? 'admin-'.fake()->unique()->safeEmail(),
             'locale' => 'en',
         ]);
+
+        return $this->actingAsPlatformAdmin($user);
     }
 
     private function member(Shop $shop, string $roleName, array $attributes = []): User
@@ -109,6 +111,9 @@ class PlatformDetailAuditTest extends TestCase
         $shop = Shop::factory()->create();
         $admin = $this->admin('platform-admin@example.test');
 
+        auth()->logout();
+        $this->flushSession();
+
         $this->get(route('platform.shops.show', $shop))->assertRedirect('/login');
         $this->get(route('platform.audit.index'))->assertRedirect('/login');
 
@@ -129,7 +134,7 @@ class PlatformDetailAuditTest extends TestCase
         $this->get(route('platform.shops.show', $shop))->assertRedirect(route('verification.notice'));
         $this->get(route('platform.audit.index'))->assertRedirect(route('verification.notice'));
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $this->get(route('platform.shops.show', $shop))
             ->assertOk()
             ->assertSee(route('platform.audit.index', ['shop' => $shop->id]), false);
@@ -229,8 +234,8 @@ class PlatformDetailAuditTest extends TestCase
             $this->assertSame('Pilot Plan', $insights['subscription']['plan']);
             $this->assertSame('active', $insights['subscription']['status']);
 
-            $this->actingAs($admin)
-                ->get(route('platform.shops.show', $shop))
+            $this->actingAsPlatformAdmin($admin);
+            $this->get(route('platform.shops.show', $shop))
                 ->assertOk()
                 ->assertSee('Insights Shop')
                 ->assertSee('insights-shop', false)
@@ -260,8 +265,8 @@ class PlatformDetailAuditTest extends TestCase
         $this->assertFalse($insights['auto_reminders_enabled']);
         $this->assertNull($insights['subscription']);
 
-        $this->actingAs($admin)
-            ->get(route('platform.shops.show', $shop))
+        $this->actingAsPlatformAdmin($admin);
+        $this->get(route('platform.shops.show', $shop))
             ->assertOk()
             ->assertSee(__('platform.empty_history'));
     }
@@ -322,7 +327,7 @@ class PlatformDetailAuditTest extends TestCase
 
         $this->tenantAudit($shop, 'updated', ['phone' => '9822222222']);
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $detail = (string) $this->get(route('platform.shops.show', $shop))->getContent();
         $audit = (string) $this->get(route('platform.audit.index'))->getContent();
 
@@ -418,11 +423,12 @@ class PlatformDetailAuditTest extends TestCase
             );
         }
 
-        $response = $this->actingAs($admin)->get(route('platform.audit.index'));
+        $this->actingAsPlatformAdmin($admin);
+        $response = $this->get(route('platform.audit.index'));
         $response->assertOk();
 
         $content = (string) $response->getContent();
-        $this->assertSame(50, substr_count($content, '<td>'.PlatformAuditEvents::SHOP_VIEWED.'</td>'));
+        $this->assertSame(50, substr_count($content, '<span class="text-muted small">'.PlatformAuditEvents::SHOP_VIEWED.'</span>'));
         $response->assertSee('page=2', false);
     }
 
@@ -431,7 +437,7 @@ class PlatformDetailAuditTest extends TestCase
         $admin = $this->admin('history-admin@example.test');
         $shop = Shop::factory()->create(['name' => 'History Shop']);
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
         $this->get(route('platform.shops.show', $shop))->assertOk();
         $this->get(route('platform.shops.show', $shop))->assertOk();
 
@@ -477,7 +483,7 @@ class PlatformDetailAuditTest extends TestCase
             now()
         );
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin($admin);
 
         $detail = $this->visibleText((string) $this->get(route('platform.shops.show', $shop))->getContent());
         $audit = $this->visibleText((string) $this->get(route('platform.audit.index'))->getContent());

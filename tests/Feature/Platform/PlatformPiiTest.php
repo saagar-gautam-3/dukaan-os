@@ -19,7 +19,7 @@ class PlatformPiiTest extends TestCase
 
     public function test_platform_pages_do_not_expose_tenant_pii(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
+        $this->actingAsPlatformAdmin();
         $shop = Shop::factory()->create(['name' => 'PII Shop', 'is_active' => true]);
         TenantContext::setShop($shop);
         $rbac = app(RbacService::class);
@@ -40,7 +40,6 @@ class PlatformPiiTest extends TestCase
 
         $secretStrings = ['Distinctive Customer Name', '9811111111', '9800000001'];
 
-        $this->actingAs($admin);
         foreach (['/platform/shops', '/platform/shops/'.$shop->id.'/suspend'] as $url) {
             $response = $this->get($url);
             $response->assertOk();
@@ -52,7 +51,6 @@ class PlatformPiiTest extends TestCase
 
     public function test_suspension_reason_not_shown_to_shop_users(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
         $shop = Shop::factory()->create(['is_active' => true]);
         TenantContext::setShop($shop);
         $rbac = app(RbacService::class);
@@ -66,7 +64,7 @@ class PlatformPiiTest extends TestCase
         ]);
         TenantContext::reset();
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin();
         $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'SECRET-REASON-123'])
             ->assertRedirect();
 
