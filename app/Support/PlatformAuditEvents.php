@@ -22,6 +22,8 @@ final class PlatformAuditEvents
 
     public const TWO_FACTOR_RESET = 'platform.2fa_reset';
 
+    public const OWNER_RESET_LINK_CREATED = 'platform.owner_reset_link_created';
+
     /** @var list<string> */
     public const ALL = [
         self::SHOP_SUSPENDED,
@@ -32,6 +34,7 @@ final class PlatformAuditEvents
         self::TWO_FACTOR_RECOVERY_USED,
         self::TWO_FACTOR_RECOVERY_REGENERATED,
         self::TWO_FACTOR_RESET,
+        self::OWNER_RESET_LINK_CREATED,
     ];
 
     /** @var list<string> */

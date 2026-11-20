@@ -101,7 +101,7 @@
         </div>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3 d-flex flex-wrap gap-2">
         @if ($shop->is_active)
             <a href="{{ route('platform.shops.suspend', $shop) }}" class="btn btn-danger" style="min-height:44px;">{{ __('platform.suspend') }}</a>
         @else
@@ -109,6 +109,9 @@
                 @csrf
                 <button type="submit" class="btn btn-success" style="min-height:44px;">{{ __('platform.reactivate') }}</button>
             </form>
+        @endif
+        @if ($shop->ownerUser?->user)
+            <a href="{{ route('platform.shops.owner-reset', $shop) }}" class="btn btn-warning" style="min-height:44px;">{{ __('platform.owner_password_reset') }}</a>
         @endif
     </div>
 

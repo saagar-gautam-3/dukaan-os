@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Platform;
 
+use App\Actions\Platform\CreateOwnerPasswordResetLink;
 use App\Actions\Platform\ReactivateShop;
 use App\Actions\Platform\SuspendShop;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Platform\CreateOwnerPasswordResetLinkRequest;
 use App\Http\Requests\Platform\SuspendShopRequest;
 use App\Models\AuditLog;
 use App\Models\Shop;
@@ -16,7 +18,10 @@ use App\Support\AuditTrail;
 use App\Support\PlatformAuditEvents;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class PlatformShopController extends Controller
@@ -76,6 +81,88 @@ class PlatformShopController extends Controller
 
         return redirect()->route('platform.shops.index')
             ->with('status', __('platform.shop_reactivated'));
+    }
+
+    public function ownerResetForm(Shop $shop): View
+    {
+        $this->authorize('platform.manage');
+
+        $shop->load(['ownerUser.user:id,email']);
+
+        if (! $this->hasResettableOwner($shop)) {
+            abort(404);
+        }
+
+        $mailConfigured = ! in_array((string) config('mail.default'), ['log', 'array', '', null], true);
+
+        return view('platform.shops.owner-reset', [
+            'shop' => $shop,
+            'mailConfigured' => $mailConfigured,
+            'expiryMinutes' => (int) config('auth.passwords.users.expire', 60),
+        ]);
+    }
+
+    public function ownerReset(CreateOwnerPasswordResetLinkRequest $request, Shop $shop, CreateOwnerPasswordResetLink $createOwnerPasswordResetLink): RedirectResponse
+    {
+        $this->authorize('platform.manage');
+
+        $shop->load(['ownerUser.user:id,email']);
+
+        if (! $this->hasResettableOwner($shop)) {
+            abort(404);
+        }
+
+        if (! Hash::check((string) $request->input('current_password'), (string) $request->user()->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => __('platform.current_password_invalid'),
+            ]);
+        }
+
+        $result = $createOwnerPasswordResetLink->execute(
+            $shop,
+            $request->user(),
+            (string) $request->validated('reason'),
+            (bool) $request->boolean('email_owner')
+        );
+
+        session()->flash('owner_reset_result', [
+            'shop_id' => $shop->id,
+            'url' => $result['url'],
+            'expires_at' => $result['expires_at']->toIso8601String(),
+            'owner_email' => $result['owner']->email,
+        ]);
+
+        return redirect()->route('platform.shops.owner-reset.result', $shop);
+    }
+
+    public function ownerResetResult(Shop $shop): Response
+    {
+        $this->authorize('platform.manage');
+
+        $result = session()->pull('owner_reset_result');
+
+        if (! is_array($result) || (int) ($result['shop_id'] ?? 0) !== (int) $shop->id) {
+            $result = null;
+        }
+
+        $mailConfigured = ! in_array((string) config('mail.default'), ['log', 'array', '', null], true);
+
+        return response()
+            ->view('platform.shops.owner-reset-result', [
+                'shop' => $shop,
+                'result' => $result,
+                'mailConfigured' => $mailConfigured,
+            ])
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
+    }
+
+    private function hasResettableOwner(Shop $shop): bool
+    {
+        $owner = $shop->ownerUser?->user;
+
+        return $owner !== null && ! (bool) $owner->is_platform_admin;
     }
 
     public function show(Shop $shop, PlatformShopInsights $insights): View
