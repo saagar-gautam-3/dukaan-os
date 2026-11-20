@@ -191,5 +191,9 @@ Route::middleware(['auth', 'verified', 'platform.admin', 'platform.2fa'])->prefi
     Route::post('/shops/{shop}/suspend', [PlatformShopController::class, 'suspend'])->name('shops.suspend.store')->middleware('throttle:10,1');
     Route::post('/shops/{shop}/reactivate', [PlatformShopController::class, 'reactivate'])->name('shops.reactivate')->middleware('throttle:10,1');
 
+    Route::get('/shops/{shop}/owner-reset', [PlatformShopController::class, 'ownerResetForm'])->name('shops.owner-reset');
+    Route::post('/shops/{shop}/owner-reset', [PlatformShopController::class, 'ownerReset'])->name('shops.owner-reset.store')->middleware('throttle:5,1');
+    Route::get('/shops/{shop}/owner-reset/result', [PlatformShopController::class, 'ownerResetResult'])->name('shops.owner-reset.result');
+
     Route::get('/audit', [PlatformAuditController::class, 'index'])->name('audit.index')->middleware('throttle:60,1');
 });

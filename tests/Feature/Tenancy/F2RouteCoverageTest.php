@@ -180,6 +180,9 @@ class F2RouteCoverageTest extends TestCase
             'platform.shops.suspend' => 'Platform operator only; not tenant-scoped.',
             'platform.shops.suspend.store' => 'Platform operator only; not tenant-scoped.',
             'platform.shops.reactivate' => 'Platform operator only; not tenant-scoped.',
+            'platform.shops.owner-reset' => 'Platform operator only; not tenant-scoped.',
+            'platform.shops.owner-reset.store' => 'Platform operator only; not tenant-scoped.',
+            'platform.shops.owner-reset.result' => 'Platform operator only; not tenant-scoped.',
             'platform.audit.index' => 'Platform operator only; not tenant-scoped.',
         ];
 
