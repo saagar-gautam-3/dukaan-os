@@ -13,6 +13,7 @@ use App\Http\Controllers\Inventory\StockController;
 use App\Http\Controllers\Inventory\SupplierController;
 use App\Http\Controllers\Platform\PlatformAuditController;
 use App\Http\Controllers\Platform\PlatformShopController;
+use App\Http\Controllers\Platform\PlatformTwoFactorController;
 use App\Http\Controllers\Product\CategoryController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\Product\ProductImportController;
@@ -176,7 +177,14 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
 });
 
 // Platform admin (audited, no impersonation)
-Route::middleware(['auth', 'verified', 'platform.admin'])->prefix('platform')->name('platform.')->group(function () {
+Route::middleware(['auth', 'verified', 'platform.admin', 'platform.2fa'])->prefix('platform')->name('platform.')->group(function () {
+    Route::get('/2fa/setup', [PlatformTwoFactorController::class, 'showSetup'])->name('2fa.setup');
+    Route::post('/2fa/setup', [PlatformTwoFactorController::class, 'confirmSetup'])->name('2fa.setup.confirm')->middleware('throttle:platform-2fa');
+    Route::get('/2fa/challenge', [PlatformTwoFactorController::class, 'showChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/challenge', [PlatformTwoFactorController::class, 'verifyChallenge'])->name('2fa.challenge.verify')->middleware('throttle:platform-2fa');
+    Route::get('/2fa/recovery-codes', [PlatformTwoFactorController::class, 'showRecoveryCodes'])->name('2fa.recovery-codes');
+    Route::post('/2fa/recovery-codes', [PlatformTwoFactorController::class, 'regenerateRecoveryCodes'])->name('2fa.recovery-codes.regenerate')->middleware('throttle:platform-2fa');
+
     Route::get('/shops', [PlatformShopController::class, 'index'])->name('shops.index');
     Route::get('/shops/{shop}', [PlatformShopController::class, 'show'])->name('shops.show')->middleware('throttle:60,1');
     Route::get('/shops/{shop}/suspend', [PlatformShopController::class, 'suspendForm'])->name('shops.suspend');

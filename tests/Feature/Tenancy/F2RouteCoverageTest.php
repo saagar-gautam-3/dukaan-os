@@ -169,6 +169,12 @@ class F2RouteCoverageTest extends TestCase
     public function test_platform_routes_are_explicit_exceptions_in_tenant_matrix(): void
     {
         $exceptions = [
+            'platform.2fa.setup' => 'Platform operator only; not tenant-scoped.',
+            'platform.2fa.setup.confirm' => 'Platform operator only; not tenant-scoped.',
+            'platform.2fa.challenge' => 'Platform operator only; not tenant-scoped.',
+            'platform.2fa.challenge.verify' => 'Platform operator only; not tenant-scoped.',
+            'platform.2fa.recovery-codes' => 'Platform operator only; not tenant-scoped.',
+            'platform.2fa.recovery-codes.regenerate' => 'Platform operator only; not tenant-scoped.',
             'platform.shops.index' => 'Platform operator only; not tenant-scoped.',
             'platform.shops.show' => 'Platform operator only; not tenant-scoped.',
             'platform.shops.suspend' => 'Platform operator only; not tenant-scoped.',

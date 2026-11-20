@@ -61,7 +61,10 @@
                     <tr>
                         <td>{{ $log->created_at?->timezone('Asia/Kathmandu') }}</td>
                         <td>{{ $log->user?->email ?? '-' }}</td>
-                        <td>{{ $log->event }}</td>
+                        <td>
+                            <span class="d-block">{{ __('platform.events.'.str_replace('.', '_', $log->event)) }}</span>
+                            <span class="text-muted small">{{ $log->event }}</span>
+                        </td>
                         <td>{{ $log->auditable instanceof \App\Models\Shop ? $log->auditable->name : '-' }}</td>
                         <td>{{ $log->new_values['reason'] ?? '-' }}</td>
                     </tr>

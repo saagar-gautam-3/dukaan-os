@@ -38,9 +38,8 @@ class PlatformAdminTest extends TestCase
 
     public function test_platform_admin_allowed_and_suspend_writes_audit(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
+        $admin = $this->actingAsPlatformAdmin();
         $shop = Shop::factory()->create(['is_active' => true]);
-        $this->actingAs($admin);
 
         $before = AuditLog::count();
         $response = $this->get('/platform/shops');
@@ -61,9 +60,8 @@ class PlatformAdminTest extends TestCase
 
     public function test_platform_index_exposes_counts_only(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
+        $this->actingAsPlatformAdmin();
         Shop::factory()->create(['name' => 'Secret Shop']);
-        $this->actingAs($admin);
 
         $response = $this->get(route('platform.shops.index'));
         $response->assertOk();
@@ -88,7 +86,6 @@ class PlatformAdminTest extends TestCase
 
     public function test_reactivation_restores_access(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
         $shop = Shop::factory()->create(['is_active' => true]);
         TenantContext::setShop($shop);
         $rbac = app(RbacService::class);
@@ -101,7 +98,7 @@ class PlatformAdminTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin();
         $before = AuditLog::count();
         $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'Temporarily suspended for testing'])
             ->assertRedirect();
@@ -116,7 +113,6 @@ class PlatformAdminTest extends TestCase
 
     public function test_deactivated_shop_blocks_users(): void
     {
-        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
         $shop = Shop::factory()->create(['is_active' => true]);
         TenantContext::setShop($shop);
         $rbac = app(RbacService::class);
@@ -129,7 +125,7 @@ class PlatformAdminTest extends TestCase
             'status' => 'active',
         ]);
 
-        $this->actingAs($admin);
+        $this->actingAsPlatformAdmin();
         $this->post(route('platform.shops.suspend.store', $shop), ['reason' => 'Temporarily suspended for testing']);
 
         $this->actingAs($user);

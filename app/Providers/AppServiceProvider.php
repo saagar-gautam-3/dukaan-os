@@ -90,6 +90,14 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('collect', fn (Request $request) => Limit::perMinute(20)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('remind', fn (Request $request) => Limit::perMinute(10)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('staff-write', fn (Request $request) => Limit::perMinute(30)->by($request->user()?->id ?: $request->ip()));
+        RateLimiter::for('platform-2fa', fn (Request $request) => Limit::perMinute(5)
+            ->by(($request->user()?->id ?: 'guest').'|'.$request->ip())
+            ->response(fn (Request $request, array $headers) => response()->view(
+                'errors.rate-limited',
+                ['message' => __('platform.two_factor_rate_limited')],
+                429,
+                $headers,
+            )));
 
         Queue::before(function (): void {
             TenantContext::reset();

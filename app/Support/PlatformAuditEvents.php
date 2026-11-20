@@ -12,11 +12,26 @@ final class PlatformAuditEvents
 
     public const SHOP_VIEWED = 'platform.shop_viewed';
 
+    public const TWO_FACTOR_ENABLED = 'platform.2fa_enabled';
+
+    public const TWO_FACTOR_FAILED = 'platform.2fa_failed';
+
+    public const TWO_FACTOR_RECOVERY_USED = 'platform.2fa_recovery_used';
+
+    public const TWO_FACTOR_RECOVERY_REGENERATED = 'platform.2fa_recovery_regenerated';
+
+    public const TWO_FACTOR_RESET = 'platform.2fa_reset';
+
     /** @var list<string> */
     public const ALL = [
         self::SHOP_SUSPENDED,
         self::SHOP_REACTIVATED,
         self::SHOP_VIEWED,
+        self::TWO_FACTOR_ENABLED,
+        self::TWO_FACTOR_FAILED,
+        self::TWO_FACTOR_RECOVERY_USED,
+        self::TWO_FACTOR_RECOVERY_REGENERATED,
+        self::TWO_FACTOR_RESET,
     ];
 
     /** @var list<string> */

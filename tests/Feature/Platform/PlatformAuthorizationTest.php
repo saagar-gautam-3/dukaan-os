@@ -44,9 +44,13 @@ class PlatformAuthorizationTest extends TestCase
         $this->actingAs($unverified);
         $this->get('/platform/shops')->assertRedirect(route('verification.notice'));
 
-        // verified platform admin
-        $admin = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
-        $this->actingAs($admin);
+        // verified platform admin without confirmed 2FA -> setup
+        $adminNo2fa = User::factory()->create(['is_platform_admin' => true, 'email_verified_at' => now()]);
+        $this->actingAs($adminNo2fa);
+        $this->get('/platform/shops')->assertRedirect(route('platform.2fa.setup'));
+
+        // verified platform admin with 2FA challenge passed
+        $this->actingAsPlatformAdmin();
         $this->get('/platform/shops')->assertOk();
         $this->get('/platform/shops/'.$shop->id.'/suspend')->assertOk();
     }

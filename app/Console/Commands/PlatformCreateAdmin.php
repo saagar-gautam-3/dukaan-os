@@ -36,6 +36,7 @@ class PlatformCreateAdmin extends Command
         $user->forceFill(['email_verified_at' => now()])->saveQuietly();
 
         $this->info("Platform admin created: {$user->email}");
+        $this->info('Two-factor authentication setup is required at first platform login.');
 
         return self::SUCCESS;
     }

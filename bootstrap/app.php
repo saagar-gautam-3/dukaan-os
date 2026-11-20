@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\ClearSentryTenantTags;
 use App\Http\Middleware\EnsurePermissionsVersion;
 use App\Http\Middleware\EnsurePlatformAdmin;
+use App\Http\Middleware\EnsurePlatformTwoFactor;
 use App\Http\Middleware\EnsureShopAccess;
 use App\Http\Middleware\ResolveTenant;
 use App\Http\Middleware\SecurityHeaders;
@@ -39,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.resolve' => ResolveTenant::class,
             'shop.access' => EnsureShopAccess::class,
             'platform.admin' => EnsurePlatformAdmin::class,
+            'platform.2fa' => EnsurePlatformTwoFactor::class,
             'verified' => EnsureEmailIsVerified::class,
         ]);
 
