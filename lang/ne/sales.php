@@ -134,4 +134,18 @@ return [
     'return_reason_placeholder' => 'फिर्ताको कारण लेख्नुहोस्',
     'immutable_exception' => 'बिक्री #:id रद्द गर्न मिल्दैन। पोस्ट भएको बिक्री सच्याउन फिर्ता प्रक्रिया अपनाउनुहोस्।',
     'draft_invoice' => 'मस्यौदा #:id',
+    // Held bills (POS)
+    'hold_bill' => 'होल्ड',
+    'held_bills' => 'होल्ड बिल',
+    'hold_bill_prompt' => 'यो होल्ड बिलको नाम (वैकल्पिक):',
+    'held_bill_default_label' => 'Bill N',
+    'held_bill_saved' => 'बिल होल्ड गरियो। पछि ब्युँताउन सकिन्छ।',
+    'held_bill_deleted' => 'होल्ड बिल मेटाइयो।',
+    'held_bill_products_dropped' => 'केही उत्पादन अब उपलब्ध छैनन्, हटाइयो: :items',
+    'held_bill_resumed_notice' => 'होल्ड बिल ब्युँताइयो। मूल्य र उपलब्धता ताजा गरियो।',
+    'held_bill_hold_current_prompt' => 'कार्ट खाली छैन। पहिले वर्तमान कार्ट होल्ड गर्ने?',
+    'held_bill_replace_prompt' => 'वर्तमान कार्टलाई होल्ड बिलले बदल्ने?',
+    'no_held_bills' => 'कुनै होल्ड बिल छैन।',
+    'confirm_delete_held_bill' => 'यो होल्ड बिल मेटाउने?',
+    'resume' => 'ब्युँताउनुहोस्',
 ];

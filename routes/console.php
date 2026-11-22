@@ -8,3 +8,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('imports:prune')->daily();
+Schedule::command('held-sales:prune')->daily();

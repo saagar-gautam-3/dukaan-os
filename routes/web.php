@@ -23,6 +23,7 @@ use App\Http\Controllers\Reports\ExpenseCategoryController;
 use App\Http\Controllers\Reports\ExpenseController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CustomerController;
+use App\Http\Controllers\Sales\HeldSaleController;
 use App\Http\Controllers\Sales\PaymentController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Shop\ShopPickerController;
@@ -128,6 +129,10 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
     Route::get('/pos', [SaleController::class, 'pos'])->name('pos');
     Route::get('/pos/products', [SaleController::class, 'searchProducts'])->name('pos.products');
     Route::get('/pos/customers', [SaleController::class, 'searchCustomers'])->name('pos.customers');
+    Route::get('/pos/held', [HeldSaleController::class, 'index'])->name('pos.held');
+    Route::post('/pos/held', [HeldSaleController::class, 'store'])->name('pos.held.store')->middleware('throttle:post-sale');
+    Route::post('/pos/held/{heldSale}/resume', [HeldSaleController::class, 'resume'])->name('pos.held.resume')->middleware('throttle:post-sale');
+    Route::delete('/pos/held/{heldSale}', [HeldSaleController::class, 'destroy'])->name('pos.held.destroy')->middleware('throttle:post-sale');
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::post('/sales', [SaleController::class, 'store'])->name('sales.store')->middleware('throttle:post-sale');
     Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
