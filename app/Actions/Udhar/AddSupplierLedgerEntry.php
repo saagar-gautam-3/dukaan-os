@@ -8,6 +8,7 @@ use App\Enums\LedgerEntryType;
 use App\Models\Supplier;
 use App\Models\SupplierLedgerEntry;
 use App\Tenancy\TenantContext;
+use Carbon\CarbonInterface;
 
 /**
  * Append a single entry to the supplier ledger.
@@ -23,6 +24,7 @@ class AddSupplierLedgerEntry
      *     reference_id?: int|null,
      *     notes?: string|null,
      *     created_by?: int|null,
+     *     created_at?: CarbonInterface|string|null,
      * }  $data
      */
     public function handle(Supplier $supplier, array $data): SupplierLedgerEntry
@@ -39,6 +41,7 @@ class AddSupplierLedgerEntry
             'reference_id' => $data['reference_id'] ?? null,
             'notes' => $data['notes'] ?? null,
             'created_by' => $data['created_by'] ?? null,
+            'created_at' => $data['created_at'] ?? now(),
         ]);
     }
 }

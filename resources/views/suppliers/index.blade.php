@@ -65,6 +65,7 @@
                                 <th>{{ __('suppliers.phone') }}</th>
                                 <th>{{ __('suppliers.pan_vat') }}</th>
                                 <th>{{ __('suppliers.address') }}</th>
+                                <th class="text-end">{{ __('suppliers.balance') }}</th>
                                 <th class="text-end pe-3">{{ __('products.actions') }}</th>
                             </tr>
                         </thead>
@@ -89,8 +90,14 @@
                                 </td>
                                 <td><code>{{ $supplier->pan_vat ?: '—' }}</code></td>
                                 <td class="small text-muted">{{ $supplier->address ?: '—' }}</td>
+                                <td class="text-end fw-bold text-nowrap">@npr($supplier->balance)</td>
                                 <td class="text-end pe-3">
-                                    <div class="btn-group btn-group-sm">
+                                    <div class="btn-group btn-group-sm flex-wrap justify-content-end">
+                                        @canRoute('suppliers.payments.create', $supplier)
+                                        <a href="{{ route('suppliers.payments.create', $supplier) }}" class="btn btn-outline-success" title="{{ __('suppliers.record_payment') }}" style="min-height:44px;">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </a>
+                                        @endCanRoute
                                         @canRoute('suppliers.edit', $supplier)
                                         <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-primary" title="{{ __('ui.edit') }}">
                                             <i class="bi bi-pencil"></i>
@@ -134,7 +141,16 @@
                                 &bull; <span>{{ $supplier->address }}</span>
                             @endif
                         </div>
-                        <div class="d-flex justify-content-end gap-1 pt-1 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small text-muted">{{ __('suppliers.balance') }}</span>
+                            <span class="fw-bold">@npr($supplier->balance)</span>
+                        </div>
+                        <div class="d-flex justify-content-end gap-1 pt-1 border-top flex-wrap">
+                            @canRoute('suppliers.payments.create', $supplier)
+                            <a href="{{ route('suppliers.payments.create', $supplier) }}" class="btn btn-outline-success btn-sm" style="min-height:44px;">
+                                <i class="bi bi-cash-coin me-1"></i>{{ __('suppliers.record_payment') }}
+                            </a>
+                            @endCanRoute
                             @canRoute('suppliers.edit', $supplier)
                             <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil me-1"></i>{{ __('ui.edit') }}

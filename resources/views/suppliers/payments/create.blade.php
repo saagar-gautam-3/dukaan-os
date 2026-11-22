@@ -1,62 +1,42 @@
 @extends('layouts.app')
 
-@section('title', __('suppliers.record_payment') . ' — ' . config('app.name'))
+@section('title', __('suppliers.record_payment').' — '.config('app.name'))
 
 @section('content')
 <div class="container-fluid p-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">{{ __('suppliers.record_payment') }}</h2>
-        <a href="{{ route('suppliers.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('common.back') }}</a>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4 pb-2 border-bottom">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: #1a3a5c;">
+                <i class="bi bi-cash-coin me-2"></i>{{ __('suppliers.record_payment') }}
+            </h2>
+            <p class="text-muted mb-0 small">{{ $supplier->name }}</p>
+        </div>
+        <a href="{{ route('suppliers.dues') }}" class="btn btn-outline-secondary btn-sm" style="min-height:44px;">
+            <i class="bi bi-arrow-left me-1"></i>{{ __('suppliers.dues_title') }}
+        </a>
     </div>
 
     <div class="card shadow-sm border-0 rounded-3 mb-4">
-        <div class="card-body">
-            <h5 class="fw-bold">{{ $supplier->name }}</h5>
-            <p class="mb-0">{{ __('suppliers.outstanding_balance') }}: <strong>{{ $balance }}</strong></p>
+        <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+            <div>
+                <div class="text-muted small">{{ __('suppliers.outstanding_balance') }}</div>
+                <div class="h4 fw-bold mb-0 text-primary">@npr($balance)</div>
+            </div>
+            <a href="{{ route('suppliers.index') }}" class="btn btn-outline-primary btn-sm" style="min-height:44px;">
+                <i class="bi bi-person-lines-fill me-1"></i>{{ __('suppliers.title') }}
+            </a>
         </div>
     </div>
 
     <div class="card shadow-sm border-0 rounded-3 mb-4">
         <div class="card-body">
-            <form method="POST" action="{{ route('suppliers.payments.store', $supplier) }}">
-                @csrf
-                <input type="hidden" name="idempotency_key" value="{{ 'sp_' . time() . '_' . uniqid() }}">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">{{ __('suppliers.payment_amount') }}</label>
-                        <input type="number" step="0.01" min="0.01" name="amount" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">{{ __('suppliers.payment_method') }}</label>
-                        <select name="payment_method" class="form-select" required>
-                            <option value="cash">{{ __('sales.cash') }}</option>
-                            <option value="bank">{{ __('sales.bank') }}</option>
-                            <option value="qr">{{ __('sales.qr') }}</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">{{ __('suppliers.payment_date') }}</label>
-                        <input type="date" name="payment_date" class="form-control" value="{{ now($supplier->shop->timezone ?? config('app.timezone'))->toDateString() }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">{{ __('suppliers.reference_number') }}</label>
-                        <input type="text" name="reference_number" class="form-control" maxlength="100">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">{{ __('suppliers.notes') }}</label>
-                        <input type="text" name="notes" class="form-control" maxlength="255">
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <button type="submit" class="btn btn-primary" style="min-height:44px;">{{ __('suppliers.record_payment') }}</button>
-                </div>
-            </form>
+            @include('suppliers.payments.form')
         </div>
     </div>
 
     <div class="card shadow-sm border-0 rounded-3">
         <div class="card-body p-0">
-            <h5 class="p-3 mb-0 border-bottom">{{ __('suppliers.ledger') }}</h5>
+            <h5 class="p-3 mb-0 border-bottom fw-bold">{{ __('suppliers.ledger') }}</h5>
             @if($entries->isEmpty())
                 <div class="text-center py-4 text-muted">{{ __('suppliers.no_ledger_entries') }}</div>
             @else
@@ -68,16 +48,18 @@
                                 <th>{{ __('suppliers.type') }}</th>
                                 <th class="text-end">{{ __('suppliers.debit') }}</th>
                                 <th class="text-end">{{ __('suppliers.credit') }}</th>
+                                <th class="text-end">{{ __('suppliers.running_balance') }}</th>
                                 <th>{{ __('suppliers.notes') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($entries as $entry)
                             <tr>
-                                <td>{{ $entry->created_at?->format('Y-m-d') }}</td>
-                                <td>{{ $entry->entry_type->label() ?? $entry->entry_type->value }}</td>
-                                <td class="text-end">{{ $entry->debit }}</td>
-                                <td class="text-end">{{ $entry->credit }}</td>
+                                <td class="text-nowrap">{{ $entry->entry_date ?? '—' }}</td>
+                                <td>{{ __('suppliers.entry_type.'.$entry->entry_type->value) }}</td>
+                                <td class="text-end">@npr($entry->debit)</td>
+                                <td class="text-end">@npr($entry->credit)</td>
+                                <td class="text-end fw-bold">@npr($entry->running_balance)</td>
                                 <td class="small text-muted">{{ $entry->notes }}</td>
                             </tr>
                             @endforeach
