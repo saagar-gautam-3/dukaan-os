@@ -41,6 +41,7 @@ class RbacService
         'udhar.remind' => 'Send payment reminders to customers',
         'suppliers.view' => 'View suppliers and ledgers',
         'suppliers.manage' => 'Manage suppliers and record payments',
+        'suppliers.pay' => 'Record payments to suppliers',
         'expenses.view' => 'View expenses',
         'expenses.create' => 'Record expenses',
         'expenses.manage' => 'Record and manage expenses and categories',
@@ -91,7 +92,7 @@ class RbacService
                     'sales.create', 'sales.cancel', 'sales.return', 'purchases.view',
                     'purchases.manage', 'customers.view', 'customers.manage',
                     'udhar.view', 'udhar.collect', 'udhar.remind',
-                    'suppliers.view', 'suppliers.manage', 'expenses.view',
+                    'suppliers.view', 'suppliers.manage', 'suppliers.pay', 'expenses.view',
                     'expenses.create', 'expenses.manage', 'expenses.delete',
                     'cash.view', 'cash.manage', 'reports.view', 'reports.profit.view',
                     'reports.export', 'audit.view',
@@ -109,7 +110,7 @@ class RbacService
                 'Accountant' => [
                     'sales.view', 'purchases.view', 'expenses.view',
                     'expenses.create', 'expenses.manage', 'customers.view',
-                    'suppliers.view', 'udhar.view', 'cash.view',
+                    'suppliers.view', 'suppliers.pay', 'udhar.view', 'cash.view',
                     'reports.view', 'reports.profit.view', 'reports.export',
                 ],
             ];

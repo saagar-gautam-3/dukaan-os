@@ -81,9 +81,15 @@
         @endCanRoute
 
         @canRoute('suppliers.index')
-        <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
+        <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers.index','suppliers.create','suppliers.edit') ? 'active' : '' }}">
             <i class="bi bi-truck"></i>
             <span>{{ __('common.nav.suppliers') }}</span>
+        </a>
+        @endCanRoute
+        @canRoute('suppliers.dues')
+        <a href="{{ route('suppliers.dues') }}" class="nav-link {{ request()->routeIs('suppliers.dues') ? 'active' : '' }}">
+            <i class="bi bi-cash-stack"></i>
+            <span>{{ __('common.nav.supplier_dues') }}</span>
         </a>
         @endCanRoute
 

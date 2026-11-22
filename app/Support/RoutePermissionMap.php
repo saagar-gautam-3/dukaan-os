@@ -151,6 +151,9 @@ final class RoutePermissionMap
         'suppliers.edit' => ['permissions' => ['suppliers.manage'], 'ability' => 'update'],
         'suppliers.update' => ['permissions' => ['suppliers.manage'], 'ability' => 'update'],
         'suppliers.destroy' => ['permissions' => ['suppliers.manage'], 'ability' => 'delete'],
+        'suppliers.payments.create' => ['permissions' => ['suppliers.pay'], 'ability' => 'pay'],
+        'suppliers.payments.store' => ['permissions' => ['suppliers.pay'], 'ability' => 'pay'],
+        'suppliers.dues' => ['permissions' => ['suppliers.view']],
 
         // Udhar khata.
         'udhar.outstanding' => ['permissions' => ['udhar.view', 'customers.view']],

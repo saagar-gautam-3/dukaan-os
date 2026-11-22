@@ -12,6 +12,7 @@ return [
         'products' => 'सामानहरू',
         'stock' => 'मौज्दात (स्टक)',
         'suppliers' => 'सप्लायरहरू',
+        'supplier_dues' => 'भुक्तानी गर्नुपर्ने',
         'purchases' => 'खरिद',
         'expenses' => 'खर्च',
         'reports' => 'प्रतिवेदनहरू',

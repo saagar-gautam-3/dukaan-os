@@ -120,6 +120,9 @@ Route::middleware(['auth', 'verified', 'tenant.resolve', 'shop.access'])->group(
 
     // Suppliers
     Route::resource('suppliers', SupplierController::class)->except(['show']);
+    Route::get('/suppliers/dues', [SupplierController::class, 'dues'])->name('suppliers.dues');
+    Route::get('/suppliers/{supplier}/payments/create', [SupplierController::class, 'createPayment'])->name('suppliers.payments.create');
+    Route::post('/suppliers/{supplier}/payments', [SupplierController::class, 'storePayment'])->name('suppliers.payments.store')->middleware('throttle:collect');
 
     // Purchases
     Route::resource('purchases', PurchaseController::class)->except(['edit', 'update']);

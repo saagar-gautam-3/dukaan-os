@@ -12,6 +12,7 @@ return [
         'products' => 'Products',
         'stock' => 'Stock & Inventory',
         'suppliers' => 'Suppliers',
+        'supplier_dues' => 'Supplier Dues',
         'purchases' => 'Purchases',
         'expenses' => 'Expenses',
         'reports' => 'Reports',
