@@ -8,6 +8,7 @@ use App\Rules\NepalMobilePhone;
 use App\Tenancy\TenantContext;
 use App\Traits\NormalizesNepaliInput;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 
 class UpdateShopSettingsRequest extends FormRequest
 {
@@ -35,6 +36,24 @@ class UpdateShopSettingsRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:20', new NepalMobilePhone],
             'pan_number' => ['nullable', 'string', 'max:50'],
             'sku_auto_generate' => ['nullable', 'boolean'],
+            'thermal_paper_width' => ['nullable', 'in:58,80'],
+            'invoice_footer' => ['nullable', 'string', 'max:200'],
+            'logo' => ['nullable', 'file', 'max:1024', 'mimes:png,jpg,jpeg,webp', function ($attribute, $value, $fail) {
+                if (! $value instanceof UploadedFile) {
+                    return;
+                }
+                $path = $value->getRealPath();
+                if (! is_string($path) || $path === '' || ! is_file($path)) {
+                    $fail(__('shops.logo_invalid'));
+
+                    return;
+                }
+                $info = @getimagesize($path);
+                if ($info === false || ! isset($info['mime']) || ! in_array($info['mime'], ['image/png', 'image/jpeg', 'image/webp'], true)) {
+                    $fail(__('shops.logo_invalid'));
+                }
+            }],
+            'remove_logo' => ['nullable', 'boolean'],
         ];
     }
 }

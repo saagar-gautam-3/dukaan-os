@@ -1,5 +1,10 @@
 <!DOCTYPE html>
 <html lang="{{ app()->getLocale() }}">
+@php
+    $paperWidth = (($sale->shop->settings['thermal_paper_width'] ?? '80') === '58') ? '58' : '80';
+    $logoPath = $sale->shop->settings['logo_path'] ?? null;
+    $footer = $sale->shop->settings['invoice_footer'] ?? null;
+@endphp
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,12 +20,12 @@
             font-family: 'Noto Sans Devanagari', 'Courier New', monospace;
             background: #f1f5f9;
             color: #000;
-            font-size: 12px;
+            font-size: {{ $paperWidth === '58' ? '11px' : '12px' }};
             line-height: 1.3;
         }
         .receipt-container {
-            width: 80mm;
-            max-width: 80mm;
+            width: {{ $paperWidth }}mm;
+            max-width: {{ $paperWidth }}mm;
             margin: 15px auto;
             background: #fff;
             padding: 4mm 3mm;
@@ -45,6 +50,14 @@
         th, td {
             padding: 2px 0;
         }
+        .item-block {
+            margin-bottom: 4px;
+        }
+        .item-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+        }
         .print-btn-bar {
             text-align: center;
             padding: 10px;
@@ -67,14 +80,14 @@
                 display: none !important;
             }
             .receipt-container {
-                width: 80mm;
-                max-width: 80mm;
+                width: {{ $paperWidth }}mm;
+                max-width: {{ $paperWidth }}mm;
                 margin: 0;
                 padding: 2mm;
                 box-shadow: none;
             }
             @page {
-                size: 80mm auto;
+                size: {{ $paperWidth }}mm auto;
                 margin: 0;
             }
         }
@@ -88,6 +101,11 @@
     <div class="receipt-container">
         <!-- Shop Header -->
         <div class="text-center">
+            @if(is_string($logoPath) && $logoPath !== '' && \Illuminate\Support\Facades\Storage::disk('public')->exists($logoPath))
+                <div class="mb-1">
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($logoPath) }}" alt="{{ $sale->shop->name }}" style="max-height:40px;">
+                </div>
+            @endif
             <h3 class="fw-bold" style="font-size: 15px;">{{ $sale->shop->name }}</h3>
             @if(!empty($sale->shop->settings['address']))
                 <div>{{ $sale->shop->settings['address'] }}</div>
@@ -114,29 +132,41 @@
 
         <div class="divider"></div>
 
-        <!-- Items Table -->
-        <table>
-            <thead>
-                <tr>
-                    <th class="text-left" style="width: 45%;">{{ __('sales.item_col') }}</th>
-                    <th class="text-center" style="width: 15%;">{{ __('sales.qty') }}</th>
-                    <th class="text-right" style="width: 20%;">{{ __('sales.rate') }}</th>
-                    <th class="text-right" style="width: 20%;">{{ __('sales.line_total') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($sale->items as $item)
-                <tr>
-                    <td class="text-left">
-                        <div class="fw-bold">{{ $item->product->name }}</div>
-                    </td>
-                    <td class="text-center">@qty($item->quantity, $item->product->unit?->is_fractional)</td>
-                    <td class="text-right">@npr($item->unit_price)</td>
-                    <td class="text-right">@npr($item->line_total)</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <!-- Items -->
+        @if($paperWidth === '58')
+            @foreach($sale->items as $item)
+                <div class="item-block">
+                    <div class="fw-bold">{{ $item->product->name }}</div>
+                    <div class="item-line">
+                        <span>@qty($item->quantity, $item->product->unit?->is_fractional) × @npr($item->unit_price)</span>
+                        <span>@npr($item->line_total)</span>
+                    </div>
+                </div>
+            @endforeach
+        @else
+            <table>
+                <thead>
+                    <tr>
+                        <th class="text-left" style="width: 45%;">{{ __('sales.item_col') }}</th>
+                        <th class="text-center" style="width: 15%;">{{ __('sales.qty') }}</th>
+                        <th class="text-right" style="width: 20%;">{{ __('sales.rate') }}</th>
+                        <th class="text-right" style="width: 20%;">{{ __('sales.line_total') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($sale->items as $item)
+                    <tr>
+                        <td class="text-left">
+                            <div class="fw-bold">{{ $item->product->name }}</div>
+                        </td>
+                        <td class="text-center">@qty($item->quantity, $item->product->unit?->is_fractional)</td>
+                        <td class="text-right">@npr($item->unit_price)</td>
+                        <td class="text-right">@npr($item->line_total)</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
 
         <div class="divider"></div>
 
@@ -187,7 +217,10 @@
         <div class="double-divider"></div>
 
         <div class="text-center">
-            <div>धन्यवाद! फेरि आउनुहोला!</div>
+            @if(is_string($footer) && $footer !== '')
+                <div class="mb-1">{!! nl2br(e($footer)) !!}</div>
+            @endif
+            <div>धन्यवाद! फेरि आउनुहोस्।</div>
             <div style="font-size: 10px; color: #555;">Dukaan OS POS</div>
         </div>
     </div>

@@ -36,6 +36,10 @@
             border-bottom: 1px solid #e2e8f0;
         }
         @media print {
+            @page {
+                size: A4;
+                margin: 12mm;
+            }
             body {
                 background: #ffffff;
                 margin: 0;
@@ -47,9 +51,15 @@
             .invoice-box {
                 max-width: 100%;
                 margin: 0;
-                padding: 20px;
+                padding: 0;
                 box-shadow: none;
                 border-radius: 0;
+            }
+            thead {
+                display: table-header-group;
+            }
+            tr {
+                page-break-inside: avoid;
             }
         }
     </style>
@@ -68,6 +78,12 @@
         <!-- Header -->
         <div class="row align-items-center mb-4 pb-3 border-bottom">
             <div class="col-7">
+                @php
+                    $logoPath = $sale->shop->settings['logo_path'] ?? null;
+                @endphp
+                @if(is_string($logoPath) && $logoPath !== '' && \Illuminate\Support\Facades\Storage::disk('public')->exists($logoPath))
+                    <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($logoPath) }}" alt="{{ $sale->shop->name }}" style="max-height:60px;" class="mb-2">
+                @endif
                 <h2 class="fw-bold mb-1 text-primary">{{ $sale->shop->name }}</h2>
                 @if(!empty($sale->shop->settings['address']))
                     <p class="mb-0 text-muted">{{ $sale->shop->settings['address'] }}</p>
@@ -217,6 +233,10 @@
 
         <!-- Footer -->
         <div class="text-center pt-4 border-top text-muted small">
+            @php $invoiceFooter = $sale->shop->settings['invoice_footer'] ?? null; @endphp
+            @if(is_string($invoiceFooter) && $invoiceFooter !== '')
+                <p class="mb-2">{!! nl2br(e($invoiceFooter)) !!}</p>
+            @endif
             <p class="mb-1 fw-semibold">{{ __('ui.thank_you_business') }}</p>
             <p class="mb-0 opacity-75">{{ __('ui.generated_via', ['app' => config('app.name', 'Dukaan OS')]) }}</p>
         </div>

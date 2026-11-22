@@ -18,7 +18,7 @@
         <div class="col-12 col-lg-8">
             <div class="card shadow-sm border-0 rounded-3">
                 <div class="card-body p-4 p-md-5">
-                    <form method="POST" action="{{ route('settings.shop.update') }}">
+                    <form method="POST" action="{{ route('settings.shop.update') }}" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
@@ -107,6 +107,48 @@
                                 </label>
                                 <div class="form-text text-muted">{{ __('shops.sku_auto_generate_help') }}</div>
                             </div>
+                        </div>
+
+                        <div class="card bg-light border-0 mb-4 p-3 rounded-3">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-printer me-2 text-primary"></i>{{ __('shops.printing_settings') }}</h6>
+                            <div class="mb-3">
+                                <label for="thermal_paper_width" class="form-label fw-semibold">{{ __('shops.thermal_paper_width') }}</label>
+                                <select class="form-select @error('thermal_paper_width') is-invalid @enderror" id="thermal_paper_width" name="thermal_paper_width">
+                                    <option value="80" {{ old('thermal_paper_width', $shop->settings['thermal_paper_width'] ?? '80') === '80' ? 'selected' : '' }}>{{ __('shops.thermal_80') }}</option>
+                                    <option value="58" {{ old('thermal_paper_width', $shop->settings['thermal_paper_width'] ?? '80') === '58' ? 'selected' : '' }}>{{ __('shops.thermal_58') }}</option>
+                                </select>
+                                <div class="form-text text-muted">{{ __('shops.thermal_paper_width_help') }}</div>
+                                @error('thermal_paper_width')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="invoice_footer" class="form-label fw-semibold">{{ __('shops.invoice_footer') }}</label>
+                                <textarea class="form-control @error('invoice_footer') is-invalid @enderror" id="invoice_footer" name="invoice_footer" rows="3" maxlength="200">{{ old('invoice_footer', $shop->settings['invoice_footer'] ?? '') }}</textarea>
+                                <div class="form-text text-muted">{{ __('shops.invoice_footer_help') }}</div>
+                                @error('invoice_footer')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            <div class="mb-3">
+                                <label for="logo" class="form-label fw-semibold">{{ __('shops.logo') }}</label>
+                                @if(!empty($shop->settings['logo_path']) && \Illuminate\Support\Facades\Storage::disk('public')->exists($shop->settings['logo_path']))
+                                    <div class="mb-2">
+                                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($shop->settings['logo_path']) }}" alt="{{ $shop->name }}" style="max-height:60px;">
+                                    </div>
+                                @endif
+                                <input type="file" class="form-control @error('logo') is-invalid @enderror" id="logo" name="logo" accept="image/png,image/jpeg,image/webp">
+                                <div class="form-text text-muted">{{ __('shops.logo_help') }}</div>
+                                @error('logo')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                            @if(!empty($shop->settings['logo_path']))
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="remove_logo" name="remove_logo" value="1">
+                                <label class="form-check-label" for="remove_logo">{{ __('shops.remove_logo') }}</label>
+                            </div>
+                            @endif
                         </div>
 
                         <div class="action-row d-flex justify-content-end gap-2">
