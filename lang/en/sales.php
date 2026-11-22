@@ -134,4 +134,18 @@ return [
     'return_reason_placeholder' => 'Describe the reason for the return',
     'immutable_exception' => 'Sale #:id is :status and cannot be cancelled. Record is immutable; create a return instead.',
     'draft_invoice' => 'Draft #:id',
+    // Held bills (POS)
+    'hold_bill' => 'Hold',
+    'held_bills' => 'Held bills',
+    'hold_bill_prompt' => 'Label for this held bill (optional):',
+    'held_bill_default_label' => 'Bill N',
+    'held_bill_saved' => 'Bill held. You can resume it later.',
+    'held_bill_deleted' => 'Held bill deleted.',
+    'held_bill_products_dropped' => 'Some products were no longer available and were removed: :items',
+    'held_bill_resumed_notice' => 'Held bill resumed. Prices and availability were refreshed.',
+    'held_bill_hold_current_prompt' => 'Your cart is not empty. Hold the current cart first?',
+    'held_bill_replace_prompt' => 'Replace the current cart with the held bill?',
+    'no_held_bills' => 'No held bills.',
+    'confirm_delete_held_bill' => 'Delete this held bill?',
+    'resume' => 'Resume',
 ];

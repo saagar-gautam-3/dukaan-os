@@ -70,4 +70,8 @@ return [
     'forbidden_title' => 'You do not have access to this page',
     'forbidden_message' => 'Your role does not allow this action. If you need access, ask your shop owner to update your permissions.',
     'back_to_dashboard' => 'Back to dashboard',
+    'held_sale_items_invalid' => 'A held bill must contain between 1 and 200 items.',
+    'held_sale_limit_reached' => 'You can hold at most 20 bills. Resume or delete one first.',
+    'held_sale_product_invalid' => 'One or more products in the bill are no longer available.',
+    'held_sale_not_found' => 'That held bill is no longer available.',
 ];

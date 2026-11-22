@@ -138,6 +138,18 @@
                         <input type="hidden" name="idempotency_key" id="formIdempotencyKey" value="">
                         <div id="formItemsContainer"></div>
 
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-warning w-100" id="holdBillBtn" disabled style="min-height:44px;">
+                                    <i class="bi bi-pause-circle me-1"></i>{{ __('sales.hold_bill') }}
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-primary w-100" id="heldBillsBtn" style="min-height:44px;" data-bs-toggle="modal" data-bs-target="#heldBillsModal">
+                                    <i class="bi bi-list-ul me-1"></i>{{ __('sales.held_bills') }} (<span id="heldCountBadge">0</span>)
+                                </button>
+                            </div>
+                        </div>
                         <div class="row g-2">
                             <div class="col-6">
                                 <button type="button" class="btn btn-outline-secondary w-100" id="saveDraftBtn">
@@ -157,6 +169,22 @@
                         <button type="button" id="retrySaleBtn" class="btn btn-sm btn-outline-danger mt-2">{{ __('ui.retry_sale') }}</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Held bills modal -->
+<div class="modal fade" id="heldBillsModal" tabindex="-1" aria-labelledby="heldBillsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="heldBillsModalLabel">{{ __('sales.held_bills') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('common.close') }}"></button>
+            </div>
+            <div class="modal-body">
+                <div id="heldBillsList" class="list-group"></div>
+                <div id="heldBillsEmpty" class="text-center text-muted py-3 d-none">{{ __('sales.no_held_bills') }}</div>
             </div>
         </div>
     </div>
@@ -201,6 +229,16 @@
     const noPhoneText = @json(__('ui.no_phone'));
     const itemCountText = @json(__('ui.items_count', ['count' => ':count']));
     const creditLimitWarningTemplate = @json(__('ui.credit_limit_warning'));
+    const heldBillDefaultLabel = @json(__('sales.held_bill_default_label'));
+    const heldBillPromptLabel = @json(__('sales.hold_bill_prompt'));
+    const heldBillSavedMsg = @json(__('sales.held_bill_saved'));
+    const heldBillDeletedMsg = @json(__('sales.held_bill_deleted'));
+    const heldBillResumeNotice = @json(__('sales.held_bill_resumed_notice'));
+    const heldBillDroppedNotice = @json(__('sales.held_bill_products_dropped'));
+    const heldBillHoldCurrentPrompt = @json(__('sales.held_bill_hold_current_prompt'));
+    const heldBillReplacePrompt = @json(__('sales.held_bill_replace_prompt'));
+    const heldBillEmptyText = @json(__('sales.no_held_bills'));
+    const heldCountLabel = @json(__('sales.held_bills'));
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('productSearchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');
@@ -238,6 +276,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const retrySaleBtn = document.getElementById('retrySaleBtn');
     const posNetworkError = document.getElementById('posNetworkError');
     const posErrorMessage = document.getElementById('posErrorMessage');
+    const holdBillBtn = document.getElementById('holdBillBtn');
+    const heldBillsBtn = document.getElementById('heldBillsBtn');
+    const heldCountBadge = document.getElementById('heldCountBadge');
+    const heldBillsList = document.getElementById('heldBillsList');
+    const heldBillsEmpty = document.getElementById('heldBillsEmpty');
 
     let cart = []; // { product_id, name, unit, price, quantity, max_stock }
     let searchDebounce = null;
@@ -612,6 +655,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         updateTotals();
+        if (holdBillBtn) {
+            holdBillBtn.disabled = cart.length === 0;
+        }
     }
 
     clearCartBtn.addEventListener('click', () => {
@@ -645,6 +691,185 @@ document.addEventListener('DOMContentLoaded', function () {
         changeDisplay.textContent = formatNprShared(scaledString(change, 2));
         checkCreditLimit();
     }
+
+    // Held bills support
+    function toDevanagariCount(value) {
+        const s = String(value);
+        if (!useDevanagariDigits) return s;
+        return s.replace(/[0-9]/g, (d) => DEV_DIGITS[Number(d)]);
+    }
+
+    async function loadHeldBills() {
+        try {
+            const res = await fetch('{{ route('pos.held') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+            if (!res.ok) return;
+            const bills = await res.json();
+            heldCountBadge.textContent = toDevanagariCount(bills.length);
+            renderHeldBillsList(bills);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    function renderHeldBillsList(bills) {
+        heldBillsList.innerHTML = '';
+        if (!bills || bills.length === 0) {
+            heldBillsEmpty.classList.remove('d-none');
+            return;
+        }
+        heldBillsEmpty.classList.add('d-none');
+        bills.forEach((b) => {
+            const item = document.createElement('div');
+            item.className = 'list-group-item';
+            const label = b.label ? b.label : heldBillDefaultLabel;
+            const customer = b.customer_name ? b.customer_name : @json(__('sales.walk_in'));
+            const heldAt = String(b.held_at || '');
+            const heldBy = String(b.held_by || '');
+            const total = formatNprShared(String(b.approximate_total || '0.00'));
+            const count = toDevanagariCount(b.line_count);
+            item.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="fw-semibold">${escapeHtml(label)}</div>
+                        <small class="text-muted">${escapeHtml(customer)} &middot; ${escapeHtml(String(count))} items &middot; ${escapeHtml(total)}</small><br>
+                        <small class="text-muted">${escapeHtml(heldAt)} ${heldBy ? '· ' : ''}${escapeHtml(heldBy)}</small>
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-success btn-resume-held" data-id="${escapeHtml(String(b.id))}">{{ __('sales.resume') }}</button>
+                        <button type="button" class="btn btn-outline-danger btn-delete-held" data-id="${escapeHtml(String(b.id))}">{{ __('common.delete') }}</button>
+                    </div>
+                </div>
+            `;
+            heldBillsList.appendChild(item);
+        });
+
+        heldBillsList.querySelectorAll('.btn-resume-held').forEach((btn) => {
+            btn.addEventListener('click', () => resumeHeldBill(btn.getAttribute('data-id')));
+        });
+        heldBillsList.querySelectorAll('.btn-delete-held').forEach((btn) => {
+            btn.addEventListener('click', () => deleteHeldBill(btn.getAttribute('data-id')));
+        });
+    }
+
+    async function holdCurrentCart(label) {
+        const payload = new FormData();
+        payload.append('_token', '{{ csrf_token() }}');
+        if (label) payload.append('label', label);
+        const custId = selectedCustomerId.value;
+        if (custId) payload.append('customer_id', custId);
+        cart.forEach((item, idx) => {
+            payload.append(`items[${idx}][product_id]`, item.product_id);
+            payload.append(`items[${idx}][quantity]`, item.quantity);
+        });
+        const res = await fetch('{{ route('pos.held.store') }}', {
+            method: 'POST',
+            body: payload,
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin',
+        });
+        const result = await res.json();
+        if (!res.ok) {
+            alert(result.message || @json(__('common.error_generic')));
+            return false;
+        }
+        return true;
+    }
+
+    holdBillBtn.addEventListener('click', async () => {
+        if (cart.length === 0) return;
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString();
+        const label = prompt(heldBillPromptLabel, 'Bill ' + timeStr);
+        if (label === null) return;
+        const ok = await holdCurrentCart(label.trim() === '' ? null : label.trim());
+        if (ok) {
+            cart = [];
+            currentCustomer = null;
+            selectedCustomerId.value = '';
+            selectedCustomerBadge.classList.add('d-none');
+            renderCart();
+            await loadHeldBills();
+        }
+    });
+
+    async function resumeHeldBill(id) {
+        if (cart.length > 0) {
+            const holdFirst = confirm(heldBillHoldCurrentPrompt);
+            if (holdFirst) {
+                const ok = await holdCurrentCart(null);
+                if (!ok) return;
+            } else {
+                const replace = confirm(heldBillReplacePrompt);
+                if (!replace) return;
+            }
+        }
+        try {
+            const res = await fetch(`{{ url('/pos/held') }}/${id}/resume`, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                credentials: 'same-origin',
+            });
+            const result = await res.json();
+            if (!res.ok) {
+                alert(result.message || @json(__('common.error_generic')));
+                return;
+            }
+            // populate cart
+            cart = (result.items || []).map((it) => ({
+                product_id: it.product_id,
+                name: it.name,
+                unit: it.unit || '',
+                price: String(it.price || '0.00'),
+                quantity: String(it.quantity || '1.000'),
+                track_stock: it.track_stock,
+                max_stock: String(it.max_stock || '0.000'),
+            }));
+            if (result.customer) {
+                selectCustomer(result.customer);
+            } else {
+                currentCustomer = null;
+                selectedCustomerId.value = '';
+                selectedCustomerBadge.classList.add('d-none');
+            }
+            renderCart();
+            if (result.dropped && result.dropped.length > 0) {
+                alert(heldBillDroppedNotice.replace(':items', result.dropped.join(', ')));
+            } else {
+                // show notice
+                // no blocking
+            }
+            await loadHeldBills();
+            // close modal
+            const modalEl = document.getElementById('heldBillsModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        } catch (e) {
+            console.error(e);
+            alert(@json(__('ui.sale_network_failed')));
+        }
+    }
+
+    async function deleteHeldBill(id) {
+        if (!confirm(@json(__('sales.confirm_delete_held_bill')))) return;
+        try {
+            const res = await fetch(`{{ url('/pos/held') }}/${id}`, {
+                method: 'DELETE',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                credentials: 'same-origin',
+            });
+            const result = await res.json();
+            if (!res.ok) {
+                alert(result.message || @json(__('common.error_generic')));
+                return;
+            }
+            await loadHeldBills();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // initial
+    loadHeldBills();
 
     // Submit logic
     let pendingPostImmediately = true;
