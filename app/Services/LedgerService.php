@@ -8,6 +8,8 @@ use App\Enums\SaleStatus;
 use App\Models\Customer;
 use App\Models\CustomerLedgerEntry;
 use App\Models\Sale;
+use App\Models\Supplier;
+use App\Models\SupplierLedgerEntry;
 use App\Support\Money;
 use App\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Builder;
@@ -132,6 +134,48 @@ class LedgerService
             ->sum('credit');
 
         return Money::subtract((string) $debit, (string) $credit, 2);
+    }
+
+    /**
+     * Supplier ledger checks. Suppliers have no cached balance column, so the
+     * ledger sum is the source of truth; we flag negative balances (advances,
+     * which this feature does not allow) and entries pointing at missing suppliers.
+     *
+     * @return array<int, array{supplier_id: int, balance: string, reason: string}>
+     */
+    public function reconcileSuppliers(int $shopId): array
+    {
+        $balances = SupplierLedgerEntry::where('shop_id', $shopId)
+            ->select('supplier_id', DB::raw('SUM(debit) - SUM(credit) as balance'))
+            ->groupBy('supplier_id')
+            ->pluck('balance', 'supplier_id');
+
+        $validSupplierIds = Supplier::where('shop_id', $shopId)->pluck('id')->all();
+
+        $drifts = [];
+        foreach ($balances as $supplierId => $balance) {
+            $balance = (string) $balance;
+
+            if (! in_array((int) $supplierId, $validSupplierIds, true)) {
+                $drifts[] = [
+                    'supplier_id' => (int) $supplierId,
+                    'balance' => $balance,
+                    'reason' => 'orphan_ledger_entries',
+                ];
+
+                continue;
+            }
+
+            if (Money::compare($balance, '0', 2) < 0) {
+                $drifts[] = [
+                    'supplier_id' => (int) $supplierId,
+                    'balance' => $balance,
+                    'reason' => 'negative_balance',
+                ];
+            }
+        }
+
+        return $drifts;
     }
 
     /**
