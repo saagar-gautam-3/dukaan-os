@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Inventory;
 
 use App\Models\Supplier;
+use App\Support\Money;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class QuerySuppliers
@@ -25,6 +26,20 @@ class QuerySuppliers
             });
         }
 
-        return $query->latest()->paginate($perPage)->withQueryString();
+        return $query
+            ->withSum('ledgerEntries as debit_sum', 'debit')
+            ->withSum('ledgerEntries as credit_sum', 'credit')
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString()
+            ->through(function (Supplier $supplier): Supplier {
+                $supplier->balance = Money::subtract(
+                    (string) ($supplier->debit_sum ?? '0'),
+                    (string) ($supplier->credit_sum ?? '0'),
+                    2,
+                );
+
+                return $supplier;
+            });
     }
 }

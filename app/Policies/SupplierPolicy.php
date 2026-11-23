@@ -33,4 +33,9 @@ class SupplierPolicy extends TenantPolicy
     {
         return $this->checkTenantAndPermission($user, $supplier, 'suppliers.manage');
     }
+
+    public function pay(User $user, Supplier $supplier): bool
+    {
+        return $this->checkTenantAndPermission($user, $supplier, 'suppliers.pay');
+    }
 }

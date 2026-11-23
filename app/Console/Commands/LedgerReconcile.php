@@ -6,6 +6,7 @@ namespace App\Console\Commands;
 
 use App\Models\Customer;
 use App\Models\Shop;
+use App\Models\Supplier;
 use App\Services\LedgerService;
 use App\Tenancy\TenantContext;
 use Illuminate\Console\Command;
@@ -25,7 +26,7 @@ final class LedgerReconcile extends Command
      *
      * @var string
      */
-    protected $description = 'Reconcile customer ledger entries with sale-level balances and report any drifts.';
+    protected $description = 'Reconcile customer and supplier ledger balances and report any drifts.';
 
     public function handle(LedgerService $ledgerService): int
     {
@@ -51,26 +52,48 @@ final class LedgerReconcile extends Command
 
                 if (empty($drifts)) {
                     $this->info("  [OK] Shop #{$shop->id}: All customer balances match ledger sums.");
+                } else {
+                    $totalDrifts += count($drifts);
+                    $this->error('  [DRIFT DETECTED] Found '.count($drifts)." drifting customer balance(s) in shop #{$shop->id}:");
+
+                    $rows = [];
+                    foreach ($drifts as $drift) {
+                        $customer = Customer::withoutGlobalScopes()->find($drift['customer_id']);
+                        $rows[] = [
+                            'Customer ID' => $drift['customer_id'],
+                            'Customer Name' => $customer?->name ?? 'Unknown',
+                            'Ledger Balance' => $drift['ledger_balance'],
+                            'Cached Balance' => $drift['cached_balance'],
+                            'Drift' => $drift['drift'],
+                        ];
+                    }
+
+                    $this->table(['Customer ID', 'Customer Name', 'Ledger Balance', 'Cached Balance', 'Drift'], $rows);
+                }
+
+                $supplierDrifts = $ledgerService->reconcileSuppliers((int) $shop->id);
+
+                if (empty($supplierDrifts)) {
+                    $this->info("  [OK] Shop #{$shop->id}: Supplier ledger balances are consistent.");
 
                     return;
                 }
 
-                $totalDrifts += count($drifts);
-                $this->error('  [DRIFT DETECTED] Found '.count($drifts)." drifting customer balance(s) in shop #{$shop->id}:");
+                $totalDrifts += count($supplierDrifts);
+                $this->error('  [DRIFT DETECTED] Found '.count($supplierDrifts)." supplier ledger issue(s) in shop #{$shop->id}:");
 
-                $rows = [];
-                foreach ($drifts as $drift) {
-                    $customer = Customer::withoutGlobalScopes()->find($drift['customer_id']);
-                    $rows[] = [
-                        'Customer ID' => $drift['customer_id'],
-                        'Customer Name' => $customer?->name ?? 'Unknown',
-                        'Ledger Balance' => $drift['ledger_balance'],
-                        'Cached Balance' => $drift['cached_balance'],
-                        'Drift' => $drift['drift'],
+                $supplierRows = [];
+                foreach ($supplierDrifts as $drift) {
+                    $supplier = Supplier::withoutGlobalScopes()->find($drift['supplier_id']);
+                    $supplierRows[] = [
+                        'Supplier ID' => $drift['supplier_id'],
+                        'Supplier Name' => $supplier?->name ?? 'Unknown',
+                        'Ledger Balance' => $drift['balance'],
+                        'Reason' => $drift['reason'],
                     ];
                 }
 
-                $this->table(['Customer ID', 'Customer Name', 'Ledger Balance', 'Cached Balance', 'Drift'], $rows);
+                $this->table(['Supplier ID', 'Supplier Name', 'Ledger Balance', 'Reason'], $supplierRows);
             });
         }
 

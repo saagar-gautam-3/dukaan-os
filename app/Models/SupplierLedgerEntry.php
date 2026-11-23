@@ -29,6 +29,7 @@ class SupplierLedgerEntry extends Model
         'reference_id',
         'notes',
         'created_by',
+        'created_at',
     ];
 
     protected $casts = [
